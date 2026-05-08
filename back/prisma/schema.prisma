@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STOCKIST
+  MECHANIC
+  FINANCIAL
+  ATTENDANT
+}
+
+model Branch {
+  id        String   @id @default(uuid())
+  name      String
+  cnpj      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users             User[]
+  stocks            Stock[]
+  serviceOrders     ServiceOrder[]
+  inventoryMovements InventoryMovement[]
+  financialRecords  FinancialRecord[]
+  sourceTransfers   InventoryMovement[] @relation("SourceBranch")
+  targetTransfers   InventoryMovement[] @relation("TargetBranch")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(ATTENDANT)
+  branchId  String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch             Branch?             @relation(fields: [branchId], references: [id])
+  serviceOrders      ServiceOrder[]      @relation("MechanicOS")
+  inventoryMovements InventoryMovement[]
+  auditLogs          AuditLog[]
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  document  String   @unique // CPF or CNPJ
+  phone     String?
+  whatsapp  String?
+  address   String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vehicles      Vehicle[]
+  serviceOrders ServiceOrder[]
+}
+
+model Vehicle {
+  id          String   @id @default(uuid())
+  plate       String   @unique
+  model       String
+  brand       String
+  year        Int
+  chassis     String?
+  mileage     Int?
+  engine      String?
+  clientId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client        Client         @relation(fields: [clientId], references: [id])
+  serviceOrders ServiceOrder[]
+}
+
+model Part {
+  id               String   @id @default(uuid())
+  internalCode     String   @unique
+  manufacturerCode String?
+  name             String
+  description      String?
+  category         String?
+  brand            String?
+  supplierId       String?
+  purchasePrice    Decimal  @db.Decimal(10, 2)
+  salePrice        Decimal  @db.Decimal(10, 2)
+  minStock         Int      @default(0)
+  location         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  supplier          Supplier?           @relation(fields: [supplierId], references: [id])
+  stocks            Stock[]
+  osParts           OSPart[]
+  inventoryMovements InventoryMovement[]
+}
+
+model Stock {
+  id        String   @id @default(uuid())
+  partId    String
+  branchId  String
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  part   Part   @relation(fields: [partId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@unique([partId, branchId])
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  cnpj      String?  @unique
+  phone     String?
+  address   String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parts Part[]
+}
+
+enum OSStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_PARTS
+  FINISHED
+  CANCELLED
+}
+
+model ServiceOrder {
+  id            String   @id @default(uuid())
+  number        Int      @unique @default(autoincrement())
+  clientId      String
+  vehicleId     String
+  mechanicId    String?
+  branchId      String
+  status        OSStatus @default(OPEN)
+  totalParts    Decimal  @default(0) @db.Decimal(10, 2)
+  totalServices Decimal  @default(0) @db.Decimal(10, 2)
+  discount      Decimal  @default(0) @db.Decimal(10, 2)
+  finalValue    Decimal  @default(0) @db.Decimal(10, 2)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client   Client   @relation(fields: [clientId], references: [id])
+  vehicle  Vehicle  @relation(fields: [vehicleId], references: [id])
+  mechanic User?    @relation("MechanicOS", fields: [mechanicId], references: [id])
+  branch   Branch   @relation(fields: [branchId], references: [id])
+  parts    OSPart[]
+  services OSService[]
+}
+
+model OSPart {
+  id             String @id @default(uuid())
+  serviceOrderId String
+  partId         String
+  quantity       Int
+  unitPrice      Decimal @db.Decimal(10, 2)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+  part         Part         @relation(fields: [partId], references: [id])
+}
+
+model OSService {
+  id             String @id @default(uuid())
+  serviceOrderId String
+  name           String
+  price          Decimal @db.Decimal(10, 2)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+}
+
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+  TRANSFER
+  RETURN
+}
+
+model InventoryMovement {
+  id             String       @id @default(uuid())
+  partId         String
+  branchId       String
+  userId         String
+  type           MovementType
+  quantity       Int
+  reason         String?
+  sourceBranchId String?
+  targetBranchId String?
+  createdAt      DateTime     @default(now())
+
+  part         Part    @relation(fields: [partId], references: [id])
+  branch       Branch  @relation(fields: [branchId], references: [id])
+  user         User    @relation(fields: [userId], references: [id])
+  sourceBranch Branch? @relation("SourceBranch", fields: [sourceBranchId], references: [id])
+  targetBranch Branch? @relation("TargetBranch", fields: [targetBranchId], references: [id])
+}
+
+enum FinancialType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum FinancialStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model FinancialRecord {
+  id          String          @id @default(uuid())
+  branchId    String
+  type        FinancialType
+  category    String
+  description String?
+  amount      Decimal         @db.Decimal(10, 2)
+  dueDate     DateTime
+  paymentDate DateTime?
+  status      FinancialStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  resource   String
+  resourceId String?
+  oldValue   Json?
+  newValue   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
