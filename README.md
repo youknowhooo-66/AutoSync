@@ -1,15 +1,16 @@
 # Descrição do Projeto — AutoSync ERP
 
-O AutoSync ERP é um sistema de gerenciamento automotivo desenvolvido para oficinas mecânicas de pequeno, médio e grande porte, com suporte a múltiplas filiais e controle integrado de estoque, ordens de serviço e operações administrativas.
+O AutoSync ERP é um sistema de gestão automotiva desenvolvido para oficinas mecânicas de pequeno, médio e grande porte, com suporte a múltiplas filiais e gerenciamento integrado de estoque, ordens de serviço, clientes, veículos e operações administrativas.
 
-O objetivo do sistema é centralizar e automatizar os processos operacionais de oficinas automotivas, proporcionando maior controle sobre peças, serviços, veículos, clientes e movimentações financeiras, além de reduzir erros operacionais e melhorar a eficiência da gestão empresarial.
+A plataforma foi projetada para centralizar, automatizar e otimizar os processos operacionais de oficinas automotivas, proporcionando maior controle sobre peças, movimentações de estoque, serviços executados, fluxo financeiro e desempenho operacional da empresa.
 
-O sistema será desenvolvido para ambiente Windows, permitindo sua utilização em computadores locais e redes corporativas, com acesso simultâneo por diferentes usuários e filiais da empresa.
+O sistema opera em ambiente desktop para Windows e macOS, permitindo utilização em computadores locais e redes corporativas, com acesso simultâneo por múltiplos usuários e filiais conectadas a uma infraestrutura centralizada.
 
-O AutoSync ERP contará com módulos específicos para:
+O AutoSync ERP possui arquitetura modular e escalável, composta pelos seguintes módulos principais:
 
 * gerenciamento de peças automotivas;
 * controle de estoque;
+* movimentações de inventário;
 * cadastro de clientes;
 * cadastro de veículos;
 * gerenciamento de fornecedores;
@@ -17,30 +18,34 @@ O AutoSync ERP contará com módulos específicos para:
 * controle financeiro;
 * auditoria de operações;
 * geração de relatórios gerenciais;
-* controle multi-filial.
+* controle multi-filial;
+* importação de planilhas e relatórios externos.
 
-O controle de estoque será realizado por meio de movimentações registradas, garantindo rastreabilidade completa de entradas, saídas, transferências entre filiais, devoluções e ajustes de inventário.
+O gerenciamento de estoque é baseado em movimentações registradas, garantindo rastreabilidade completa de entradas, saídas, transferências entre filiais, devoluções e ajustes de inventário, permitindo maior controle operacional e auditoria das operações realizadas.
 
-O sistema também permitirá alimentação de dados de forma manual e por importação de arquivos externos, incluindo planilhas XLSX e CSV, facilitando a integração com bases de dados já existentes nas oficinas.
+O sistema permite alimentação de dados tanto manualmente quanto por meio da importação de arquivos externos nos formatos XLSX e CSV, facilitando integração com bases de dados preexistentes e reduzindo retrabalho operacional.
 
-Além disso, o AutoSync ERP oferecerá funcionalidades de:
+Entre as funcionalidades adicionais do sistema destacam-se:
 
 * alertas de estoque mínimo;
 * histórico de movimentações;
-* relatórios financeiros;
-* relatórios de desempenho;
 * controle de permissões de usuários;
-* impressão de ordens de serviço e relatórios.
+* relatórios financeiros e operacionais;
+* relatórios de desempenho;
+* impressão de ordens de serviço e relatórios;
+* autenticação segura de usuários;
+* registro de logs e auditoria.
 
-A aplicação será desenvolvida utilizando tecnologias modernas e escaláveis, incluindo:
+A aplicação é desenvolvida utilizando tecnologias modernas e multiplataforma, incluindo:
 
 * React;
+* TypeScript;
 * Node.js;
 * Express;
 * Prisma ORM;
 * PostgreSQL;
 * Electron.
 
-A arquitetura do sistema será modular, permitindo manutenção simplificada, expansão futura e adaptação às necessidades de oficinas automotivas com diferentes portes operacionais.
+A arquitetura do AutoSync ERP foi projetada para oferecer alta capacidade de manutenção, modularização e expansão futura, permitindo adaptação às necessidades operacionais de oficinas automotivas com diferentes portes e estruturas organizacionais.
 
-O AutoSync ERP busca fornecer uma solução completa, moderna e eficiente para gestão automotiva, contribuindo para maior organização administrativa, controle operacional e melhoria na tomada de decisões empresariais.
+O AutoSync ERP busca fornecer uma solução robusta, moderna e eficiente para gestão automotiva, contribuindo para maior organização administrativa, rastreabilidade operacional, redução de erros e melhoria na tomada de decisões empresariais
