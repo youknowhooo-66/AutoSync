@@ -7,13 +7,9 @@ export class DeleteVehicleService {
   constructor(private vehicleRepository: IVehicleRepository) {}
 
   async execute(id: string, companyId: string): Promise<void> {
-    if (!id || !companyId) {
-      throw new AppError('Vehicle ID and Company ID are required.');
-    }
+    const vehicleExists = await this.vehicleRepository.findById(id, companyId);
 
-    const vehicle = await this.vehicleRepository.findById(id, companyId);
-
-    if (!vehicle) {
+    if (!vehicleExists) {
       throw new AppError('Vehicle not found.', 404);
     }
 

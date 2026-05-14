@@ -7,13 +7,9 @@ export class DeleteClientService {
   constructor(private clientRepository: IClientRepository) {}
 
   async execute(id: string, companyId: string): Promise<void> {
-    if (!id || !companyId) {
-      throw new AppError('Client ID and Company ID are required.');
-    }
+    const clientExists = await this.clientRepository.findById(id, companyId);
 
-    const client = await this.clientRepository.findById(id, companyId);
-
-    if (!client) {
+    if (!clientExists) {
       throw new AppError('Client not found.', 404);
     }
 

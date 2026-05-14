@@ -7,13 +7,9 @@ export class DeleteUserService {
   constructor(private userRepository: IUserRepository) {}
 
   async execute(id: string, companyId: string): Promise<void> {
-    if (!id || !companyId) {
-      throw new AppError('User ID and Company ID are required.');
-    }
+    const userExists = await this.userRepository.findById(id, companyId);
 
-    const user = await this.userRepository.findById(id, companyId);
-
-    if (!user) {
+    if (!userExists) {
       throw new AppError('User not found.', 404);
     }
 

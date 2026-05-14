@@ -1,7 +1,6 @@
 // apps/api/src/modules/companies/services/ListCompanyService.ts
 
 import { ICompanyRepository, Company } from '../repositories/ICompanyRepository';
-import { AppError } from '../../../shared/errors/AppError';
 
 export class ListCompanyService {
   constructor(private companyRepository: ICompanyRepository) {}

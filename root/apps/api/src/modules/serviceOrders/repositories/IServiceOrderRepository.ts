@@ -10,8 +10,8 @@ export interface ServiceOrder {
   description: string;
   status: ServiceOrderStatus;
   startDate: Date;
-  endDate?: Date;
-  totalValue?: number;
+  endDate?: Date | null;
+  totalValue?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +20,8 @@ export interface IServiceOrderRepository {
   create(data: CreateServiceOrderDTO): Promise<ServiceOrder>;
   findById(id: string, companyId: string): Promise<ServiceOrder | null>;
   findManyByCompany(companyId: string): Promise<ServiceOrder[]>;
+  findManyByClient(clientId: string, companyId: string): Promise<ServiceOrder[]>;
+  findManyByVehicle(vehicleId: string, companyId: string): Promise<ServiceOrder[]>;
   update(data: UpdateServiceOrderDTO): Promise<ServiceOrder>;
   delete(id: string, companyId: string): Promise<void>;
 }

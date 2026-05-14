@@ -24,7 +24,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
         endDate: data.endDate,
         totalValue: data.totalValue,
       },
-    });
+    }) as unknown as ServiceOrder;
     return serviceOrder;
   }
 
@@ -36,7 +36,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
           companyId,
         },
       },
-    });
+    }) as unknown as ServiceOrder;
     return serviceOrder;
   }
 
@@ -45,7 +45,27 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
       where: {
         companyId,
       },
-    });
+    }) as unknown as ServiceOrder[];
+    return serviceOrders;
+  }
+
+  async findManyByClient(clientId: string, companyId: string): Promise<ServiceOrder[]> {
+    const serviceOrders = await this.prisma.serviceOrder.findMany({
+      where: {
+        clientId,
+        companyId,
+      },
+    }) as unknown as ServiceOrder[];
+    return serviceOrders;
+  }
+
+  async findManyByVehicle(vehicleId: string, companyId: string): Promise<ServiceOrder[]> {
+    const serviceOrders = await this.prisma.serviceOrder.findMany({
+      where: {
+        vehicleId,
+        companyId,
+      },
+    }) as unknown as ServiceOrder[];
     return serviceOrders;
   }
 
@@ -66,7 +86,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
         endDate: data.endDate,
         totalValue: data.totalValue,
       },
-    });
+    }) as unknown as ServiceOrder;
     return serviceOrder;
   }
 

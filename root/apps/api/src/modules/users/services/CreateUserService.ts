@@ -1,28 +1,18 @@
 // apps/api/src/modules/users/services/CreateUserService.ts
 
+import { hash } from 'bcryptjs';
 import { IUserRepository, User } from '../repositories/IUserRepository';
-import { CreateUserDTO, UserRole } from '../dtos';
+import { CreateUserDTO } from '../dtos';
 import { AppError } from '../../../shared/errors/AppError';
-import * as bcrypt from 'bcryptjs'; // Import bcryptjs for password hashing
 
 export class CreateUserService {
   constructor(private userRepository: IUserRepository) {}
 
-  async execute({ companyId, name, email, password, role }: CreateUserDTO): Promise<User> {
+  async execute(data: CreateUserDTO): Promise<User> {
+    const { companyId, email, password } = data;
+
     if (!companyId) {
       throw new AppError('Company ID is required.');
-    }
-    if (!name) {
-      throw new AppError('Name is required.');
-    }
-    if (!email) {
-      throw new AppError('Email is required.');
-    }
-    if (!password) {
-      throw new AppError('Password is required.');
-    }
-    if (!role) {
-      throw new AppError('Role is required.');
     }
 
     const userExists = await this.userRepository.findByEmail(email, companyId);
@@ -31,16 +21,21 @@ export class CreateUserService {
       throw new AppError('User with this email already exists for this company.', 409);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!password) {
+      throw new AppError('Password is required for user creation.');
+    }
+
+    const hashedPassword = await hash(password, 8);
 
     const user = await this.userRepository.create({
-      companyId,
-      name,
-      email,
+      ...data,
       password: hashedPassword,
-      role,
     });
 
-    return user;
+    // Remove password from response
+    const userResponse = { ...user };
+    delete userResponse.password;
+
+    return userResponse;
   }
 }

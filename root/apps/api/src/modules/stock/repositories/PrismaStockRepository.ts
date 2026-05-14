@@ -21,7 +21,7 @@ export class PrismaStockRepository implements IStockRepository {
         location: data.location,
         minimumStock: data.minimumStock,
       },
-    });
+    }) as unknown as Stock;
     return stock;
   }
 
@@ -33,27 +33,27 @@ export class PrismaStockRepository implements IStockRepository {
           companyId,
         },
       },
-    });
+    }) as unknown as Stock;
     return stock;
   }
 
-  async findByProductId(productId: string, companyId: string): Promise<Stock | null> {
+  async findByProduct(productId: string, companyId: string): Promise<Stock | null> {
     const stock = await this.prisma.stock.findFirst({
       where: {
         productId,
         companyId,
       },
-    });
+    }) as unknown as Stock;
     return stock;
   }
 
   async findManyByCompany(companyId: string): Promise<Stock[]> {
-    const stock = await this.prisma.stock.findMany({
+    const stocks = await this.prisma.stock.findMany({
       where: {
         companyId,
       },
-    });
-    return stock;
+    }) as unknown as Stock[];
+    return stocks;
   }
 
   async update(data: UpdateStockDTO): Promise<Stock> {
@@ -70,7 +70,7 @@ export class PrismaStockRepository implements IStockRepository {
         location: data.location,
         minimumStock: data.minimumStock,
       },
-    });
+    }) as unknown as Stock;
     return stock;
   }
 

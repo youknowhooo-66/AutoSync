@@ -1,10 +1,7 @@
-// apps/api/src/modules/users/repositories/PrismaUserRepository.ts
-
 import { PrismaClient } from '@prisma/client';
-import { IUserRepository, User, UserWithPassword } from './IUserRepository';
+import { IUserRepository, User } from './IUserRepository';
 import { CreateUserDTO, UpdateUserDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import * as bcrypt from 'bcryptjs'; // Assuming bcryptjs is installed
 
 export class PrismaUserRepository implements IUserRepository {
   private prisma: PrismaClient;
@@ -19,28 +16,23 @@ export class PrismaUserRepository implements IUserRepository {
         companyId: data.companyId,
         name: data.name,
         email: data.email,
-        password: data.password, // Password hashing happens in the service layer
+        password: data.password,
         role: data.role,
-        isActive: true, // Default to active
+        branchId: data.branchId,
       },
     });
-    // Don't return password
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user as User;
   }
 
   async findById(id: string, companyId: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+        deletedAt: null,
       },
     });
-    if (!user) return null;
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user as User | null;
   }
 
   async findByEmail(email: string, companyId: string): Promise<User | null> {
@@ -48,62 +40,47 @@ export class PrismaUserRepository implements IUserRepository {
       where: {
         email,
         companyId,
+        deletedAt: null,
       },
     });
-    if (!user) return null;
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
-  async findByEmailWithPassword(email: string, companyId: string): Promise<UserWithPassword | null> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        email,
-        companyId,
-      },
-    });
-    return user as UserWithPassword | null; // Cast to include password for internal auth purposes
+    return user as User | null;
   }
 
   async findManyByCompany(companyId: string): Promise<User[]> {
     const users = await this.prisma.user.findMany({
       where: {
         companyId,
+        deletedAt: null,
       },
     });
-    return users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return users as User[];
   }
 
   async update(data: UpdateUserDTO): Promise<User> {
     const user = await this.prisma.user.update({
       where: {
-        id_companyId: {
-          id: data.id,
-          companyId: data.companyId,
-        },
+        id: data.id,
+        companyId: data.companyId,
       },
       data: {
         name: data.name,
         email: data.email,
-        password: data.password, // Password hashing happens in the service layer
+        password: data.password,
         role: data.role,
-        isActive: data.isActive,
+        branchId: data.branchId,
       },
     });
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user as User;
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.user.delete({
+    await this.prisma.user.update({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+      },
+      data: {
+        deletedAt: new Date(),
       },
     });
   }

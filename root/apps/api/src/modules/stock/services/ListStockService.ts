@@ -11,8 +11,8 @@ export class ListStockService {
       throw new AppError('Company ID is required.');
     }
 
-    const stock = await this.stockRepository.findManyByCompany(companyId);
+    const stocks = await this.stockRepository.findManyByCompany(companyId);
 
-    return stock;
+    return stocks;
   }
 }

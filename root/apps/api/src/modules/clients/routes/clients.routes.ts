@@ -1,24 +1,21 @@
 // apps/api/src/modules/clients/routes/clients.routes.ts
 
 import { Router } from 'express';
-import { createClientController, updateClientController, deleteClientController, listClientController } from '../index'; // Import controllers from the factory
+import {
+  createClientController,
+  updateClientController,
+  deleteClientController,
+  listClientController,
+} from '../index';
+import { authMiddleware } from '../../../shared/middlewares/authMiddleware';
 
 const clientsRoutes = Router();
 
-clientsRoutes.post('/', (request, response) => {
-  return createClientController.handle(request, response);
-});
+clientsRoutes.use(authMiddleware);
 
-clientsRoutes.put('/:id', (request, response) => {
-  return updateClientController.handle(request, response);
-});
-
-clientsRoutes.delete('/:id', (request, response) => {
-  return deleteClientController.handle(request, response);
-});
-
-clientsRoutes.get('/', (request, response) => {
-  return listClientController.handle(request, response);
-});
+clientsRoutes.post('/', (req, res) => createClientController.handle(req, res));
+clientsRoutes.get('/', (req, res) => listClientController.handle(req, res));
+clientsRoutes.put('/:id', (req, res) => updateClientController.handle(req, res));
+clientsRoutes.delete('/:id', (req, res) => deleteClientController.handle(req, res));
 
 export { clientsRoutes };

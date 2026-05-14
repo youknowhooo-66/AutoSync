@@ -1,24 +1,18 @@
 // apps/api/src/modules/vehicles/routes/vehicles.routes.ts
 
 import { Router } from 'express';
-import { createVehicleController, updateVehicleController, deleteVehicleController, listVehicleController } from '../index';
+import {
+  createVehicleController,
+  updateVehicleController,
+  deleteVehicleController,
+  listVehicleController,
+} from '../index';
 
 const vehiclesRoutes = Router();
 
-vehiclesRoutes.post('/', (request, response) => {
-  return createVehicleController.handle(request, response);
-});
-
-vehiclesRoutes.put('/:id', (request, response) => {
-  return updateVehicleController.handle(request, response);
-});
-
-vehiclesRoutes.delete('/:id', (request, response) => {
-  return deleteVehicleController.handle(request, response);
-});
-
-vehiclesRoutes.get('/', (request, response) => {
-  return listVehicleController.handle(request, response);
-});
+vehiclesRoutes.post('/', (req, res) => createVehicleController.handle(req, res));
+vehiclesRoutes.get('/', (req, res) => listVehicleController.handle(req, res));
+vehiclesRoutes.put('/:id', (req, res) => updateVehicleController.handle(req, res));
+vehiclesRoutes.delete('/:id', (req, res) => deleteVehicleController.handle(req, res));
 
 export { vehiclesRoutes };

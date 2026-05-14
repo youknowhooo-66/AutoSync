@@ -13,6 +13,10 @@ export class ListUserService {
 
     const users = await this.userRepository.findManyByCompany(companyId);
 
-    return users;
+    return users.map(user => {
+      const userResponse = { ...user };
+      delete userResponse.password;
+      return userResponse;
+    });
   }
 }

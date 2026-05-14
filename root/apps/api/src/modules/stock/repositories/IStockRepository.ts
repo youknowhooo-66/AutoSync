@@ -16,7 +16,7 @@ export interface Stock {
 export interface IStockRepository {
   create(data: CreateStockDTO): Promise<Stock>;
   findById(id: string, companyId: string): Promise<Stock | null>;
-  findByProductId(productId: string, companyId: string): Promise<Stock | null>;
+  findByProduct(productId: string, companyId: string): Promise<Stock | null>;
   findManyByCompany(companyId: string): Promise<Stock[]>;
   update(data: UpdateStockDTO): Promise<Stock>;
   delete(id: string, companyId: string): Promise<void>;

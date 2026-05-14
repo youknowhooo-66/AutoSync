@@ -1,7 +1,6 @@
 // apps/api/src/modules/serviceOrders/controllers/UpdateServiceOrderController.ts
 
 import { Request, Response } from 'express';
-import { AppError } from '../../../shared/errors/AppError';
 import { UpdateServiceOrderService } from '../services/UpdateServiceOrderService';
 
 export class UpdateServiceOrderController {
@@ -9,27 +8,21 @@ export class UpdateServiceOrderController {
 
   async handle(request: Request, response: Response): Promise<Response> {
     const { id } = request.params;
-    const { companyId, clientId, vehicleId, description, status, startDate, endDate, totalValue } = request.body;
+    const { clientId, vehicleId, description, status, startDate, endDate, totalValue } = request.body;
+    const { companyId } = request;
 
-    try {
-      const serviceOrder = await this.updateServiceOrderService.execute({
-        id,
-        companyId,
-        clientId,
-        vehicleId,
-        description,
-        status,
-        startDate,
-        endDate,
-        totalValue,
-      });
+    const serviceOrder = await this.updateServiceOrderService.execute({
+      id,
+      companyId,
+      clientId,
+      vehicleId,
+      description,
+      status,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      totalValue,
+    });
 
-      return response.status(200).json(serviceOrder);
-    } catch (error) {
-      if (error instanceof AppError) {
-        return response.status(error.statusCode).json({ message: error.message });
-      }
-      return response.status(500).json({ message: 'Internal server error' });
-    }
+    return response.json(serviceOrder);
   }
 }

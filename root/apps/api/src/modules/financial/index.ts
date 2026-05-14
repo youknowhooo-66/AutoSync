@@ -1,35 +1,33 @@
 // apps/api/src/modules/financial/index.ts
 
-import { PrismaFinancialEntryRepository } from './repositories/PrismaFinancialEntryRepository';
-
-import { CreateFinancialEntryService } from './services/CreateFinancialEntryService';
-import { UpdateFinancialEntryService } from './services/UpdateFinancialEntryService';
-import { DeleteFinancialEntryService } from './services/DeleteFinancialEntryService';
-import { ListFinancialEntryService } from './services/ListFinancialEntryService';
-
-import { CreateFinancialEntryController } from './controllers/CreateFinancialEntryController';
-import { UpdateFinancialEntryController } from './controllers/UpdateFinancialEntryController';
-import { DeleteFinancialEntryController } from './controllers/DeleteFinancialEntryController';
-import { ListFinancialEntryController } from './controllers/ListFinancialEntryController';
+import { PrismaFinancialRepository } from './repositories/PrismaFinancialRepository';
+import { CreateFinancialService } from './services/CreateFinancialService';
+import { UpdateFinancialService } from './services/UpdateFinancialService';
+import { DeleteFinancialService } from './services/DeleteFinancialService';
+import { ListFinancialService } from './services/ListFinancialService';
+import { CreateFinancialController } from './controllers/CreateFinancialController';
+import { UpdateFinancialController } from './controllers/UpdateFinancialController';
+import { DeleteFinancialController } from './controllers/DeleteFinancialController';
+import { ListFinancialController } from './controllers/ListFinancialController';
 
 // Repositories
-const prismaFinancialEntryRepository = new PrismaFinancialEntryRepository();
+const prismaFinancialRepository = new PrismaFinancialRepository();
 
 // Services
-const createFinancialEntryService = new CreateFinancialEntryService(prismaFinancialEntryRepository);
-const updateFinancialEntryService = new UpdateFinancialEntryService(prismaFinancialEntryRepository);
-const deleteFinancialEntryService = new DeleteFinancialEntryService(prismaFinancialEntryRepository);
-const listFinancialEntryService = new ListFinancialEntryService(prismaFinancialEntryRepository);
+const createFinancialService = new CreateFinancialService(prismaFinancialRepository);
+const updateFinancialService = new UpdateFinancialService(prismaFinancialRepository);
+const deleteFinancialService = new DeleteFinancialService(prismaFinancialRepository);
+const listFinancialService = new ListFinancialService(prismaFinancialRepository);
 
 // Controllers
-const createFinancialEntryController = new CreateFinancialEntryController(createFinancialEntryService);
-const updateFinancialEntryController = new UpdateFinancialEntryController(updateFinancialEntryService);
-const deleteFinancialEntryController = new DeleteFinancialEntryController(deleteFinancialEntryService);
-const listFinancialEntryController = new ListFinancialEntryController(listFinancialEntryService);
+const createFinancialController = new CreateFinancialController(createFinancialService);
+const updateFinancialController = new UpdateFinancialController(updateFinancialService);
+const deleteFinancialController = new DeleteFinancialController(deleteFinancialService);
+const listFinancialController = new ListFinancialController(listFinancialService);
 
 export {
-  createFinancialEntryController,
-  updateFinancialEntryController,
-  deleteFinancialEntryController,
-  listFinancialEntryController,
+  createFinancialController,
+  updateFinancialController,
+  deleteFinancialController,
+  listFinancialController,
 };

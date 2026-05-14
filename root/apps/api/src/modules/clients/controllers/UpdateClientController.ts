@@ -1,36 +1,29 @@
 // apps/api/src/modules/clients/controllers/UpdateClientController.ts
 
 import { Request, Response } from 'express';
-import { AppError } from '../../../shared/errors/AppError';
-import { UpdateClientService } from '../services/UpdateClientService'; // Import the service
+import { UpdateClientService } from '../services/UpdateClientService';
+import { updateClientSchema } from '../validators/updateSchema';
 
 export class UpdateClientController {
   constructor(private updateClientService: UpdateClientService) {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { id } = request.params;
-    const { companyId, name, email, phone, document, address, city, state, zipCode } = request.body;
+    const data = updateClientSchema.parse({
+      ...request.body,
+      id: request.params.id
+    });
+    
+    const { companyId } = request.user;
 
-    try {
-      const client = await this.updateClientService.execute({
-        id,
-        companyId,
-        name,
-        email,
-        phone,
-        document,
-        address,
-        city,
-        state,
-        zipCode,
-      });
+    const client = await this.updateClientService.execute({
+      ...data,
+      companyId,
+    });
 
-      return response.status(200).json(client);
-    } catch (error) {
-      if (error instanceof AppError) {
-        return response.status(error.statusCode).json({ message: error.message });
-      }
-      return response.status(500).json({ message: 'Internal server error' });
-    }
+    return response.json({
+      success: true,
+      data: client,
+      message: 'Client updated successfully'
+    });
   }
 }

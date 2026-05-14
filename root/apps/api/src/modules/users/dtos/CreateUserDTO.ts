@@ -10,6 +10,6 @@ export interface CreateUserDTO {
   companyId: string;
   name: string;
   email: string;
-  password?: string; // Optional for creation if it's set later or auto-generated
+  password?: string;
   role: UserRole;
 }

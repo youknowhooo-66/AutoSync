@@ -30,12 +30,11 @@ export class PrismaClientRepository implements IClientRepository {
   }
 
   async findById(id: string, companyId: string): Promise<Client | null> {
-    const client = await this.prisma.client.findUnique({
+    const client = await this.prisma.client.findFirst({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+        deletedAt: null,
       },
     });
     return client;
@@ -46,6 +45,7 @@ export class PrismaClientRepository implements IClientRepository {
       where: {
         name,
         companyId,
+        deletedAt: null,
       },
     });
     return client;
@@ -55,6 +55,7 @@ export class PrismaClientRepository implements IClientRepository {
     const clients = await this.prisma.client.findMany({
       where: {
         companyId,
+        deletedAt: null,
       },
     });
     return clients;
@@ -63,10 +64,8 @@ export class PrismaClientRepository implements IClientRepository {
   async update(data: UpdateClientDTO): Promise<Client> {
     const client = await this.prisma.client.update({
       where: {
-        id_companyId: {
-          id: data.id,
-          companyId: data.companyId,
-        },
+        id: data.id,
+        companyId: data.companyId,
       },
       data: {
         name: data.name,
@@ -83,12 +82,13 @@ export class PrismaClientRepository implements IClientRepository {
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.client.delete({
+    await this.prisma.client.update({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+      },
+      data: {
+        deletedAt: new Date(),
       },
     });
   }

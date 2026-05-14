@@ -7,7 +7,9 @@ import { AppError } from '../../../shared/errors/AppError';
 export class CreateVehicleService {
   constructor(private vehicleRepository: IVehicleRepository) {}
 
-  async execute({ companyId, brand, model, year, licensePlate, color, clientId }: CreateVehicleDTO): Promise<Vehicle> {
+  async execute(data: CreateVehicleDTO): Promise<Vehicle> {
+    const { companyId, licensePlate } = data;
+
     if (!companyId) {
       throw new AppError('Company ID is required.');
     }
@@ -18,15 +20,7 @@ export class CreateVehicleService {
       throw new AppError('Vehicle with this license plate already exists for this company.', 409);
     }
 
-    const vehicle = await this.vehicleRepository.create({
-      companyId,
-      brand,
-      model,
-      year,
-      licensePlate,
-      color,
-      clientId,
-    });
+    const vehicle = await this.vehicleRepository.create(data);
 
     return vehicle;
   }

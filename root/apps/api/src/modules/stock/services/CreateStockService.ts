@@ -7,30 +7,20 @@ import { AppError } from '../../../shared/errors/AppError';
 export class CreateStockService {
   constructor(private stockRepository: IStockRepository) {}
 
-  async execute({ companyId, productId, quantity, location, minimumStock }: CreateStockDTO): Promise<Stock> {
+  async execute(data: CreateStockDTO): Promise<Stock> {
+    const { companyId, productId } = data;
+
     if (!companyId) {
       throw new AppError('Company ID is required.');
     }
-    if (!productId) {
-      throw new AppError('Product ID is required.');
-    }
-    if (quantity === undefined || quantity < 0) {
-      throw new AppError('Quantity must be a non-negative number.');
-    }
 
-    const stockExists = await this.stockRepository.findByProductId(productId, companyId);
+    const stockExists = await this.stockRepository.findByProduct(productId, companyId);
 
     if (stockExists) {
-      throw new AppError('Stock entry for this product already exists for this company. Please update existing entry.', 409);
+      throw new AppError('Stock for this product already exists. Use update instead.', 409);
     }
 
-    const stock = await this.stockRepository.create({
-      companyId,
-      productId,
-      quantity,
-      location,
-      minimumStock,
-    });
+    const stock = await this.stockRepository.create(data);
 
     return stock;
   }

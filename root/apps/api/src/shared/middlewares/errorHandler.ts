@@ -9,15 +9,17 @@ export function errorHandler(
 ) {
   if (err instanceof AppError) {
     return response.status(err.statusCode).json({
-      status: 'error',
-      message: err.message,
+      success: false,
+      error: err.message,
+      statusCode: err.statusCode,
     });
   }
 
   console.error(err);
 
   return response.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
+    success: false,
+    error: 'Internal server error',
+    statusCode: 500,
   });
 }

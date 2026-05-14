@@ -9,8 +9,8 @@ export interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  color?: string;
-  clientId?: string;
+  color: string;
+  clientId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +20,7 @@ export interface IVehicleRepository {
   findById(id: string, companyId: string): Promise<Vehicle | null>;
   findByLicensePlate(licensePlate: string, companyId: string): Promise<Vehicle | null>;
   findManyByCompany(companyId: string): Promise<Vehicle[]>;
+  findManyByClient(clientId: string, companyId: string): Promise<Vehicle[]>;
   update(data: UpdateVehicleDTO): Promise<Vehicle>;
   delete(id: string, companyId: string): Promise<void>;
 }

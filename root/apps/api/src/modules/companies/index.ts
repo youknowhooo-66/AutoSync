@@ -1,12 +1,10 @@
 // apps/api/src/modules/companies/index.ts
 
 import { PrismaCompanyRepository } from './repositories/PrismaCompanyRepository';
-
 import { CreateCompanyService } from './services/CreateCompanyService';
 import { UpdateCompanyService } from './services/UpdateCompanyService';
 import { DeleteCompanyService } from './services/DeleteCompanyService';
 import { ListCompanyService } from './services/ListCompanyService';
-
 import { CreateCompanyController } from './controllers/CreateCompanyController';
 import { UpdateCompanyController } from './controllers/UpdateCompanyController';
 import { DeleteCompanyController } from './controllers/DeleteCompanyController';

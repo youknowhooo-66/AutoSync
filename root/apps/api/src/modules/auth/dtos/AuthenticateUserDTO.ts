@@ -2,6 +2,6 @@
 
 export interface AuthenticateUserDTO {
   email: string;
-  password?: string; // Optional if using external authentication provider
+  password?: string;
   companyId: string;
 }

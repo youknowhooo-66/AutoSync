@@ -1,12 +1,10 @@
 // apps/api/src/modules/vehicles/index.ts
 
 import { PrismaVehicleRepository } from './repositories/PrismaVehicleRepository';
-
 import { CreateVehicleService } from './services/CreateVehicleService';
 import { UpdateVehicleService } from './services/UpdateVehicleService';
 import { DeleteVehicleService } from './services/DeleteVehicleService';
 import { ListVehicleService } from './services/ListVehicleService';
-
 import { CreateVehicleController } from './controllers/CreateVehicleController';
 import { UpdateVehicleController } from './controllers/UpdateVehicleController';
 import { DeleteVehicleController } from './controllers/DeleteVehicleController';

@@ -9,5 +9,4 @@ export interface UpdateUserDTO {
   email?: string;
   password?: string;
   role?: UserRole;
-  isActive?: boolean;
 }

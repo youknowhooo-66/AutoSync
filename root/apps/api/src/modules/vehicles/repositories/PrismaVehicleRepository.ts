@@ -19,7 +19,7 @@ export class PrismaVehicleRepository implements IVehicleRepository {
         brand: data.brand,
         model: data.model,
         year: data.year,
-        licensePlate: data.licensePlate,
+        plate: data.plate,
         color: data.color,
         clientId: data.clientId,
       },
@@ -28,22 +28,22 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   }
 
   async findById(id: string, companyId: string): Promise<Vehicle | null> {
-    const vehicle = await this.prisma.vehicle.findUnique({
+    const vehicle = await this.prisma.vehicle.findFirst({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+        deletedAt: null,
       },
     });
     return vehicle;
   }
 
-  async findByLicensePlate(licensePlate: string, companyId: string): Promise<Vehicle | null> {
+  async findByPlate(plate: string, companyId: string): Promise<Vehicle | null> {
     const vehicle = await this.prisma.vehicle.findFirst({
       where: {
-        licensePlate,
+        plate,
         companyId,
+        deletedAt: null,
       },
     });
     return vehicle;
@@ -53,6 +53,18 @@ export class PrismaVehicleRepository implements IVehicleRepository {
     const vehicles = await this.prisma.vehicle.findMany({
       where: {
         companyId,
+        deletedAt: null,
+      },
+    });
+    return vehicles;
+  }
+
+  async findManyByClient(clientId: string, companyId: string): Promise<Vehicle[]> {
+    const vehicles = await this.prisma.vehicle.findMany({
+      where: {
+        clientId,
+        companyId,
+        deletedAt: null,
       },
     });
     return vehicles;
@@ -61,16 +73,14 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   async update(data: UpdateVehicleDTO): Promise<Vehicle> {
     const vehicle = await this.prisma.vehicle.update({
       where: {
-        id_companyId: {
-          id: data.id,
-          companyId: data.companyId,
-        },
+        id: data.id,
+        companyId: data.companyId,
       },
       data: {
         brand: data.brand,
         model: data.model,
         year: data.year,
-        licensePlate: data.licensePlate,
+        plate: data.plate,
         color: data.color,
         clientId: data.clientId,
       },
@@ -79,12 +89,13 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.vehicle.delete({
+    await this.prisma.vehicle.update({
       where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+        id,
+        companyId,
+      },
+      data: {
+        deletedAt: new Date(),
       },
     });
   }

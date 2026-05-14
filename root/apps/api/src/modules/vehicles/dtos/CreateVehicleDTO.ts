@@ -6,6 +6,6 @@ export interface CreateVehicleDTO {
   model: string;
   year: number;
   licensePlate: string;
-  color?: string;
-  clientId?: string;
+  color: string;
+  clientId: string;
 }

@@ -1,4 +1,4 @@
 // apps/api/src/modules/financial/dtos/index.ts
 
-export * from './CreateFinancialEntryDTO';
-export * from './UpdateFinancialEntryDTO';
+export * from './CreateFinancialDTO';
+export * from './UpdateFinancialDTO';

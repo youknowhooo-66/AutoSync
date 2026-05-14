@@ -7,14 +7,10 @@ export class DeleteStockService {
   constructor(private stockRepository: IStockRepository) {}
 
   async execute(id: string, companyId: string): Promise<void> {
-    if (!id || !companyId) {
-      throw new AppError('Stock ID and Company ID are required.');
-    }
+    const stockExists = await this.stockRepository.findById(id, companyId);
 
-    const stock = await this.stockRepository.findById(id, companyId);
-
-    if (!stock) {
-      throw new AppError('Stock entry not found.', 404);
+    if (!stockExists) {
+      throw new AppError('Stock item not found.', 404);
     }
 
     await this.stockRepository.delete(id, companyId);

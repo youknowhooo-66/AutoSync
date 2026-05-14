@@ -1,36 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
+import { verify } from 'jsonwebtoken';
 import { AppError } from '../errors/AppError';
 
-// Extending Express Request to include companyId
-declare global {
-  namespace Express {
-    interface Request {
-      companyId: string;
-      userId: string;
-    }
-  }
+interface TokenPayload {
+  sub: string;
+  companyId: string;
+  role: 'ADMIN' | 'USER' | 'VIEWER';
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const authToken = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
-  if (!authToken) {
-    throw new AppError('Token missing', 401);
+  if (!authHeader) {
+    throw new AppError('JWT token is missing', 401);
   }
 
-  const [, token] = authToken.split(' ');
+  const [, token] = authHeader.split(' ');
 
   try {
-    // In a real application, you would verify the JWT here.
-    // For this architecture implementation, we mock the extraction.
-    // Replace this with: const decoded = verify(token, secret);
-    
-    // MOCK: Assuming JWT payload contains companyId and userId
-    req.companyId = 'mock-company-id'; 
-    req.userId = 'mock-user-id';
+    const decoded = verify(token, process.env.JWT_SECRET || 'default-secret');
 
-    next();
+    const { sub, companyId, role } = decoded as TokenPayload;
+
+    req.user = {
+      id: sub,
+      companyId,
+      role,
+    };
+
+    req.companyId = companyId;
+
+    return next();
   } catch (err) {
-    throw new AppError('Invalid token', 401);
+    throw new AppError('Invalid JWT token', 401);
   }
 }

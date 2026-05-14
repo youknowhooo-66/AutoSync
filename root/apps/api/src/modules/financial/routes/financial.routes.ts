@@ -1,24 +1,18 @@
 // apps/api/src/modules/financial/routes/financial.routes.ts
 
 import { Router } from 'express';
-import { createFinancialEntryController, updateFinancialEntryController, deleteFinancialEntryController, listFinancialEntryController } from '../index';
+import {
+  createFinancialController,
+  updateFinancialController,
+  deleteFinancialController,
+  listFinancialController,
+} from '../index';
 
 const financialRoutes = Router();
 
-financialRoutes.post('/', (request, response) => {
-  return createFinancialEntryController.handle(request, response);
-});
-
-financialRoutes.put('/:id', (request, response) => {
-  return updateFinancialEntryController.handle(request, response);
-});
-
-financialRoutes.delete('/:id', (request, response) => {
-  return deleteFinancialEntryController.handle(request, response);
-});
-
-financialRoutes.get('/', (request, response) => {
-  return listFinancialEntryController.handle(request, response);
-});
+financialRoutes.post('/', (req, res) => createFinancialController.handle(req, res));
+financialRoutes.get('/', (req, res) => listFinancialController.handle(req, res));
+financialRoutes.put('/:id', (req, res) => updateFinancialController.handle(req, res));
+financialRoutes.delete('/:id', (req, res) => deleteFinancialController.handle(req, res));
 
 export { financialRoutes };

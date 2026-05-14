@@ -1,13 +1,15 @@
 // apps/api/src/modules/clients/services/CreateClientService.ts
 
 import { IClientRepository, Client } from '../repositories/IClientRepository';
-import { CreateClientDTO } from '../dtos/CreateClientDTO';
+import { CreateClientDTO } from '../dtos';
 import { AppError } from '../../../shared/errors/AppError';
 
 export class CreateClientService {
   constructor(private clientRepository: IClientRepository) {}
 
-  async execute({ companyId, name, email, phone, document, address, city, state, zipCode }: CreateClientDTO): Promise<Client> {
+  async execute(data: CreateClientDTO): Promise<Client> {
+    const { companyId, name } = data;
+
     if (!companyId) {
       throw new AppError('Company ID is required.');
     }
@@ -18,17 +20,7 @@ export class CreateClientService {
       throw new AppError('Client with this name already exists for this company.', 409);
     }
 
-    const client = await this.clientRepository.create({
-      companyId,
-      name,
-      email,
-      phone,
-      document,
-      address,
-      city,
-      state,
-      zipCode,
-    });
+    const client = await this.clientRepository.create(data);
 
     return client;
   }

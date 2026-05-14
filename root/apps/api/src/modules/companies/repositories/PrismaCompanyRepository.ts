@@ -1,5 +1,3 @@
-// apps/api/src/modules/companies/repositories/PrismaCompanyRepository.ts
-
 import { PrismaClient } from '@prisma/client';
 import { ICompanyRepository, Company } from './ICompanyRepository';
 import { CreateCompanyDTO, UpdateCompanyDTO } from '../dtos';
@@ -20,40 +18,44 @@ export class PrismaCompanyRepository implements ICompanyRepository {
         address: data.address,
         phone: data.phone,
         email: data.email,
-        isActive: data.isActive !== undefined ? data.isActive : true, // Default to active
+        isActive: data.isActive ?? true,
       },
     });
-    return company;
+    return company as Company;
   }
 
   async findById(id: string): Promise<Company | null> {
-    const company = await this.prisma.company.findUnique({
-      where: {
+    const company = await this.prisma.company.findFirst({
+      where: { 
         id,
+        deletedAt: null,
       },
     });
-    return company;
+    return company as Company | null;
   }
 
   async findByDocument(document: string): Promise<Company | null> {
-    const company = await this.prisma.company.findUnique({
-      where: {
+    const company = await this.prisma.company.findFirst({
+      where: { 
         document,
+        deletedAt: null,
       },
     });
-    return company;
+    return company as Company | null;
   }
 
   async findMany(): Promise<Company[]> {
-    const companies = await this.prisma.company.findMany();
-    return companies;
+    const companies = await this.prisma.company.findMany({
+      where: {
+        deletedAt: null,
+      },
+    });
+    return companies as Company[];
   }
 
   async update(data: UpdateCompanyDTO): Promise<Company> {
     const company = await this.prisma.company.update({
-      where: {
-        id: data.id,
-      },
+      where: { id: data.id },
       data: {
         name: data.name,
         document: data.document,
@@ -63,13 +65,14 @@ export class PrismaCompanyRepository implements ICompanyRepository {
         isActive: data.isActive,
       },
     });
-    return company;
+    return company as Company;
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.company.delete({
-      where: {
-        id,
+    await this.prisma.company.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
       },
     });
   }

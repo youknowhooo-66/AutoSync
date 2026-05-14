@@ -1,24 +1,18 @@
 // apps/api/src/modules/users/routes/users.routes.ts
 
 import { Router } from 'express';
-import { createUserController, updateUserController, deleteUserController, listUserController } from '../index';
+import {
+  createUserController,
+  updateUserController,
+  deleteUserController,
+  listUserController,
+} from '../index';
 
 const usersRoutes = Router();
 
-usersRoutes.post('/', (request, response) => {
-  return createUserController.handle(request, response);
-});
-
-usersRoutes.put('/:id', (request, response) => {
-  return updateUserController.handle(request, response);
-});
-
-usersRoutes.delete('/:id', (request, response) => {
-  return deleteUserController.handle(request, response);
-});
-
-usersRoutes.get('/', (request, response) => {
-  return listUserController.handle(request, response);
-});
+usersRoutes.post('/', (req, res) => createUserController.handle(req, res));
+usersRoutes.get('/', (req, res) => listUserController.handle(req, res));
+usersRoutes.put('/:id', (req, res) => updateUserController.handle(req, res));
+usersRoutes.delete('/:id', (req, res) => deleteUserController.handle(req, res));
 
 export { usersRoutes };

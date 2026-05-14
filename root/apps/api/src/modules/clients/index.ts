@@ -1,12 +1,10 @@
 // apps/api/src/modules/clients/index.ts
 
 import { PrismaClientRepository } from './repositories/PrismaClientRepository';
-
 import { CreateClientService } from './services/CreateClientService';
 import { UpdateClientService } from './services/UpdateClientService';
 import { DeleteClientService } from './services/DeleteClientService';
 import { ListClientService } from './services/ListClientService';
-
 import { CreateClientController } from './controllers/CreateClientController';
 import { UpdateClientController } from './controllers/UpdateClientController';
 import { DeleteClientController } from './controllers/DeleteClientController';

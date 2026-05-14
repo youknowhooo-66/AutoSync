@@ -7,13 +7,9 @@ export class DeleteCompanyService {
   constructor(private companyRepository: ICompanyRepository) {}
 
   async execute(id: string): Promise<void> {
-    if (!id) {
-      throw new AppError('Company ID is required.');
-    }
+    const companyExists = await this.companyRepository.findById(id);
 
-    const company = await this.companyRepository.findById(id);
-
-    if (!company) {
+    if (!companyExists) {
       throw new AppError('Company not found.', 404);
     }
 

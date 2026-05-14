@@ -7,30 +7,17 @@ import { AppError } from '../../../shared/errors/AppError';
 export class UpdateStockService {
   constructor(private stockRepository: IStockRepository) {}
 
-  async execute({ id, companyId, productId, quantity, location, minimumStock }: UpdateStockDTO): Promise<Stock> {
-    if (!id || !companyId) {
-      throw new AppError('Stock ID and Company ID are required.');
+  async execute(data: UpdateStockDTO): Promise<Stock> {
+    const { id, companyId } = data;
+
+    const stockExists = await this.stockRepository.findById(id, companyId);
+
+    if (!stockExists) {
+      throw new AppError('Stock item not found.', 404);
     }
 
-    const stock = await this.stockRepository.findById(id, companyId);
+    const stock = await this.stockRepository.update(data);
 
-    if (!stock) {
-      throw new AppError('Stock entry not found.', 404);
-    }
-
-    if (quantity !== undefined && quantity < 0) {
-      throw new AppError('Quantity must be a non-negative number.');
-    }
-
-    const updatedStock = await this.stockRepository.update({
-      id,
-      companyId,
-      productId: productId || stock.productId,
-      quantity: quantity !== undefined ? quantity : stock.quantity,
-      location: location || stock.location,
-      minimumStock: minimumStock !== undefined ? minimumStock : stock.minimumStock,
-    });
-
-    return updatedStock;
+    return stock;
   }
 }

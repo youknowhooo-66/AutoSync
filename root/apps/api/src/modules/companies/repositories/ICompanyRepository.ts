@@ -5,7 +5,7 @@ import { CreateCompanyDTO, UpdateCompanyDTO } from '../dtos';
 export interface Company {
   id: string;
   name: string;
-  document: string; // CNPJ
+  document: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -16,9 +16,9 @@ export interface Company {
 
 export interface ICompanyRepository {
   create(data: CreateCompanyDTO): Promise<Company>;
-  findById(id: string): Promise<Company | null>; // No companyId filter for the Company itself
+  findById(id: string): Promise<Company | null>;
   findByDocument(document: string): Promise<Company | null>;
-  findMany(): Promise<Company[]>; // No companyId filter for listing all companies
+  findMany(): Promise<Company[]>;
   update(data: UpdateCompanyDTO): Promise<Company>;
-  delete(id: string): Promise<void>; // No companyId filter for the Company itself
+  delete(id: string): Promise<void>;
 }

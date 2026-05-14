@@ -1,12 +1,10 @@
 // apps/api/src/modules/stock/index.ts
 
 import { PrismaStockRepository } from './repositories/PrismaStockRepository';
-
 import { CreateStockService } from './services/CreateStockService';
 import { UpdateStockService } from './services/UpdateStockService';
 import { DeleteStockService } from './services/DeleteStockService';
 import { ListStockService } from './services/ListStockService';
-
 import { CreateStockController } from './controllers/CreateStockController';
 import { UpdateStockController } from './controllers/UpdateStockController';
 import { DeleteStockController } from './controllers/DeleteStockController';

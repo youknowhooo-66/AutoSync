@@ -7,32 +7,17 @@ import { AppError } from '../../../shared/errors/AppError';
 export class UpdateServiceOrderService {
   constructor(private serviceOrderRepository: IServiceOrderRepository) {}
 
-  async execute({ id, companyId, clientId, vehicleId, description, status, startDate, endDate, totalValue }: UpdateServiceOrderDTO): Promise<ServiceOrder> {
-    if (!id || !companyId) {
-      throw new AppError('Service Order ID and Company ID are required.');
-    }
+  async execute(data: UpdateServiceOrderDTO): Promise<ServiceOrder> {
+    const { id, companyId } = data;
 
-    const serviceOrder = await this.serviceOrderRepository.findById(id, companyId);
+    const serviceOrderExists = await this.serviceOrderRepository.findById(id, companyId);
 
-    if (!serviceOrder) {
+    if (!serviceOrderExists) {
       throw new AppError('Service Order not found.', 404);
     }
 
-    // You might want to add validation to ensure clientId and vehicleId exist
-    // in their respective modules and belong to the same companyId, if they are being updated.
+    const serviceOrder = await this.serviceOrderRepository.update(data);
 
-    const updatedServiceOrder = await this.serviceOrderRepository.update({
-      id,
-      companyId,
-      clientId: clientId || serviceOrder.clientId,
-      vehicleId: vehicleId || serviceOrder.vehicleId,
-      description: description || serviceOrder.description,
-      status: status || serviceOrder.status,
-      startDate: startDate || serviceOrder.startDate,
-      endDate: endDate || serviceOrder.endDate,
-      totalValue: totalValue || serviceOrder.totalValue,
-    });
-
-    return updatedServiceOrder;
+    return serviceOrder;
   }
 }

@@ -5,7 +5,7 @@ export interface CreateClientDTO {
   name: string;
   email: string;
   phone?: string;
-  document?: string; // CPF or CNPJ
+  document?: string;
   address?: string;
   city?: string;
   state?: string;

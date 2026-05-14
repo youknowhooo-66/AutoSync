@@ -1,12 +1,10 @@
 // apps/api/src/modules/users/index.ts
 
 import { PrismaUserRepository } from './repositories/PrismaUserRepository';
-
 import { CreateUserService } from './services/CreateUserService';
 import { UpdateUserService } from './services/UpdateUserService';
 import { DeleteUserService } from './services/DeleteUserService';
 import { ListUserService } from './services/ListUserService';
-
 import { CreateUserController } from './controllers/CreateUserController';
 import { UpdateUserController } from './controllers/UpdateUserController';
 import { DeleteUserController } from './controllers/DeleteUserController';

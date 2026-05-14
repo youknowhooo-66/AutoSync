@@ -1,24 +1,18 @@
 // apps/api/src/modules/stock/routes/stock.routes.ts
 
 import { Router } from 'express';
-import { createStockController, updateStockController, deleteStockController, listStockController } from '../index';
+import {
+  createStockController,
+  updateStockController,
+  deleteStockController,
+  listStockController,
+} from '../index';
 
 const stockRoutes = Router();
 
-stockRoutes.post('/', (request, response) => {
-  return createStockController.handle(request, response);
-});
-
-stockRoutes.put('/:id', (request, response) => {
-  return updateStockController.handle(request, response);
-});
-
-stockRoutes.delete('/:id', (request, response) => {
-  return deleteStockController.handle(request, response);
-});
-
-stockRoutes.get('/', (request, response) => {
-  return listStockController.handle(request, response);
-});
+stockRoutes.post('/', (req, res) => createStockController.handle(req, res));
+stockRoutes.get('/', (req, res) => listStockController.handle(req, res));
+stockRoutes.put('/:id', (req, res) => updateStockController.handle(req, res));
+stockRoutes.delete('/:id', (req, res) => deleteStockController.handle(req, res));
 
 export { stockRoutes };

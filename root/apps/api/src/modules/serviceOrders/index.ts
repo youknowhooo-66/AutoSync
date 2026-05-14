@@ -1,12 +1,10 @@
 // apps/api/src/modules/serviceOrders/index.ts
 
 import { PrismaServiceOrderRepository } from './repositories/PrismaServiceOrderRepository';
-
 import { CreateServiceOrderService } from './services/CreateServiceOrderService';
 import { UpdateServiceOrderService } from './services/UpdateServiceOrderService';
 import { DeleteServiceOrderService } from './services/DeleteServiceOrderService';
 import { ListServiceOrderService } from './services/ListServiceOrderService';
-
 import { CreateServiceOrderController } from './controllers/CreateServiceOrderController';
 import { UpdateServiceOrderController } from './controllers/UpdateServiceOrderController';
 import { DeleteServiceOrderController } from './controllers/DeleteServiceOrderController';

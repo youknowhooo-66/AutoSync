@@ -7,13 +7,9 @@ export class DeleteServiceOrderService {
   constructor(private serviceOrderRepository: IServiceOrderRepository) {}
 
   async execute(id: string, companyId: string): Promise<void> {
-    if (!id || !companyId) {
-      throw new AppError('Service Order ID and Company ID are required.');
-    }
+    const serviceOrderExists = await this.serviceOrderRepository.findById(id, companyId);
 
-    const serviceOrder = await this.serviceOrderRepository.findById(id, companyId);
-
-    if (!serviceOrder) {
+    if (!serviceOrderExists) {
       throw new AppError('Service Order not found.', 404);
     }
 

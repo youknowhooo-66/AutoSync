@@ -1,19 +1,109 @@
+
 # Implementation Roadmap for AutoSync ERP Modules
 
-This document outlines the status of implemented modules and the remaining steps for full integration and functionality.
+This document outlines the detailed plan for generating the base modules of the AutoSync ERP backend, following a scalable enterprise architecture.
 
-## Implemented Modules
+## Objective
+Generate the complete backend modules following a layered architecture (Controller, Service, Repository, DTO) with Dependency Injection, multi-tenancy support, and clean code principles.
 
-All requested modules have been generated with their respective Controllers, Services, Repositories, DTOs, Routes, and DI Factories, adhering to the specified enterprise architecture and multi-tenancy principles:
+## Stack
+- Node.js + TypeScript
+- Express
+- Prisma ORM
+- PostgreSQL
+- Monorepo (apps/api, apps/web, apps/desktop)
 
-*   **`clients`**: Full CRUD and listing.
-*   **`vehicles`**: Full CRUD and listing.
-*   **`serviceOrders`**: Full CRUD and listing with status management.
-*   **`stock`**: Full CRUD and listing for inventory items.
-*   **`financial`**: Full CRUD and listing for financial entries.
-*   **`users`**: Full CRUD and listing, including role management and password hashing setup.
-*   **`companies`**: Full CRUD and listing, established as the root multi-tenancy entity.
-*   **`auth`**: User authentication service and controller for login and JWT generation.
+## Modules to be Generated
+1. clients
+2. vehicles
+3. serviceOrders
+4. stock
+5. financial
+6. users
+7. companies
+8. auth
+
+## Architecture Overview
+Each module will reside in `apps/api/src/modules/{module}/` and adhere to the following structure:
+
+```
+apps/api/src/modules/{module}/
+├── controllers/
+│   ├── Create{Module}Controller.ts
+│   ├── Update{Module}Controller.ts
+│   ├── Delete{Module}Controller.ts
+│   └── List{Module}Controller.ts
+├── services/
+│   ├── Create{Module}Service.ts
+│   ├── Update{Module}Service.ts
+│   ├── Delete{Module}Service.ts
+│   └── List{Module}Service.ts
+├── repositories/
+│   ├── I{Module}Repository.ts
+│   └── Prisma{Module}Repository.ts
+├── dtos/
+│   ├── Create{Module}DTO.ts
+│   └── Update{Module}DTO.ts
+├── routes/
+│   └── {module}.routes.ts
+└── index.ts (Dependency Injection Factory)
+```
+
+## Mandatory Rules & Guidelines
+
+### 1. CONTROLLER:
+- Only `handle(req, res)` method.
+- No business logic.
+- Calls service via factory.
+
+### 2. SERVICE (CORE BUSINESS LOGIC):
+- All business logic here.
+- Duplication validation.
+- `companyId` validation (mandatory multi-tenant).
+- Uses repository via interface.
+- `execute()` method.
+- Throws `AppError` on errors.
+
+### 3. REPOSITORY:
+- Only Prisma access.
+- No business logic.
+- Standard methods: `create`, `findById`, `findManyByCompany`, `update`, `delete`, `findByName` (when applicable).
+
+### 4. DTO:
+- TypeScript typed.
+- `companyId` mandatory.
+- No `any`.
+
+### 5. MULTI-TENANT:
+- ALL entities must have `companyId`.
+- ALL queries must filter by `companyId`.
+
+### 6. CLEAN CODE:
+- Small functions.
+- Clear names.
+- No duplication.
+- No logic in the controller.
+
+### 7. DEPENDENCY INJECTION:
+- Services receive repository via constructor.
+- Instantiated via `index.ts` factory.
+
+## Pattern Flow
+`Controller` → `Service` → `Repository` → `Prisma` → `PostgreSQL`
+
+## Modules Status
+
+This section tracks the progress of each module generation.
+
+### Completed Modules:
+*   [x] `clients`
+*   [x] `vehicles`
+*   [x] `serviceOrders`
+*   [x] `stock`
+*   [x] `financial`
+*   [x] `users`
+*   [x] `companies`
+*   [x] `auth`
 
 ## Next Steps for Integration and Further Development
 
