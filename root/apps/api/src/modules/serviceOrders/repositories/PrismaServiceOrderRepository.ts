@@ -28,16 +28,37 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
     return serviceOrder;
   }
 
-  async findById(id: string, companyId: string): Promise<ServiceOrder | null> {
-    const serviceOrder = await this.prisma.serviceOrder.findUnique({
-      where: {
-        id_companyId: {
-          id,
-          companyId,
-        },
+  async findById(id: string, companyId: string) {
+    return await this.prisma.serviceOrder.findFirst({
+      where: { id, companyId, deletedAt: null },
+      include: {
+        parts: { include: { part: true } },
+        services: true,
+        client: true,
+        vehicle: true,
       },
-    }) as unknown as ServiceOrder;
-    return serviceOrder;
+    });
+  }
+
+  async findByNumber(number: number, companyId: string) {
+    return await this.prisma.serviceOrder.findFirst({
+      where: { number, companyId, deletedAt: null },
+    });
+  }
+
+  async list(companyId: string, filters: any) {
+    return await this.prisma.serviceOrder.findMany({
+      where: {
+        companyId,
+        deletedAt: null,
+        ...filters,
+      },
+      include: {
+        client: true,
+        vehicle: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findManyByCompany(companyId: string): Promise<ServiceOrder[]> {

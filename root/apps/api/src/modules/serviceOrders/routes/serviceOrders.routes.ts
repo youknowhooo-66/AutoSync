@@ -1,18 +1,15 @@
-// apps/api/src/modules/serviceOrders/routes/serviceOrders.routes.ts
-
 import { Router } from 'express';
-import {
-  createServiceOrderController,
-  updateServiceOrderController,
-  deleteServiceOrderController,
-  listServiceOrderController,
-} from '../index';
+import { ServiceOrderController } from '../controllers/ServiceOrderController';
+import { authMiddleware } from '../../../shared/middlewares/authMiddleware';
 
-const serviceOrdersRoutes = Router();
+const serviceOrderRouter = Router();
+const controller = new ServiceOrderController();
 
-serviceOrdersRoutes.post('/', (req, res) => createServiceOrderController.handle(req, res));
-serviceOrdersRoutes.get('/', (req, res) => listServiceOrderController.handle(req, res));
-serviceOrdersRoutes.put('/:id', (req, res) => updateServiceOrderController.handle(req, res));
-serviceOrdersRoutes.delete('/:id', (req, res) => deleteServiceOrderController.handle(req, res));
+serviceOrderRouter.use(authMiddleware);
 
-export { serviceOrdersRoutes };
+serviceOrderRouter.post('/', controller.create);
+serviceOrderRouter.patch('/:id/start', controller.start);
+serviceOrderRouter.patch('/:id/complete', controller.complete);
+serviceOrderRouter.patch('/:id/cancel', controller.cancel);
+
+export { serviceOrderRouter };
