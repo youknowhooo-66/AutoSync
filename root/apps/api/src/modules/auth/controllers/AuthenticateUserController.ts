@@ -11,11 +11,6 @@ export class AuthenticateUserController {
     const data = authenticateUserSchema.parse(request.body);
 
     const authResponse = await this.authenticateUserService.execute(data);
-
-    return response.json({
-      success: true,
-      data: authResponse,
-      message: 'Login successful'
-    });
+    return response.json(authResponse);
   }
 }

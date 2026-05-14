@@ -9,9 +9,6 @@ export class ListClientController {
 
     const clients = await this.listClientService.execute(companyId);
 
-    return response.json({
-      success: true,
-      data: clients
-    });
+    return response.json(clients);
   }
 }

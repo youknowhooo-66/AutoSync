@@ -1,38 +1,40 @@
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Install dependencies for building
-RUN apk add --no-cache python3 make g++
-
-COPY package.json package-lock.json ./
-COPY apps/api/package.json ./apps/api/
-COPY apps/api/prisma ./apps/api/prisma/
-
+# Install dependencies
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
 RUN npm install
 
-COPY apps/api ./apps/api/
-COPY tsconfig.base.json ./
+# Copy source
+COPY . .
 
-WORKDIR /app/apps/api
-RUN npx prisma generate
-RUN npm run build
+# Generate Prisma client
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 
-# Stage 2: Runtime
-FROM node:22-alpine AS runner
+# Build TypeScript
+RUN npm run build -w apps/api
+
+# Stage 2: Production
+FROM node:20-slim
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/package.json ./apps/api/
+# Install only production dependencies
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
+RUN npm install --omit=dev
+
+# Copy build artifacts and prisma
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-EXPOSE 3333
+EXPOSE 3000
 
-CMD ["node", "apps/api/dist/server.js"]
+# Entrypoint will be handled by docker-compose (API or Worker)
+CMD ["node", "apps/api/dist/shared/infra/http/server.js"]

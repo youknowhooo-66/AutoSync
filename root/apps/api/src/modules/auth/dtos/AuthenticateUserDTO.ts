@@ -3,5 +3,5 @@
 export interface AuthenticateUserDTO {
   email: string;
   password?: string;
-  companyId: string;
+  companyId?: string;
 }

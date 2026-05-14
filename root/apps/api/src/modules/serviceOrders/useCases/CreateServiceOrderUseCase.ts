@@ -48,15 +48,43 @@ export class CreateServiceOrderUseCase {
         },
       });
 
-      // 3. Create OSParts
-      if (data.parts.length > 0) {
-        await tx.oSPart.createMany({
-          data: data.parts.map(p => ({
+      // 3. Create OSParts & Update Stock
+      for (const p of data.parts) {
+        // a. Verify Stock
+        const stock = await tx.stock.findUnique({
+          where: { partId_branchId: { partId: p.partId, branchId: data.branchId } }
+        });
+
+        if (!stock || stock.quantity < p.quantity) {
+          throw new AppError(`Insufficient stock for part ${p.partId}. Available: ${stock?.quantity || 0}`, 400);
+        }
+
+        // b. Deduct Stock
+        await tx.stock.update({
+          where: { id: stock.id },
+          data: { quantity: { decrement: p.quantity } }
+        });
+
+        // c. Record OSPart
+        await tx.oSPart.create({
+          data: {
             serviceOrderId: serviceOrder.id,
             partId: p.partId,
             quantity: p.quantity,
             unitPrice: p.unitPrice,
-          })),
+          },
+        });
+
+        // d. Record Movement & Audit
+        await tx.inventoryMovement.create({
+          data: {
+            partId: p.partId,
+            branchId: data.branchId,
+            userId: (data as any).userId || 'system',
+            type: 'OUT',
+            quantity: p.quantity,
+            reason: `Service Order Created (OS: ${serviceOrder.id})`,
+          }
         });
       }
 

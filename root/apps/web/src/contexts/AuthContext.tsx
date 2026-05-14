@@ -1,23 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
 interface User {
   id: string;
   name: string;
-  email: string;
-  role: string;
-  branchId: string | null;
+  role: 'ADMIN' | 'MANAGER' | 'MECHANIC' | 'FINANCE' | 'RECEPTIONIST';
+  companyId: string;
+  branchId?: string | null;
 }
 
-interface AuthContextType {
+interface AuthContextData {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
+  signed: boolean;
   loading: boolean;
+  signIn(token: string, userData: User): void;
+  signOut(): void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -25,44 +25,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const storagedUser = localStorage.getItem('@AutoSync:user');
+    const storagedToken = localStorage.getItem('@AutoSync:token');
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+    if (storagedUser && storagedToken) {
+      setUser(JSON.parse(storagedUser));
+      setToken(storagedToken);
     }
     setLoading(false);
   }, []);
 
-  const login = (token: string, user: User) => {
-    setToken(token);
-    setUser(user);
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  const signIn = (newToken: string, userData: User) => {
+    localStorage.setItem('@AutoSync:token', newToken);
+    localStorage.setItem('@AutoSync:user', JSON.stringify(userData));
+    localStorage.setItem('@AutoSync:companyId', userData.companyId);
+    
+    setToken(newToken);
+    setUser(userData);
   };
 
-  const logout = () => {
+  const signOut = () => {
+    localStorage.clear();
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      signed: !!token, 
+      loading, 
+      signIn, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

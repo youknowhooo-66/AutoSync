@@ -13,11 +13,13 @@ import { swaggerSpec } from './shared/infra/http/swagger';
 import { authRoutes } from './modules/auth/routes/auth.routes';
 import { clientsRoutes } from './modules/clients/routes/clients.routes';
 import { vehiclesRoutes } from './modules/vehicles/routes/vehicles.routes';
-import { serviceOrdersRoutes } from './modules/serviceOrders/routes/serviceOrders.routes';
+import { serviceOrderRouter } from './modules/serviceOrders/routes/serviceOrders.routes';
 import { stockRoutes } from './modules/stock/routes/stock.routes';
+import { suppliersRoutes } from './modules/stock/routes/suppliers.routes';
 import { financialRoutes } from './modules/financial/routes/financial.routes';
 import { usersRoutes } from './modules/users/routes/users.routes';
 import { companiesRoutes } from './modules/companies/routes/companies.routes';
+import { dashboardRouter } from './modules/dashboard/routes/dashboard.routes';
 
 dotenv.config();
 
@@ -56,11 +58,16 @@ app.use(tenantMiddleware);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/vehicles', vehiclesRoutes);
-app.use('/api/service-orders', serviceOrdersRoutes);
+app.use('/api/service-orders', serviceOrderRouter);
+app.use('/api/os', serviceOrderRouter); // Alias for frontend
 app.use('/api/stock', stockRoutes);
+app.use('/api/inventory', stockRoutes); // Alias for frontend
+app.use('/api/suppliers', suppliersRoutes);
 app.use('/api/financial', financialRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/companies', companiesRoutes);
+app.use('/api/branches', companiesRoutes); // Alias for frontend
+app.use('/api/dashboard', dashboardRouter);
 
 app.get('/health', (req, res) => {
   res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });

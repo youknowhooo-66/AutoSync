@@ -6,7 +6,7 @@ import { AppError } from '../../../shared/errors/AppError';
 export function rbacMiddleware(requiredPermission: Permission) {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const { companyId } = req.body; // or req.query depending on endpoint
+    const companyId = req.body?.companyId || req.query?.companyId;
 
     if (!user) {
       throw new AppError('Unauthenticated', 401);

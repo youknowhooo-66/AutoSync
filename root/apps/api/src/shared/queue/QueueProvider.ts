@@ -14,17 +14,20 @@ export class QueueProvider {
       this.queues[name] = new Queue(name, {
         connection: redisConfig,
         defaultJobOptions: {
-          attempts: 3,
+          attempts: 5, // Increased retries for production
           backoff: {
             type: 'exponential',
-            delay: 1000,
+            delay: 2000, // 2s initial delay
           },
-          removeOnComplete: true,
-          removeOnFail: false,
+          removeOnComplete: {
+            age: 24 * 3600, // Keep for 24h
+            count: 1000,
+          },
+          removeOnFail: false, // DO NOT remove on fail -> this is our DLQ
         },
         ...options,
       });
-      logger.info(`[QueueProvider] Queue registered: ${name}`);
+      logger.info(`[QueueProvider] Production Resilience Queue registered: ${name}`);
     }
     return this.queues[name];
   }

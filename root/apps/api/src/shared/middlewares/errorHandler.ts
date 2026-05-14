@@ -15,6 +15,15 @@ export function errorHandler(
     });
   }
 
+  if (err.name === 'ZodError') {
+    return response.status(400).json({
+      success: false,
+      error: 'Validation error',
+      details: (err as any).format(),
+      statusCode: 400,
+    });
+  }
+
   console.error(err);
 
   return response.status(500).json({

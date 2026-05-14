@@ -85,47 +85,51 @@ const Dashboard: React.FC = () => {
 
       {/* Charts Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1.5rem' }}>
-        <div className="card" style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ marginBottom: '1.5rem' }}>Faturamento Diário</h3>
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats?.chartData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(val) => `R$ ${val}`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#38bdf8' }}
-                  formatter={(val: any) => [`R$ ${val.toLocaleString('pt-BR')}`, 'Faturamento']}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#38bdf8" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.chartData}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(val) => `R$ ${val}`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#38bdf8' }}
+                    formatter={(val: any) => [`R$ ${val.toLocaleString('pt-BR')}`, 'Faturamento']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#38bdf8" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
-        <div className="card" style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ marginBottom: '1.5rem' }}>Status das OS</h3>
-          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.statusDistribution} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="status" type="category" stroke="#64748b" fontSize={11} width={80} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                    formatter={(val: any) => [val, 'Quantidade']}
-                  />
-                  <Bar dataKey="_count.id" fill="#818cf8" radius={[0, 4, 4, 0]} barSize={20} />
-                </BarChart>
-              </ResponsiveContainer>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats?.statusDistribution} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="status" type="category" stroke="#64748b" fontSize={11} width={80} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                      formatter={(val: any) => [val, 'Quantidade']}
+                    />
+                    <Bar dataKey="_count.id" fill="#818cf8" radius={[0, 4, 4, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
             <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               {stats?.statusDistribution?.map((item: any) => (
@@ -141,21 +145,23 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '1.5rem' }}>
-        <div className="card" style={{ height: '350px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
            <h3 style={{ marginBottom: '1.5rem' }}>Volume de OS</h3>
-           <div style={{ flex: 1, minHeight: 0 }}>
-             <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={stats?.chartData}>
-                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                 <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                 <YAxis stroke="#64748b" fontSize={12} />
-                 <Tooltip 
-                   contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                   formatter={(val: any) => [val, 'Ordens de Serviço']}
-                 />
-                 <Bar dataKey="os" fill="#818cf8" radius={[4, 4, 0, 0]} />
-               </BarChart>
-             </ResponsiveContainer>
+           <div style={{ flex: 1, position: 'relative' }}>
+             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={stats?.chartData}>
+                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                   <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+                   <YAxis stroke="#64748b" fontSize={12} />
+                   <Tooltip 
+                     contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                     formatter={(val: any) => [val, 'Ordens de Serviço']}
+                   />
+                   <Bar dataKey="os" fill="#818cf8" radius={[4, 4, 0, 0]} />
+                 </BarChart>
+               </ResponsiveContainer>
+             </div>
            </div>
         </div>
 

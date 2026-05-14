@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import { MdEmail, MdLock, MdLogin } from 'react-icons/md';
 
@@ -8,19 +8,19 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/login', {
+      const response = await api.post('/auth/sessions', {
         email,
         password
       });
 
-      login(response.data.token, response.data.user);
+      signIn(response.data.token, response.data.user);
       toast.success('Bem-vindo ao AutoSync!');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao realizar login.');

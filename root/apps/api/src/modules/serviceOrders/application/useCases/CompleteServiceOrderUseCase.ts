@@ -9,20 +9,22 @@ import { Permission } from '../../../modules/auth/rbac/permissions';
 interface IRequest {
   serviceOrderId: string;
   companyId: string;
+  operationalBranchId: string; // The branch where the OS belongs
   userId: string;
-  userRole: any; // Using any for simplicity in this bridge, should be Role enum
+  userRole: any; 
+  userBranchId?: string | null; // The user's assigned branch
   correlationId?: string;
 }
 
 export class CompleteServiceOrderUseCase {
-  async execute({ serviceOrderId, companyId, userId, userRole, correlationId }: IRequest) {
+  async execute({ serviceOrderId, companyId, operationalBranchId, userId, userRole, userBranchId, correlationId }: IRequest) {
     logger.info(`[UseCase:CompleteOS] Starting execution for OS ${serviceOrderId}`, { correlationId });
 
-    // 0. Authorization Check (Policy Layer)
+    // 0. Authorization Check (Policy Layer with Branch Scope)
     const isAuthorized = PolicyEngine.can(
-      { id: userId, role: userRole, companyId },
+      { id: userId, role: userRole, companyId, branchId: userBranchId },
       Permission.SERVICE_ORDER_COMPLETE,
-      { companyId, correlationId }
+      { companyId, branchId: operationalBranchId, correlationId }
     );
 
     if (!isAuthorized) {

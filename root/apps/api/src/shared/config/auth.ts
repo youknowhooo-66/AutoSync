@@ -2,7 +2,7 @@
 
 export default {
   jwt: {
-    secret: process.env.AUTH_JWT_SECRET || 'default-secret',
-    expiresIn: process.env.AUTH_JWT_EXPIRES_IN || '1d',
+    secret: process.env.JWT_SECRET || 'default-secret',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
   },
 };

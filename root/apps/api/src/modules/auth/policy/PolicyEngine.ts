@@ -7,10 +7,12 @@ interface IUserContext {
   id: string;
   role: Role;
   companyId: string;
+  branchId?: string | null;
 }
 
 interface IPolicyContext {
   companyId?: string;
+  branchId?: string;
   correlationId?: string;
 }
 
@@ -32,6 +34,13 @@ export class PolicyEngine {
     // 2. Strict Multi-Tenant Enforcement
     if (context?.companyId && context.companyId !== user.companyId) {
       this.logAuth(user, permission, 'AUTH_DENIED', 'Cross-company access blocked', context);
+      return false;
+    }
+
+    // 3. Strict Branch Isolation Enforcement (Zero Trust)
+    // ADMIN bypasses branch check. Others must match branchId.
+    if (user.role !== Role.ADMIN && context?.branchId && context.branchId !== user.branchId) {
+      this.logAuth(user, permission, 'AUTH_DENIED', 'Branch isolation violation', context);
       return false;
     }
 

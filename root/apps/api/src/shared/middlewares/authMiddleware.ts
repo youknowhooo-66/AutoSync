@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AppError } from '../errors/AppError';
+import authConfig from '../config/auth';
 
 interface TokenPayload {
   sub: string;
@@ -18,17 +19,17 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const [, token] = authHeader.split(' ');
 
   try {
-    const decoded = verify(token, process.env.JWT_SECRET || 'default-secret');
-
-    const { sub, companyId, role } = decoded as TokenPayload;
+    const { secret } = authConfig.jwt;
+    const decoded = verify(token, secret) as TokenPayload;
 
     req.user = {
-      id: sub,
-      companyId,
-      role,
+      id: decoded.sub,
+      companyId: decoded.companyId,
+      branchId: decoded.branchId,
+      role: decoded.role,
     };
 
-    req.companyId = companyId;
+    req.companyId = decoded.companyId;
 
     return next();
   } catch (err) {

@@ -35,11 +35,11 @@ export class PrismaUserRepository implements IUserRepository {
     return user as User | null;
   }
 
-  async findByEmail(email: string, companyId: string): Promise<User | null> {
+  async findByEmail(email: string, companyId?: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
       where: {
         email,
-        companyId,
+        ...(companyId ? { companyId } : {}),
         deletedAt: null,
       },
     });

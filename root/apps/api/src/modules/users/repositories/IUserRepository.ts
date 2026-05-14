@@ -16,7 +16,7 @@ export interface User {
 export interface IUserRepository {
   create(data: CreateUserDTO): Promise<User>;
   findById(id: string, companyId: string): Promise<User | null>;
-  findByEmail(email: string, companyId: string): Promise<User | null>;
+  findByEmail(email: string, companyId?: string): Promise<User | null>;
   findManyByCompany(companyId: string): Promise<User[]>;
   update(data: UpdateUserDTO): Promise<User>;
   delete(id: string, companyId: string): Promise<void>;
