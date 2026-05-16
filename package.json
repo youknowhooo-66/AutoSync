@@ -1,0 +1,28 @@
+{
+  "name": "autosync",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AutoSync ERP Monorepo",
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:build": "docker compose build"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^25.6.2",
+    "fast-glob": "^3.3.3",
+    "fs-extra": "^11.3.5",
+    "ts-morph": "^28.0.0",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.0.0",
+    "typescript": "^6.0.3"
+  }
+}

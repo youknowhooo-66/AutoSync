@@ -1,0 +1,12 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'tools/*'
+allowBuilds:
+  '@prisma/client': false
+  '@prisma/engines': false
+  '@scarf/scarf': false
+  esbuild: false
+  msgpackr-extract: false
+  prisma: false
+  unrs-resolver: false
