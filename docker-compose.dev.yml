@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: autosync_db_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-autosync}
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-autosync}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autosync_network_dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: autosync_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autosync_network_dev
+
+  api:
+    image: node:20-alpine
+    container_name: autosync_api_dev
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm turbo run dev --filter=back"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-autosync}?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - autosync_network_dev
+
+  frontend:
+    image: node:20-alpine
+    container_name: autosync_frontend_dev
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm turbo run dev --filter=front"
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+      NODE_ENV: development
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - autosync_network_dev
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  autosync_network_dev:
+    driver: bridge

@@ -1,0 +1,17 @@
+{
+  "name": "@autosync/tests-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@autosync/domain": "workspace:*",
+    "@autosync/application": "workspace:*",
+    "@autosync/infrastructure": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.9"
+  }
+}

@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    /* macOS-like Light Theme */
+    --background: #fcfcfc;
+    --foreground: #1c1c1e;
+
+    --card: #ffffff;
+    --card-foreground: #1c1c1e;
+
+    --popover: #ffffff;
+    --popover-foreground: #1c1c1e;
+
+    --primary: #007aff;
+    --primary-foreground: #ffffff;
+
+    --secondary: #f2f2f7;
+    --secondary-foreground: #1c1c1e;
+
+    --muted: #f2f2f7;
+    --muted-foreground: #8e8e93;
+
+    --accent: #f2f2f7;
+    --accent-foreground: #1c1c1e;
+
+    --destructive: #ff3b30;
+    --destructive-foreground: #ffffff;
+
+    --border: #e5e5ea;
+    --input: #e5e5ea;
+    --ring: #007aff;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: #f2f2f7;
+    --sidebar-foreground: #1c1c1e;
+    --sidebar-primary: #007aff;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e5e5ea;
+    --sidebar-accent-foreground: #1c1c1e;
+    --sidebar-border: #d1d1d6;
+    --sidebar-ring: #007aff;
+  }
+
+  .dark {
+    /* macOS-like Dark Theme (Graphite/Zinc) */
+    --background: #151515;
+    --foreground: #f2f2f7;
+
+    --card: #1c1c1e;
+    --card-foreground: #f2f2f7;
+
+    --popover: #1c1c1e;
+    --popover-foreground: #f2f2f7;
+
+    --primary: #0a84ff;
+    --primary-foreground: #ffffff;
+
+    --secondary: #2c2c2e;
+    --secondary-foreground: #f2f2f7;
+
+    --muted: #2c2c2e;
+    --muted-foreground: #98989d;
+
+    --accent: #2c2c2e;
+    --accent-foreground: #f2f2f7;
+
+    --destructive: #ff453a;
+    --destructive-foreground: #ffffff;
+
+    --border: #38383a;
+    --input: #38383a;
+    --ring: #0a84ff;
+
+    --sidebar-background: #1c1c1e;
+    --sidebar-foreground: #f2f2f7;
+    --sidebar-primary: #0a84ff;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #2c2c2e;
+    --sidebar-accent-foreground: #f2f2f7;
+    --sidebar-border: #38383a;
+    --sidebar-ring: #0a84ff;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom Scrollbar for MacOS feel */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(142, 142, 147, 0.2);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 142, 147, 0.4);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(152, 152, 157, 0.3);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(152, 152, 157, 0.5);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+@layer components {
+  .card {
+    @apply bg-card text-card-foreground rounded-2xl border border-border shadow-sm overflow-hidden;
+  }
+
+  .glass {
+    @apply bg-card/90 backdrop-blur-md border-border/50;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 active:scale-95 shadow-sm disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground text-[13px] whitespace-nowrap shrink-0;
+  }
+
+  .input-base {
+    @apply flex h-12 w-full rounded-xl border border-input bg-background px-4 py-2 text-sm outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/50 items-center;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

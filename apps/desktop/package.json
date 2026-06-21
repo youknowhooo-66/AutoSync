@@ -1,0 +1,15 @@
+{
+  "name": "@autosync/desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "electron": "^42.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

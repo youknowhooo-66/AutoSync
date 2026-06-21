@@ -1,0 +1,67 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+*.local
+
+# Build output
+dist/
+build/
+out/
+.next/
+.turbo/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+# Editor directories and files
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Test output
+coverage/
+*.test.ts.snap
+*.test.js.snap
+
+# Prisma
+.env.test
+prisma/
+
+# Electron
+.vite/
+dist/
+
+# General ignores for the project structure
+# Apps
+apps/*/node_modules/
+apps/*/build/
+apps/*/dist/
+apps/*/out/
+apps/*/coverage/
+
+# Root
+root/node_modules/
+root/build/
+root/dist/
+root/out/
+root/coverage/
