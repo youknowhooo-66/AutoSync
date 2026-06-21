@@ -17,10 +17,17 @@ export function errorHandler(
   }
 
   if (err.name === 'ZodError') {
+    const zodErr = err as any;
+    const firstIssue = zodErr.issues?.[0];
+    const humanMessage = firstIssue
+      ? `${firstIssue.path.join(' → ') || 'Campo'}: ${firstIssue.message}`
+      : 'Dados inválidos. Verifique os campos e tente novamente.';
+
     return response.status(400).json({
       success: false,
+      message: humanMessage,
       error: 'Validation error',
-      details: (err as any).format(),
+      details: zodErr.format(),
       statusCode: 400,
     });
   }

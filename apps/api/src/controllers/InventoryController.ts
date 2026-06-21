@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { createAuditLog } from './AuditController';
 import * as XLSX from 'xlsx';
 import { logger } from "../shared/logger";
@@ -27,7 +27,7 @@ export const transferStock = async (req: AuthRequest, res: Response) => {
       const result = await prisma.$transaction(async (tx) => {
         // Verify both branches exist
         const branches = await tx.branch.findMany({
-          where: { id: { in: [fromBranchId, toBranchId] } }
+          where: { id: { in: [fromBranchId, toBranchId] }, companyId: req.user!.companyId }
         });
 
         if (branches.length < 2) {
@@ -92,7 +92,7 @@ export const transferStock = async (req: AuthRequest, res: Response) => {
 };
 
 // Get parts with stock below minimum
-export const getLowStock = async (req: Request, res: Response) => {
+export const getLowStock = async (req: AuthRequest, res: Response) => {
   try {
     const stocks = await prisma.stock.findMany({
           where: { companyId: (req as any).user?.companyId },
@@ -119,14 +119,18 @@ export const getLowStock = async (req: Request, res: Response) => {
 };
 
 // Get inventory movements (history)
-export const getMovements = async (req: Request, res: Response) => {
+export const getMovements = async (req: AuthRequest, res: Response) => {
   try {
     const { partId, branchId, limit } = req.query;
-    const where: any = {};
+    const where: any = {
+      part: {
+        companyId: req.user.companyId
+      }
+    };
     if (partId) where.partId = String(partId);
     if (branchId) where.branchId = String(branchId);
 
-    const movements = await prisma.inventoryMovement.findMany(({
+    const movements = await prisma.inventoryMovement.findMany({
           where,
           include: {
             part: { select: { name: true, internalCode: true } },
@@ -135,7 +139,7 @@ export const getMovements = async (req: Request, res: Response) => {
           },
           orderBy: { createdAt: 'desc' },
           take: limit ? parseInt(String(limit)) : 50,
-        } as unknown as Parameters<typeof prisma.inventoryMovement.findMany>[0]));
+        });
 
     res.json(movements);
   } catch (error: unknown) {
@@ -144,11 +148,16 @@ export const getMovements = async (req: Request, res: Response) => {
 };
 
 // Get top parts by movement count (most used)
-export const getTopParts = async (req: Request, res: Response) => {
+export const getTopParts = async (req: AuthRequest, res: Response) => {
   try {
     const movements = await prisma.inventoryMovement.groupBy({
       by: ['partId'],
-      where: { type: 'OUT' },
+      where: { 
+        type: 'OUT',
+        part: {
+          companyId: req.user.companyId
+        }
+      },
       _sum: { quantity: true },
       _count: { id: true },
       orderBy: { _sum: { quantity: 'desc' } },
@@ -187,9 +196,10 @@ export const updatePart = async (req: AuthRequest, res: Response) => {
     const id = (req.params.id as string) as string;
     const { name, internalCode, manufacturerCode, category, brand, supplierId, purchasePrice, salePrice, minStock, location, description } = req.body;
 
-    const oldPart = await prisma.part.findUnique({ where: { id } });
+    const oldPart = await prisma.part.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldPart) return res.status(404).json({ message: 'Peça não encontrada.' });
 
-    const part = await prisma.part.update(({
+    const part = await prisma.part.update({
           where: { id },
           data: {
             name,
@@ -204,7 +214,7 @@ export const updatePart = async (req: AuthRequest, res: Response) => {
             location,
             description,
           }
-        } as unknown as Parameters<typeof prisma.part.update>[0]));
+        });
 
     if (req.user) {
       createAuditLog(req.user.id, 'UPDATE', 'PART', id, oldPart, part, req.ip);
@@ -223,7 +233,8 @@ export const updatePart = async (req: AuthRequest, res: Response) => {
 
 export const listParts = async (req: AuthRequest, res: Response) => {
   try {
-    const parts = await prisma.part.findMany(({
+    const parts = await prisma.part.findMany({
+          where: { companyId: req.user.companyId },
           include: {
             stocks: {
               include: {
@@ -233,7 +244,7 @@ export const listParts = async (req: AuthRequest, res: Response) => {
             supplier: true
           },
           orderBy: { name: 'asc' }
-        } as unknown as Parameters<typeof prisma.part.findMany>[0]));
+        });
     res.json(parts);
   } catch (error: unknown) {
     res.status(500).json({ message: 'Erro ao listar peças.' });
@@ -280,7 +291,7 @@ export const createPart = async (req: AuthRequest, res: Response) => {
         });
 
         if (branchIdFixed) {
-          const branch = await tx.branch.findUnique({ where: { id: branchIdFixed } });
+          const branch = await tx.branch.findFirst({ where: { id: branchIdFixed, companyId: req.user!.companyId } });
           if (!branch) throw new Error('Filial selecionada não encontrada.');
 
           await tx.stock.create({
@@ -342,6 +353,10 @@ export const updateStock = async (req: AuthRequest, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Não autorizado.' });
 
     const movement = await prisma.$transaction(async (tx) => {
+      const part = await tx.part.findFirst({ where: { id: partId, companyId: req.user!.companyId } });
+      const branch = await tx.branch.findFirst({ where: { id: branchId, companyId: req.user!.companyId } });
+      if (!part || !branch) throw new Error('Peça ou filial inválidas para esta empresa.');
+
       const stock = await tx.stock.upsert({
         where: { partId_branchId: { partId, branchId } },
         update: {
@@ -398,19 +413,29 @@ export const importParts = async (req: AuthRequest, res: Response) => {
       if (!row['Nome da Peça'] || !row['Código Interno']) continue;
 
       const internalCode = String(row['Código Interno']);
-      const existingPart = await prisma.part.findUnique({ where: { internalCode } });
+      const existingPart = await prisma.part.findFirst({ 
+        where: { internalCode, companyId: req.user!.companyId } 
+      });
       if (existingPart) continue;
 
       let supplierId = undefined;
       if (row['Fornecedor']) {
-        let supplier = await prisma.supplier.findFirst(({ where: { name: String(row['Fornecedor']) } } as unknown as Parameters<typeof prisma.supplier.findFirst>[0]));
-        if (!supplier) supplier = await prisma.supplier.create(({ data: { name: String(row['Fornecedor']) } } as unknown as Parameters<typeof prisma.supplier.create>[0]));
+        let supplier = await prisma.supplier.findFirst({ 
+          where: { name: String(row['Fornecedor']), companyId: req.user!.companyId } 
+        });
+        if (!supplier) {
+          supplier = await prisma.supplier.create({ 
+            data: { name: String(row['Fornecedor']), companyId: req.user!.companyId } 
+          });
+        }
         supplierId = supplier.id;
       }
 
       let branchId = undefined;
       if (row['Filial']) {
-        const branch = await prisma.branch.findFirst(({ where: { name: String(row['Filial']) } } as unknown as Parameters<typeof prisma.branch.findFirst>[0]));
+        const branch = await prisma.branch.findFirst({ 
+          where: { name: String(row['Filial']), companyId: req.user!.companyId } 
+        });
         if (branch) branchId = branch.id;
       }
 
@@ -426,6 +451,7 @@ export const importParts = async (req: AuthRequest, res: Response) => {
         salePrice: row['Preço Venda'] ? parseFloat(row['Preço Venda']) : 0,
         minStock: row['Estoque Mínimo'] ? parseInt(String(row['Estoque Mínimo'])) : 0,
         location: row['Localização'] ? String(row['Localização']) : null,
+        companyId: req.user!.companyId,
       });
 
       if (branchId && row['Estoque Inicial'] !== undefined) {
@@ -478,13 +504,14 @@ export const deletePart = async (req: AuthRequest, res: Response) => {
   try {
     const id = (req.params.id as string) as string;
 
-    const linkedOS = await prisma.oSPart.findFirst(({ where: { partId: id } } as unknown as Parameters<typeof prisma.oSPart.findFirst>[0]));
+    const oldPart = await prisma.part.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldPart) return res.status(404).json({ message: 'Peça não encontrada.' });
+
+    const linkedOS = await prisma.oSPart.findFirst({ where: { partId: id } });
     if (linkedOS) return res.status(400).json({ message: 'Não é possível excluir esta peça pois ela já foi utilizada em Ordens de Serviço.' });
 
-    const linkedMovements = await prisma.inventoryMovement.findFirst(({ where: { partId: id } } as unknown as Parameters<typeof prisma.inventoryMovement.findFirst>[0]));
+    const linkedMovements = await prisma.inventoryMovement.findFirst({ where: { partId: id } });
     if (linkedMovements) return res.status(400).json({ message: 'Não é possível excluir esta peça pois ela possui histórico de movimentação.' });
-
-    const oldPart = await prisma.part.findUnique({ where: { id } });
 
     await prisma.$transaction(async (tx) => {
       await tx.stock.deleteMany({ where: { partId: id } });

@@ -28,8 +28,11 @@ export class CreateServiceOrderUseCase {
   async execute(data: IRequest) {
     return await prismaClient.$transaction(async (tx) => {
       // 1. Calculate totals
-      const totalParts = data.parts.reduce((acc, p) => acc + (p.quantity * p.unitPrice), 0);
-      const totalServices = data.services.reduce((acc, s) => acc + s.price, 0);
+      const parts = data.parts || [];
+      const services = data.services || [];
+
+      const totalParts = parts.reduce((acc, p) => acc + (p.quantity * p.unitPrice), 0);
+      const totalServices = services.reduce((acc, s) => acc + s.price, 0);
       const finalValue = totalParts + totalServices;
 
       // 2. Create Service Order
@@ -49,7 +52,7 @@ export class CreateServiceOrderUseCase {
       });
 
       // 3. Create OSParts & Update Stock
-      for (const p of data.parts) {
+      for (const p of parts) {
         // a. Verify Stock
         const stock = await tx.stock.findUnique({
           where: { partId_branchId: { partId: p.partId, branchId: data.branchId } }
@@ -80,7 +83,7 @@ export class CreateServiceOrderUseCase {
           data: {
             partId: p.partId,
             branchId: data.branchId,
-            userId: (data as any).userId || 'system',
+            userId: (data as any).userId,
             type: 'OUT',
             quantity: p.quantity,
             reason: `Service Order Created (OS: ${serviceOrder.id})`,
@@ -89,9 +92,9 @@ export class CreateServiceOrderUseCase {
       }
 
       // 4. Create OSServices
-      if (data.services.length > 0) {
+      if (services.length > 0) {
         await tx.oSService.createMany({
-          data: data.services.map(s => ({
+          data: services.map(s => ({
             serviceOrderId: serviceOrder.id,
             name: s.name,
             price: s.price,

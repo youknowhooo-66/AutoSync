@@ -54,7 +54,6 @@ export class CompleteServiceOrderUseCase {
       where: { id: serviceOrderId },
       data: {
         status: 'FINISHED',
-        completedAt: new Date(),
       },
     });
 

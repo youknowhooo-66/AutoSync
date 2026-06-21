@@ -105,7 +105,7 @@ const Financial: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)' }}>Controle de contas a pagar e receber.</p>
         </div>
         <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <MdAdd size={20} /> Novo Registro
+          <MdAdd size={18} /> Novo Registro
         </button>
       </header>
 

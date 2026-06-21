@@ -12,17 +12,28 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   }
 
   async create(data: CreateVehicleDTO): Promise<Vehicle> {
-    const vehicle = await this.prisma.vehicle.create(({
-          data: {
-            companyId: data.companyId,
-            brand: data.brand,
-            model: data.model,
-            year: data.year,
-            licensePlate: (data as any).plate || (data as any).licensePlate,
-            color: data.color,
-            clientId: data.clientId,
+    const vehicle = await this.prisma.vehicle.create({
+      data: {
+        companyId: data.companyId,
+        brand: data.brand,
+        model: data.model,
+        year: data.year,
+        plate: data.plate,
+        color: data.color,
+        clientId: data.clientId,
+        chassis: data.chassis,
+        mileage: data.mileage,
+        engine: data.engine,
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
           },
-        } as unknown as Parameters<typeof this.prisma.vehicle.create>[0]));
+        },
+      },
+    } as any);
     return vehicle;
   }
 
@@ -33,19 +44,27 @@ export class PrismaVehicleRepository implements IVehicleRepository {
             companyId,
             deletedAt: null,
           },
+          include: {
+            client: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         } as unknown as Parameters<typeof this.prisma.vehicle.findFirst>[0]));
     if (!vehicle) return null;
     return vehicle;
   }
 
-  async findByLicensePlate(licensePlate: string, companyId: string): Promise<Vehicle | null> {
-    const vehicle = await this.prisma.vehicle.findFirst(({
-          where: {
-            plate: licensePlate,
-            companyId,
-            deletedAt: null,
-          },
-        } as unknown as Parameters<typeof this.prisma.vehicle.findFirst>[0]));
+  async findByPlate(plate: string, companyId: string): Promise<Vehicle | null> {
+    const vehicle = await this.prisma.vehicle.findFirst({
+      where: {
+        plate,
+        companyId,
+        deletedAt: null,
+      },
+    });
     if (!vehicle) return null;
     return vehicle;
   }
@@ -55,6 +74,17 @@ export class PrismaVehicleRepository implements IVehicleRepository {
           where: {
             companyId,
             deletedAt: null,
+          },
+          include: {
+            client: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
           },
         } as unknown as Parameters<typeof this.prisma.vehicle.findMany>[0]));
     return vehicles;
@@ -67,25 +97,41 @@ export class PrismaVehicleRepository implements IVehicleRepository {
             companyId,
             deletedAt: null,
           },
+          include: {
+            client: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         } as unknown as Parameters<typeof this.prisma.vehicle.findMany>[0]));
     return vehicles;
   }
 
   async update(data: UpdateVehicleDTO): Promise<Vehicle> {
-    const vehicle = await this.prisma.vehicle.update(({
-          where: {
-            id: data.id,
-            companyId: data.companyId,
+    const vehicle = await this.prisma.vehicle.update({
+      where: {
+        id: data.id,
+        companyId: data.companyId,
+      },
+      data: {
+        brand: data.brand,
+        model: data.model,
+        year: data.year,
+        plate: data.plate,
+        color: data.color,
+        clientId: data.clientId,
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
           },
-          data: {
-            brand: data.brand,
-            model: data.model,
-            year: data.year,
-            plate: (data as any).plate || (data as any).licensePlate,
-            color: data.color,
-            clientId: data.clientId,
-          },
-        } as unknown as Parameters<typeof this.prisma.vehicle.update>[0]));
+        },
+      },
+    } as any);
     return vehicle;
   }
 

@@ -7,11 +7,7 @@ import {
   deleteClientController,
   listClientController,
 } from '../index';
-import { authMiddleware } from '../../../shared/middlewares/authMiddleware';
-
 const clientsRoutes = Router();
-
-clientsRoutes.use(authMiddleware);
 
 clientsRoutes.post('/', (req, res) => createClientController.handle(req, res));
 clientsRoutes.get('/', (req, res) => listClientController.handle(req, res));

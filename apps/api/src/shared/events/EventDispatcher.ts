@@ -16,7 +16,7 @@ export class EventDispatcher {
 
     // We push to BullMQ for asynchronous processing by dedicated workers
     await this.eventsQueue.add(event.name, event, {
-      jobId: `${event.name}:${Date.now()}`, // Simple idempotency hint
+      jobId: `${event.name}-${Date.now()}`, // Simple idempotency hint
     });
   }
 }

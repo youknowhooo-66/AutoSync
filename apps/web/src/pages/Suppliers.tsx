@@ -79,7 +79,7 @@ const Suppliers: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)' }}>Gerencie seus fornecedores de peças e insumos.</p>
         </div>
         <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <MdAdd size={20} /> Novo Fornecedor
+          <MdAdd size={18} /> Novo Fornecedor
         </button>
       </header>
 

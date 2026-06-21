@@ -1,18 +1,21 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { createAuditLog } from './AuditController';
 import { logger } from "../shared/logger";
 
 export const listUsers = async (req: AuthRequest, res: Response) => {
   try {
     const { branchId } = req.query;
-    const users = await prisma.user.findMany(({
-          where: branchId ? { branchId: String(branchId) } : {},
+    const users = await prisma.user.findMany({
+          where: {
+            companyId: req.user.companyId,
+            ...(branchId ? { branchId: String(branchId) } : {})
+          },
           include: { branch: true },
           orderBy: { name: 'asc' }
-        } as unknown as Parameters<typeof prisma.user.findMany>[0]));
+        });
     res.json(users);
   } catch (error: unknown) {
     res.status(500).json({ message: 'Erro ao listar usuários.' });
@@ -29,15 +32,21 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create(({
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, companyId: req.user.companyId } });
+      if (!branch) return res.status(400).json({ message: 'Filial inválida para esta empresa.' });
+    }
+
+    const user = await prisma.user.create({
           data: {
             name,
             email,
             password: hashedPassword,
             role,
-            branchId
+            branchId,
+            companyId: req.user.companyId
           }
-        } as unknown as Parameters<typeof prisma.user.create>[0]));
+        });
 
     if (req.user) {
       const { password: _, ...logData } = user;
@@ -63,12 +72,18 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const id = (req.params.id as string) as string;
     const { name, email, role, branchId, active } = req.body;
 
-    const oldUser = await prisma.user.findUnique({ where: { id } });
+    const oldUser = await prisma.user.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldUser) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-    const user = await prisma.user.update(({
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, companyId: req.user.companyId } });
+      if (!branch) return res.status(400).json({ message: 'Filial inválida para esta empresa.' });
+    }
+
+    const user = await prisma.user.update({
           where: { id },
           data: { name, email, role, branchId, active }
-        } as unknown as Parameters<typeof prisma.user.update>[0]));
+        });
 
     if (req.user) {
       const { password: __, ...oldLogData } = oldUser || {};

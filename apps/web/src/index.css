@@ -215,7 +215,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95 shadow-sm disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground text-sm whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 active:scale-95 shadow-sm disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground text-[13px] whitespace-nowrap shrink-0;
   }
 
   .input-base {

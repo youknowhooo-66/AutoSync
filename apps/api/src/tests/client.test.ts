@@ -1,40 +1,56 @@
 import request from 'supertest';
 import app from '../app';
-import { prisma } from '../config/prisma';
+import { prismaClient } from '../shared/database/prismaClient';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../config/prisma', () => ({
-  prisma: {
-    client: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-    auditLog: {
-      create: jest.fn(),
-    }
+const mockPrisma = vi.hoisted(() => ({
+  client: {
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   },
+  user: {
+    findUnique: vi.fn(),
+  },
+  auditLog: {
+    create: vi.fn(),
+  }
 }));
 
-jest.mock('jsonwebtoken');
+vi.mock('../shared/database/prismaClient', () => ({
+  prismaClient: mockPrisma,
+  PrismaClient: vi.fn().mockImplementation(() => mockPrisma)
+}));
+
+vi.mock('../config/prisma', () => ({
+  prisma: mockPrisma
+}));
+
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  const sign = vi.fn();
+  return {
+    default: { verify, sign },
+    verify,
+    sign,
+  };
+});
 
 describe('Client Controller', () => {
   const mockToken = 'mock-token';
-  const mockUser = { id: 'user-1', role: 'ADMIN', active: true };
+  const mockUser = { id: 'user-1', role: 'ADMIN', active: true, companyId: 'comp-1' };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 'user-1' });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+    vi.clearAllMocks();
+    (jwt.verify as jest.Mock).mockReturnValue({ sub: 'user-1', companyId: 'comp-1', role: 'ADMIN' });
+    (prismaClient.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
   });
 
   describe('GET /api/clients', () => {
     it('should return a list of clients', async () => {
-      (prisma.client.findMany as jest.Mock).mockResolvedValue([{ id: 'c1', name: 'Cliente A' }]);
+      (prismaClient.client.findMany as jest.Mock).mockResolvedValue([{ id: 'c1', name: 'Cliente A' }]);
 
       const response = await request(app)
         .get('/api/clients')
@@ -53,7 +69,8 @@ describe('Client Controller', () => {
         email: 'carlos@test.com'
       };
 
-      (prisma.client.create as jest.Mock).mockResolvedValue({ id: 'c1', ...clientData });
+      (prismaClient.client.findFirst as jest.Mock).mockResolvedValue(null);
+      (prismaClient.client.create as jest.Mock).mockResolvedValue({ id: 'c1', ...clientData });
 
       const response = await request(app)
         .post('/api/clients')

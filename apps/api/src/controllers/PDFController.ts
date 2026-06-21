@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import PDFDocument from 'pdfkit';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { logger } from "../shared/logger";

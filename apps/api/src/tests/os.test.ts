@@ -1,57 +1,86 @@
 import request from 'supertest';
 import app from '../app';
-import { prisma } from '../config/prisma';
+import { prismaClient } from '../shared/database/prismaClient';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../config/prisma', () => ({
-  prisma: {
+const mockPrisma = vi.hoisted(() => {
+  const m = {
     serviceOrder: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      groupBy: vi.fn(),
     },
     oSService: {
-      createMany: jest.fn(),
-      findMany: jest.fn(),
+      createMany: vi.fn(),
+      findMany: vi.fn(),
+      groupBy: vi.fn(),
     },
     oSPart: {
-      create: jest.fn(),
-      findMany: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
     },
     stock: {
-      update: jest.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    part: {
+      findUnique: vi.fn(),
     },
     inventoryMovement: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
     financialRecord: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
     user: {
-      findUnique: jest.fn(),
+      findUnique: vi.fn(),
     },
     auditLog: {
-      create: jest.fn(),
-    }
-  },
+      create: vi.fn(),
+    },
+    branch: {
+      findUnique: vi.fn(),
+    },
+    $transaction: vi.fn().mockImplementation(async (cb) => cb(m)),
+  };
+  return m;
+});
+
+vi.mock('../shared/database/prismaClient', () => ({
+  prismaClient: mockPrisma,
+  PrismaClient: vi.fn().mockImplementation(() => mockPrisma)
 }));
 
-jest.mock('jsonwebtoken');
+vi.mock('../config/prisma', () => ({
+  prisma: mockPrisma
+}));
+
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  const sign = vi.fn();
+  return {
+    default: { verify, sign },
+    verify,
+    sign,
+  };
+});
 
 describe('OS Controller', () => {
   const mockToken = 'mock-token';
   const mockUser = { id: 'user-1', role: 'ADMIN', active: true };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 'user-1' });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+    vi.clearAllMocks();
+    (jwt.verify as jest.Mock).mockReturnValue({ sub: 'user-1', companyId: 'comp-1', role: 'ADMIN' });
+    (prismaClient.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
   });
 
   describe('GET /api/os', () => {
     it('should return a list of service orders', async () => {
-      (prisma.serviceOrder.findMany as jest.Mock).mockResolvedValue([{ id: 'os-1', number: 101 }]);
+      (prismaClient.serviceOrder.findMany as jest.Mock).mockResolvedValue([{ id: 'os-1', number: 101 }]);
 
       const response = await request(app)
         .get('/api/os')
@@ -71,7 +100,7 @@ describe('OS Controller', () => {
         notes: 'Revisão'
       };
 
-      (prisma.serviceOrder.create as jest.Mock).mockResolvedValue({ id: 'os-1', ...osData, number: 102 });
+      (prismaClient.serviceOrder.create as jest.Mock).mockResolvedValue({ id: 'os-1', ...osData, number: 102 });
 
       const response = await request(app)
         .post('/api/os')
@@ -83,24 +112,32 @@ describe('OS Controller', () => {
     });
   });
 
-  describe('PATCH /api/os/:id/status', () => {
-    it('should update OS status', async () => {
-      (prisma.serviceOrder.findUnique as jest.Mock).mockResolvedValue({ id: 'os-1', status: 'OPEN' });
-      (prisma.serviceOrder.update as jest.Mock).mockResolvedValue({ id: 'os-1', status: 'FINISHED', finalValue: 100, client: { name: 'João' }, vehicle: { model: 'Fusca' } });
+  describe('PATCH /api/os/:id/complete', () => {
+    it('should update OS status to FINISHED', async () => {
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({ 
+        id: 'os-1', 
+        status: 'OPEN',
+        parts: [],
+        services: [],
+        branchId: 'b1',
+        number: 101,
+        finalValue: 100
+      });
+      (prismaClient.serviceOrder.update as jest.Mock).mockResolvedValue({ id: 'os-1', status: 'FINISHED' });
+      (prismaClient.financialRecord.create as jest.Mock).mockResolvedValue({});
 
       const response = await request(app)
-        .patch('/api/os/os-1/status')
-        .set('Authorization', `Bearer ${mockToken}`)
-        .send({ status: 'FINISHED' });
+        .patch('/api/os/os-1/complete')
+        .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Status da OS atualizado com sucesso.');
+      expect(response.body.success).toBe(true);
     });
   });
 
   describe('GET /api/os/:id/pdf', () => {
     it('should return a PDF document', async () => {
-      (prisma.serviceOrder.findUnique as jest.Mock).mockResolvedValue({
+      (prismaClient.serviceOrder.findUnique as jest.Mock).mockResolvedValue({
         id: 'os-1',
         number: 101,
         createdAt: new Date(),

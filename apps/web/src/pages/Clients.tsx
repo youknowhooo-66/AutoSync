@@ -85,7 +85,7 @@ const Clients: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)' }}>Gerencie a base de clientes da sua oficina.</p>
         </div>
         <button className="btn-primary" onClick={handleNew}>
-          <MdAdd size={20} /> Novo Cliente
+          <MdAdd size={18} /> Novo Cliente
         </button>
       </header>
 

@@ -59,7 +59,6 @@ export class CompleteServiceOrderUseCase {
         // Record stock movement
         await tx.inventoryMovement.create({
           data: {
-            companyId,
             partId: item.partId,
             branchId: serviceOrder.branchId,
             userId,
@@ -75,7 +74,6 @@ export class CompleteServiceOrderUseCase {
         where: { id: serviceOrderId },
         data: {
           status: 'FINISHED',
-          completedAt: new Date(),
         },
       });
 

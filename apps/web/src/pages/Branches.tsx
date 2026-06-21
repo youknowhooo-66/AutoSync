@@ -80,7 +80,7 @@ const Branches: React.FC = () => {
   };
 
   const filtered = branches.filter(b =>
-    b.name.toLowerCase().includes(search.toLowerCase()) ||
+    (b.name || '').toLowerCase().includes(search.toLowerCase()) ||
     b.cnpj?.includes(search)
   );
 
@@ -92,7 +92,7 @@ const Branches: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)' }}>Gerencie as unidades da sua rede de oficinas.</p>
         </div>
         <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <MdAdd size={20} /> Nova Filial
+          <MdAdd size={18} /> Nova Filial
         </button>
       </header>
 
@@ -108,9 +108,9 @@ const Branches: React.FC = () => {
         {filtered.map((branch) => (
           <div key={branch.id} className="card" style={{ position: 'relative', borderLeft: `4px solid ${branch.active ? 'var(--accent)' : 'var(--text-muted)'}`, opacity: branch.active ? 1 : 0.6 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
                 <div style={{
-                  width: '44px', height: '44px', borderRadius: '12px',
+                  width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
                   backgroundColor: branch.active ? 'var(--primary)' : 'var(--muted)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'white',
@@ -118,9 +118,9 @@ const Branches: React.FC = () => {
                 }}>
                   <MdStore size={22} />
                 </div>
-                <div>
-                  <h3 style={{ fontWeight: 700 }}>{branch.name}</h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{branch.cnpj}</span>
+                <div style={{ minWidth: 0, flex: 1, paddingRight: '0.5rem' }}>
+                  <h3 style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={branch.name || 'Sem Nome'}>{branch.name || 'Sem Nome'}</h3>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={branch.cnpj}>{branch.cnpj}</div>
                 </div>
               </div>
               <span style={{
@@ -132,10 +132,10 @@ const Branches: React.FC = () => {
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-              {branch.address && <p>📍 {branch.address}</p>}
-              {branch.phone && <p>📞 {branch.phone}</p>}
-              {branch.email && <p>✉️ {branch.email}</p>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem', width: '100%', overflow: 'hidden' }}>
+              {branch.address && <p style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={branch.address}>📍 {branch.address}</p>}
+              {branch.phone && <p style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={branch.phone}>📞 {branch.phone}</p>}
+              {branch.email && <p style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={branch.email}>✉️ {branch.email}</p>}
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: 'auto' }}>

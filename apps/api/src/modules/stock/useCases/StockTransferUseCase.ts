@@ -17,6 +17,10 @@ export class StockTransferUseCase {
       throw new AppError('Source and Target branches must be different.', 400);
     }
 
+    if (data.quantity <= 0) {
+      throw new AppError('Quantity must be greater than zero.', 400);
+    }
+
     logger.info(`[StockTransferUseCase] Transferring ${data.quantity} of ${data.partId} from ${data.sourceBranchId} to ${data.targetBranchId}`);
 
     return await prismaClient.$transaction(async (tx) => {

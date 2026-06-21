@@ -52,7 +52,16 @@ const Vehicles: React.FC = () => {
       setFormData(emptyForm);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erro ao salvar veículo.');
+      const status = error.response?.status;
+      const serverMessage = error.response?.data?.message;
+
+      if (status === 409) {
+        toast.error('Já existe um veículo com essa placa cadastrado. Use uma placa diferente.');
+      } else if (status === 400) {
+        toast.error(serverMessage || 'Dados inválidos. Verifique os campos obrigatórios.');
+      } else {
+        toast.error(serverMessage || 'Erro ao salvar veículo. Tente novamente.');
+      }
     },
   });
 
@@ -71,10 +80,24 @@ const Vehicles: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.clientId) {
+      toast.error('Selecione um proprietário antes de salvar o veículo.');
+      return;
+    }
+    if (!formData.plate || formData.plate.length < 7) {
+      toast.error('A placa deve ter no mínimo 7 caracteres.');
+      return;
+    }
+    if (!formData.year || Number(formData.year) < 1900) {
+      toast.error('Informe um ano válido.');
+      return;
+    }
+
     const payload = {
       ...formData,
       year: Number(formData.year),
-      mileage: Number(formData.mileage) || 0,
+      mileage: Number(formData.mileage) || undefined,
     };
     saveMutation.mutate(payload);
   };

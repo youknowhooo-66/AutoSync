@@ -1,62 +1,82 @@
 import request from 'supertest';
 import app from '../app';
-import { prisma } from '../config/prisma';
+import { prismaClient } from '../shared/database/prismaClient';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../config/prisma', () => ({
-  prisma: {
+const mockPrisma = vi.hoisted(() => {
+  const m = {
     part: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
     stock: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      upsert: jest.fn(),
-      create: jest.fn(),
-      deleteMany: jest.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      upsert: vi.fn(),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
     },
     branch: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     inventoryMovement: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      groupBy: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      groupBy: vi.fn(),
     },
     user: {
-      findUnique: jest.fn(),
+      findUnique: vi.fn(),
     },
     auditLog: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
     oSPart: {
-      findFirst: jest.fn(),
-    }
-  },
+      findFirst: vi.fn(),
+    },
+    $transaction: vi.fn().mockImplementation(async (cb) => cb(m)),
+  };
+  return m;
+});
+
+vi.mock('../shared/database/prismaClient', () => ({
+  prismaClient: mockPrisma,
+  PrismaClient: vi.fn().mockImplementation(() => mockPrisma)
 }));
 
-jest.mock('jsonwebtoken');
+vi.mock('../config/prisma', () => ({
+  prisma: mockPrisma
+}));
+
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  const sign = vi.fn();
+  return {
+    default: { verify, sign },
+    verify,
+    sign,
+  };
+});
 
 describe('Inventory Controller', () => {
   const mockToken = 'mock-token';
-  const mockUser = { id: 'user-1', role: 'ADMIN', active: true };
+  const mockUser = { id: 'user-1', role: 'ADMIN', active: true, companyId: 'comp-1' };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 'user-1' });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+    vi.clearAllMocks();
+    (jwt.verify as jest.Mock).mockReturnValue({ sub: 'user-1', companyId: 'comp-1', role: 'ADMIN' });
+    (prismaClient.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
   });
 
   describe('GET /api/inventory/parts', () => {
     it('should return a list of parts', async () => {
       const mockParts = [{ id: '1', name: 'Bateria' }];
-      (prisma.part.findMany as jest.Mock).mockResolvedValue(mockParts);
+      (prismaClient.part.findMany as jest.Mock).mockResolvedValue(mockParts);
 
       const response = await request(app)
         .get('/api/inventory/parts')
@@ -77,12 +97,9 @@ describe('Inventory Controller', () => {
       };
 
       const mockCreatedPart = { id: 'part-1', ...newPartData };
-      (prisma.part.create as jest.Mock).mockResolvedValue(mockCreatedPart);
-      (prisma.branch.findUnique as jest.Mock).mockResolvedValue({ id: 'branch-1' });
-      (prisma.stock.create as jest.Mock).mockResolvedValue({ id: 'stock-1' });
-
-      // Mock transaction
-      (prisma as any).$transaction = jest.fn().mockImplementation(async (cb) => cb(prisma));
+      (prismaClient.part.create as jest.Mock).mockResolvedValue(mockCreatedPart);
+      (prismaClient.branch.findUnique as jest.Mock).mockResolvedValue({ id: 'branch-1' });
+      (prismaClient.stock.create as jest.Mock).mockResolvedValue({ id: 'stock-1' });
 
       const response = await request(app)
         .post('/api/inventory/parts')
@@ -107,14 +124,13 @@ describe('Inventory Controller', () => {
     it('should transfer stock between branches', async () => {
       const transferData = {
         partId: 'part-1',
-        fromBranchId: 'branch-1',
-        toBranchId: 'branch-2',
+        sourceBranchId: 'branch-1',
+        targetBranchId: 'branch-2',
         quantity: 5
       };
 
-      (prisma.branch.findMany as jest.Mock).mockResolvedValue([{ id: 'branch-1' }, { id: 'branch-2' }]);
-      (prisma.stock.findUnique as jest.Mock).mockResolvedValue({ id: 'stock-1', quantity: 10 });
-      (prisma as any).$transaction = jest.fn().mockImplementation(async (cb) => cb(prisma));
+      (prismaClient.branch.findMany as jest.Mock).mockResolvedValue([{ id: 'branch-1' }, { id: 'branch-2' }]);
+      (prismaClient.stock.findUnique as jest.Mock).mockResolvedValue({ id: 'stock-1', quantity: 10 });
 
       const response = await request(app)
         .post('/api/inventory/transfer')
@@ -129,7 +145,7 @@ describe('Inventory Controller', () => {
       const response = await request(app)
         .post('/api/inventory/transfer')
         .set('Authorization', `Bearer ${mockToken}`)
-        .send({ partId: '1', fromBranchId: 'a', toBranchId: 'b', quantity: -1 });
+        .send({ partId: '1', sourceBranchId: 'a', targetBranchId: 'b', quantity: -1 });
 
       expect(response.status).toBe(400);
     });

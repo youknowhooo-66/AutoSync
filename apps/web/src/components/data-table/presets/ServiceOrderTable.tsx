@@ -142,7 +142,14 @@ export function ServiceOrderTable({ data, isLoading, onRowClick, onEdit, onDelet
         id: "actions",
         cell: ({ row }) => (
           <div onClick={(e) => e.stopPropagation()}>
-             <DataTableRowActions row={row} onEdit={onEdit} onDelete={onDelete} />
+             <DataTableRowActions 
+               row={row} 
+               onEdit={onEdit} 
+               onDelete={onDelete} 
+               extraActions={[
+                 { label: "Ver Detalhes", onClick: () => onRowClick(row.original) }
+               ]}
+             />
           </div>
         ),
       },

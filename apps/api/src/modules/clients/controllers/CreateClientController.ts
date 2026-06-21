@@ -19,7 +19,7 @@ export class CreateClientController {
     return response.status(201).json({
       success: true,
       data: client,
-      message: 'Client created successfully'
+      message: 'Cliente cadastrado com sucesso.'
     });
   }
 }

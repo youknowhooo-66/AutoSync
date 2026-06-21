@@ -6,7 +6,7 @@ export interface UpdateVehicleDTO {
   brand?: string;
   model?: string;
   year?: number;
-  licensePlate?: string;
+  plate?: string;
   color?: string;
   clientId?: string;
 }

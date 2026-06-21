@@ -17,7 +17,7 @@
     "sourceMap": true,
     "types": [
       "node",
-      "jest"
+      "vitest/globals"
     ]
   },
   "include": [
@@ -28,7 +28,6 @@
     "node_modules",
     "dist",
     "prisma",
-    "src/controllers",
-    "src/routes"
+    "src/tests"
   ]
 }

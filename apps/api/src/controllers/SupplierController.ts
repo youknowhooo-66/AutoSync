@@ -1,24 +1,27 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { createAuditLog } from './AuditController';
 import { logger } from "../shared/logger";
 
 export const listSuppliers = async (req: AuthRequest, res: Response) => {
   try {
     const { search } = req.query;
-    const suppliers = await prisma.supplier.findMany(({
-          where: search
-            ? {
-                OR: [
-                  { name: { contains: String(search), mode: 'insensitive' } },
-                  { cnpj: { contains: String(search) } },
-                ],
-              }
-            : {},
+    const suppliers = await prisma.supplier.findMany({
+          where: {
+            companyId: req.user.companyId,
+            ...(search
+              ? {
+                  OR: [
+                    { name: { contains: String(search), mode: 'insensitive' } },
+                    { cnpj: { contains: String(search) } },
+                  ],
+                }
+              : {})
+          },
           include: { parts: { select: { id: true, name: true } } },
           orderBy: { name: 'asc' },
-        } as unknown as Parameters<typeof prisma.supplier.findMany>[0]));
+        });
     res.json(suppliers);
   } catch (error: unknown) {
     res.status(500).json({ message: 'Erro ao listar fornecedores.' });
@@ -33,9 +36,9 @@ export const createSupplier = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Nome do fornecedor é obrigatório.' });
     }
 
-    const supplier = await prisma.supplier.create(({
-          data: { name, cnpj, phone, address, email },
-        } as unknown as Parameters<typeof prisma.supplier.create>[0]));
+    const supplier = await prisma.supplier.create({
+          data: { name, cnpj, phone, address, email, companyId: req.user.companyId },
+        });
 
     if (req.user) {
       await createAuditLog(req.user.id, 'CREATE', 'SUPPLIER', supplier.id, null, supplier, req.ip);
@@ -59,12 +62,13 @@ export const updateSupplier = async (req: AuthRequest, res: Response) => {
     const id = (req.params.id as string) as string;
     const { name, cnpj, phone, address, email } = req.body;
 
-    const oldSupplier = await prisma.supplier.findUnique({ where: { id } });
+    const oldSupplier = await prisma.supplier.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldSupplier) return res.status(404).json({ message: 'Fornecedor não encontrado.' });
 
-    const supplier = await prisma.supplier.update(({
+    const supplier = await prisma.supplier.update({
           where: { id },
           data: { name, cnpj, phone, address, email },
-        } as unknown as Parameters<typeof prisma.supplier.update>[0]));
+        });
 
     if (req.user) {
       await createAuditLog(req.user.id, 'UPDATE', 'SUPPLIER', id, oldSupplier, supplier, req.ip);
@@ -79,7 +83,8 @@ export const updateSupplier = async (req: AuthRequest, res: Response) => {
 export const deleteSupplier = async (req: AuthRequest, res: Response) => {
   try {
     const id = (req.params.id as string) as string;
-    const oldSupplier = await prisma.supplier.findUnique({ where: { id } });
+    const oldSupplier = await prisma.supplier.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldSupplier) return res.status(404).json({ message: 'Fornecedor não encontrado.' });
 
     await prisma.supplier.delete({ where: { id } });
 

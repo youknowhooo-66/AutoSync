@@ -225,7 +225,7 @@ const Inventory: React.FC = () => {
             Importar XLSX
           </button>
           <button className="btn-primary" onClick={() => setShowModal(true)}>
-            <MdAdd size={20} /> Nova Peça
+            <MdAdd size={18} /> Nova Peça
           </button>
         </div>
       </header>

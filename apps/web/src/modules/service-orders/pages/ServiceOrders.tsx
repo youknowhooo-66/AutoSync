@@ -97,6 +97,7 @@ export default function ServiceOrders() {
           data={osList} 
           isLoading={isLoading} 
           onRowClick={(os) => setSelectedOS(os)}
+          onEdit={(os) => setSelectedOS(os)}
         />
       </div>
 

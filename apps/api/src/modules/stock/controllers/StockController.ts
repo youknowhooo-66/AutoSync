@@ -21,21 +21,38 @@ export class StockController {
     return res.status(201).json({ success: true, data: result });
   }
 
+  async createPart(req: Request, res: Response) {
+    const { companyId, id: userId } = req.user;
+    const { CreatePartUseCase } = await import('../useCases/CreatePartUseCase');
+    const useCase = new CreatePartUseCase();
+    const result = await useCase.execute({ ...req.body, companyId, userId });
+
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Peça cadastrada com sucesso.',
+      data: result 
+    });
+  }
+
   async transfer(req: Request, res: Response) {
     const { companyId, id: userId } = req.user;
-    const { partId, sourceBranchId, targetBranchId, quantity } = req.body;
+    const { partId, sourceBranchId, targetBranchId, fromBranchId, toBranchId, quantity } = req.body;
 
     const useCase = new StockTransferUseCase();
     const result = await useCase.execute({
       companyId,
       partId,
-      sourceBranchId,
-      targetBranchId,
+      sourceBranchId: sourceBranchId || fromBranchId,
+      targetBranchId: targetBranchId || toBranchId,
       quantity,
       userId
     } as any);
 
-    return res.status(201).json({ success: true, data: result });
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Transferência realizada com sucesso.',
+      data: result 
+    });
   }
 
   async dashboard(req: Request, res: Response) {
@@ -73,10 +90,61 @@ export class StockController {
     
     const suppliers = await prismaClient.supplier.findMany({
       where: { companyId, deletedAt: null },
-      select: { id: true, name: true }
+      include: { parts: { select: { id: true, name: true } } }
     });
 
     return res.json(suppliers);
+  }
+
+  async createSupplier(req: Request, res: Response) {
+    const { companyId } = req.user;
+    const { prismaClient } = await import('../../../shared/database/prismaClient');
+    const { name, cnpj, phone, address, email } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    const supplier = await prismaClient.supplier.create({
+      data: {
+        companyId,
+        name,
+        cnpj,
+        phone,
+        address,
+        email
+      }
+    });
+
+    return res.status(201).json({ success: true, data: supplier });
+  }
+
+  async updateSupplier(req: Request, res: Response) {
+    const { companyId } = req.user;
+    const { id } = req.params;
+    const { prismaClient } = await import('../../../shared/database/prismaClient');
+    const { name, cnpj, phone, address, email } = req.body;
+
+    const existing = await prismaClient.supplier.findFirst({
+      where: { id: String(id), companyId: String(companyId), deletedAt: null }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Supplier not found' });
+    }
+
+    const supplier = await prismaClient.supplier.update({
+      where: { id: String(id) },
+      data: {
+        name,
+        cnpj,
+        phone,
+        address,
+        email
+      }
+    });
+
+    return res.json({ success: true, data: supplier });
   }
 
   async topParts(req: Request, res: Response) {

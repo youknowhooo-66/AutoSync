@@ -56,3 +56,5 @@ export function initializeEventsWorker() {
 
   logger.info('[EventsWorker] Zero Trust secure worker initialized.');
 }
+
+initializeEventsWorker();

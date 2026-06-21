@@ -3,26 +3,36 @@ import app from '../app';
 import { prisma } from '../config/prisma';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../config/prisma', () => ({
-  prisma: {
-    branch: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    financialRecord: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    user: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    supplier: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    vehicle: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    auditLog: { findMany: jest.fn(), create: jest.fn() },
-  },
+const mockPrisma = vi.hoisted(() => ({
+  branch: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  financialRecord: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  user: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  supplier: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  vehicle: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  auditLog: { findMany: vi.fn(), create: vi.fn() },
 }));
 
-jest.mock('jsonwebtoken');
+vi.mock('../config/prisma', () => ({
+  prisma: mockPrisma,
+}));
+
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  const sign = vi.fn();
+  return {
+    default: { verify, sign },
+    verify,
+    sign,
+  };
+});
 
 describe('Other Services Integration', () => {
   const mockToken = 'mock-token';
-  const mockUser = { id: 'admin-id', role: 'ADMIN', active: true };
+  const mockUser = { id: 'admin-id', role: 'ADMIN', active: true, companyId: 'comp-1' };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 'admin-id' });
+    vi.clearAllMocks();
+    (jwt.verify as jest.Mock).mockReturnValue({ sub: 'admin-id', companyId: 'comp-1', role: 'ADMIN' });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
   });
 

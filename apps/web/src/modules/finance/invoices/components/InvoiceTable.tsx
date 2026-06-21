@@ -23,17 +23,20 @@ export function InvoiceTable({ data, isLoading, onRowClick, onDelete }: InvoiceT
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Fatura" />
         ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2 font-mono font-medium">
-            <FileText className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground">{row.getValue("invoiceNumber")}</span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const num = row.getValue("invoiceNumber") || `FT-${row.original.id?.substring(0, 8).toUpperCase() || ""}`;
+          return (
+            <div className="flex items-center gap-2 font-mono font-medium">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span className="text-foreground">{num}</span>
+            </div>
+          );
+        },
         enableSorting: true,
       },
       {
         id: "client",
-        accessorFn: (row) => row.client?.name || "Sem Cliente",
+        accessorFn: (row) => row.client?.name || row.description || "Sem Cliente",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Cliente" />
         ),
@@ -47,7 +50,7 @@ export function InvoiceTable({ data, isLoading, onRowClick, onDelete }: InvoiceT
       },
       {
         id: "os",
-        accessorFn: (row) => row.serviceOrderId,
+        accessorFn: (row) => row.serviceOrderId || (row.description?.match(/OS #(\d+)/)?.[1] || "—"),
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="OS Vinculada" />
         ),
@@ -72,12 +75,12 @@ export function InvoiceTable({ data, isLoading, onRowClick, onDelete }: InvoiceT
           <DataTableColumnHeader column={column} title="Valor Total" className="justify-end text-right" />
         ),
         cell: ({ row }) => {
-          const value = Number(row.getValue("totalAmount") || 0)
+          const value = Number(row.original.totalAmount || row.original.amount || 0);
           return (
             <div className="text-right font-bold text-foreground">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
             </div>
-          )
+          );
         },
         enableSorting: true,
       },

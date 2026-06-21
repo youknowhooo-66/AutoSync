@@ -99,8 +99,8 @@ const Users: React.FC = () => {
   };
 
   const filtered = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
+    (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -111,7 +111,7 @@ const Users: React.FC = () => {
           <p style={{ color: 'var(--text-secondary)' }}>Gerencie os usuários e permissões do sistema.</p>
         </div>
         <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <MdPersonAdd size={20} /> Novo Usuário
+          <MdPersonAdd size={18} /> Novo Usuário
         </button>
       </header>
 
@@ -146,11 +146,11 @@ const Users: React.FC = () => {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: roleInfo.color, fontWeight: 700, fontSize: '0.875rem'
                       }}>
-                        {user.name.charAt(0).toUpperCase()}
+                        {(user.name || 'U').charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600 }}>{user.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.email}</div>
+                        <div style={{ fontWeight: 600 }}>{user.name || 'Sem Nome'}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.email || '—'}</div>
                       </div>
                     </div>
                   </td>

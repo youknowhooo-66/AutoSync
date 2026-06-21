@@ -93,11 +93,11 @@ export function InvoiceDetailSheet({ invoice, onClose }: Props) {
           <div className="flex items-start justify-between">
             <div>
               <SheetTitle className="text-2xl font-bold flex items-center gap-3">
-                {data.invoiceNumber}
+                {data.invoiceNumber || `FT-${data.id?.substring(0, 8).toUpperCase() || ''}`}
                 <InvoiceStatusBadge status={data.status} />
               </SheetTitle>
               <SheetDescription className="mt-1">
-                Emissão: {new Date(data.createdAt).toLocaleDateString('pt-BR')}
+                Emissão: {data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR') : '—'}
               </SheetDescription>
             </div>
             <div className="flex gap-2">
@@ -140,13 +140,15 @@ export function InvoiceDetailSheet({ invoice, onClose }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-background/50">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</span>
-                  <span className="font-semibold">{data.client.name}</span>
-                  <span className="text-sm text-muted-foreground">{data.client.email || data.client.document}</span>
+                  <span className="font-semibold">{data.client?.name || data.description || 'Sem Cliente'}</span>
+                  <span className="text-sm text-muted-foreground">{data.client?.email || data.client?.document || '—'}</span>
                 </div>
                 <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-background/50">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Veículo (OS)</span>
-                  <span className="font-semibold">{data.vehicle.model} - {data.vehicle.plate}</span>
-                  <span className="text-sm text-muted-foreground font-mono">Ref OS: {data.serviceOrderId}</span>
+                  <span className="font-semibold">
+                    {data.vehicle ? `${data.vehicle.model} - ${data.vehicle.plate}` : 'Sem Veículo'}
+                  </span>
+                  <span className="text-sm text-muted-foreground font-mono">Ref OS: {data.serviceOrderId || (data.description?.match(/OS #(\d+)/)?.[1] || '—')}</span>
                 </div>
               </div>
 
@@ -157,11 +159,11 @@ export function InvoiceDetailSheet({ invoice, onClose }: Props) {
                   Resumo Financeiro
                 </h3>
                 <InvoiceBreakdown 
-                  subtotal={data.subtotal}
-                  discount={data.discount}
-                  taxes={data.taxes}
-                  totalAmount={data.totalAmount}
-                  amountPaid={data.amountPaid}
+                  subtotal={data.subtotal ?? (data.amount ?? 0)}
+                  discount={data.discount ?? 0}
+                  taxes={data.taxes ?? 0}
+                  totalAmount={data.totalAmount ?? (data.amount ?? 0)}
+                  amountPaid={data.amountPaid ?? (data.status === 'PAID' ? (data.amount ?? 0) : 0)}
                 />
               </div>
 

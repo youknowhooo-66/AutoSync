@@ -4,13 +4,20 @@ import { StartServiceOrderUseCase } from '../useCases/StartServiceOrderUseCase';
 import { CompleteServiceOrderUseCase } from '../useCases/CompleteServiceOrderUseCase';
 import { CancelServiceOrderUseCase } from '../useCases/CancelServiceOrderUseCase';
 import { ListServiceOrdersUseCase } from '../useCases/ListServiceOrdersUseCase';
+import { ShowServiceOrderUseCase } from '../useCases/ShowServiceOrderUseCase';
+import { UpdateServiceOrderStatusUseCase } from '../useCases/UpdateServiceOrderStatusUseCase';
+import { AddItemsToServiceOrderUseCase } from '../useCases/AddItemsToServiceOrderUseCase';
 
 export class ServiceOrderController {
   async create(req: Request, res: Response) {
     const { companyId, id: userId } = req.user;
     const useCase = new CreateServiceOrderUseCase();
     const result = await useCase.execute({ ...req.body, companyId } as any);
-    return res.status(201).json({ success: true, data: result });
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Ordem de Serviço aberta com sucesso.',
+      data: result 
+    });
   }
 
   async start(req: Request, res: Response) {
@@ -36,11 +43,46 @@ export class ServiceOrderController {
     return res.json(result);
   }
 
+  async show(req: Request, res: Response) {
+    const { id } = req.params;
+    const { companyId } = req.user;
+    const useCase = new ShowServiceOrderUseCase();
+    const result = await useCase.execute(id as string, companyId as string);
+    return res.json(result);
+  }
+
   async cancel(req: Request, res: Response) {
     const { id } = req.params;
     const { companyId } = req.user;
     const useCase = new CancelServiceOrderUseCase();
     const result = await useCase.execute({ serviceOrderId: id, companyId } as any);
+    return res.json({ success: true, data: result });
+  }
+
+  async updateStatus(req: Request, res: Response) {
+    const { id } = req.params;
+    const { status } = req.body;
+    const { companyId } = req.user;
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required.' });
+    }
+    const useCase = new UpdateServiceOrderStatusUseCase();
+    const result = await useCase.execute(id as string, companyId as string, status);
+    return res.json({ success: true, data: result });
+  }
+
+  async addItems(req: Request, res: Response) {
+    const { id } = req.params;
+    const { companyId, id: userId } = req.user;
+    const { parts, services } = req.body;
+    const useCase = new AddItemsToServiceOrderUseCase();
+    const result = await useCase.execute({
+      serviceOrderId: id as string,
+      companyId: companyId as string,
+      userId: userId as string,
+      parts,
+      services,
+    });
     return res.json({ success: true, data: result });
   }
 
@@ -72,5 +114,10 @@ export class ServiceOrderController {
     }));
 
     return res.json(servicesWithDetails);
+  }
+
+  async generatePDF(req: Request, res: Response) {
+    const { generateOSPDF } = await import('../../../controllers/PDFController');
+    return generateOSPDF(req as any, res);
   }
 }

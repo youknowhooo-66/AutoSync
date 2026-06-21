@@ -1,14 +1,14 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { createAuditLog } from './AuditController';
 import { logger } from "../shared/logger";
 
 export const getOSById = async (req: AuthRequest, res: Response) => {
   try {
     const id = (req.params.id as string) as string;
-    const os = await prisma.serviceOrder.findUnique({
-      where: { id },
+    const os = await prisma.serviceOrder.findFirst({
+      where: { id, companyId: req.user.companyId },
       include: {
         client: true,
         vehicle: true,
@@ -28,16 +28,19 @@ export const getOSById = async (req: AuthRequest, res: Response) => {
 export const listOS = async (req: AuthRequest, res: Response) => {
   try {
     const { branchId } = req.query;
-    const osList = await prisma.serviceOrder.findMany(({
-          where: branchId ? { branchId: String(branchId) } : {},
-          include: {
-            client: true,
-            vehicle: true,
-            mechanic: true,
-            branch: true
-          },
-          orderBy: { number: 'desc' }
-        } as unknown as Parameters<typeof prisma.serviceOrder.findMany>[0]));
+    const osList = await prisma.serviceOrder.findMany({
+      where: {
+        companyId: req.user.companyId,
+        ...(branchId ? { branchId: String(branchId) } : {})
+      },
+      include: {
+        client: true,
+        vehicle: true,
+        mechanic: true,
+        branch: true
+      },
+      orderBy: { number: 'desc' }
+    });
     res.json(osList);
   } catch (error: unknown) {
     res.status(500).json({ message: 'Erro ao listar ordens de serviço.' });
@@ -52,16 +55,25 @@ export const createOS = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Cliente, veículo e filial são obrigatórios.' });
     }
 
-    const os = await prisma.serviceOrder.create(({
-          data: {
-            clientId,
-            vehicleId,
-            mechanicId,
-            branchId,
-            notes,
-            status: 'OPEN'
-          }
-        } as unknown as Parameters<typeof prisma.serviceOrder.create>[0]));
+    // Verify ownership of the dependencies
+    const client = await prisma.client.findFirst({ where: { id: clientId, companyId: req.user.companyId } });
+    const vehicle = await prisma.vehicle.findFirst({ where: { id: vehicleId, companyId: req.user.companyId } });
+    const branch = await prisma.branch.findFirst({ where: { id: branchId, companyId: req.user.companyId } });
+    if (!client || !vehicle || !branch) {
+      return res.status(400).json({ message: 'Cliente, veículo ou filial inválidos.' });
+    }
+
+    const os = await prisma.serviceOrder.create({
+      data: {
+        clientId,
+        vehicleId,
+        mechanicId,
+        branchId,
+        notes,
+        status: 'OPEN',
+        companyId: req.user.companyId
+      }
+    });
 
     if (req.user) {
       await createAuditLog(req.user.id, 'CREATE', 'OS', os.id, null, os, req.ip);
@@ -108,7 +120,7 @@ export const addItemsToOS = async (req: AuthRequest, res: Response) => {
           });
 
           // Deduct stock from the branch of the OS
-          const os = await tx.serviceOrder.findUnique({ where: { id } });
+          const os = await tx.serviceOrder.findFirst({ where: { id, companyId: req.user.companyId } });
           if (os) {
             await tx.stock.update({
               where: { partId_branchId: { partId: p.partId, branchId: os.branchId } },
@@ -171,31 +183,33 @@ export const updateOSStatus = async (req: AuthRequest, res: Response) => {
     const id = (req.params.id as string) as string;
     const { status } = req.body;
 
-    const oldOS = await prisma.serviceOrder.findUnique({ where: { id } });
+    const oldOS = await prisma.serviceOrder.findFirst({ where: { id, companyId: req.user.companyId } });
+    if (!oldOS) return res.status(404).json({ message: 'OS não encontrada.' });
 
-    const os = await prisma.serviceOrder.update(({
-          where: { id },
-          data: { status },
-          include: { client: true, vehicle: true }
-        } as unknown as Parameters<typeof prisma.serviceOrder.update>[0]));
+    const os = await prisma.serviceOrder.update({
+      where: { id },
+      data: { status },
+      include: { client: true, vehicle: true }
+    });
 
     if (req.user) {
-      await createAuditLog(req.user.id, 'UPDATE_STATUS', 'OS', id, oldOS?.status, status, req.ip);
+      await createAuditLog(req.user.id, 'UPDATE_STATUS', 'OS', id, oldOS.status, status, req.ip);
     }
 
     // When OS is finished, auto-create a financial receivable record
     if (status === 'FINISHED' && Number(os.finalValue) > 0) {
-      await prisma.financialRecord.create(({
-              data: {
-                branchId: os.branchId,
-                type: 'RECEIVABLE',
-                category: 'Ordem de Serviço',
-                description: `OS #${os.number} — ${os.client.name} — ${os.vehicle.model}`,
-                amount: os.finalValue,
-                dueDate: new Date(),
-                status: 'PENDING',
-              }
-            } as unknown as Parameters<typeof prisma.financialRecord.create>[0]));
+      await prisma.financialRecord.create({
+        data: {
+          branchId: os.branchId,
+          companyId: req.user.companyId,
+          type: 'RECEIVABLE',
+          category: 'Ordem de Serviço',
+          description: `OS #${os.number} — ${os.client.name} — ${os.vehicle.model}`,
+          amount: os.finalValue,
+          dueDate: new Date(),
+          status: 'PENDING',
+        }
+      });
     }
 
     res.json({ message: 'Status da OS atualizado com sucesso.', os });
@@ -209,10 +223,16 @@ export const updateOSStatus = async (req: AuthRequest, res: Response) => {
 }
 };
 
-export const getTopServices = async (req: Request, res: Response) => {
+export const getTopServices = async (req: AuthRequest, res: Response) => {
   try {
+    const companyId = req.user.companyId;
     const services = await prisma.oSService.groupBy({
       by: ['name'],
+      where: {
+        serviceOrder: {
+          companyId
+        }
+      },
       _count: { id: true },
       _sum: { price: true },
       orderBy: { _count: { id: 'desc' } },

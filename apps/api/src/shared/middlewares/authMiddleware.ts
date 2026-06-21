@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AppError } from '../errors/AppError';
 import authConfig from '../config/auth';
+import { prisma } from '../../config/prisma';
 
 interface TokenPayload {
   sub: string;
@@ -10,7 +11,17 @@ interface TokenPayload {
   branchId?: string;
 }
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export interface AuthRequest extends Request {
+  user: {
+    id: string;
+    companyId: string;
+    email?: string;
+    role: 'ADMIN' | 'USER' | 'VIEWER';
+    branchId?: string;
+  };
+}
+
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -23,17 +34,28 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     const { secret } = authConfig.jwt;
     const decoded = verify(token, secret) as TokenPayload;
 
+    // Verify if user still exists in DB to prevent foreign key errors and handle deactivated users
+    const user = await prisma.user.findUnique({ 
+      where: { id: decoded.sub },
+      select: { id: true, active: true, companyId: true, role: true, branchId: true }
+    });
+    
+    if (!user || !user.active) {
+      throw new AppError('User not found or inactive', 401);
+    }
+
     req.user = {
-      id: decoded.sub,
-      companyId: decoded.companyId,
-      branchId: decoded.branchId,
-      role: decoded.role,
+      id: user.id,
+      companyId: user.companyId,
+      branchId: user.branchId || undefined,
+      role: user.role as any,
     };
 
-    req.companyId = decoded.companyId;
+    req.companyId = user.companyId;
 
     return next();
   } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
     throw new AppError('Invalid JWT token', 401);
   }
 }

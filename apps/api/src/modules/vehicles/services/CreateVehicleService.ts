@@ -8,13 +8,13 @@ export class CreateVehicleService {
   constructor(private vehicleRepository: IVehicleRepository) {}
 
   async execute(data: CreateVehicleDTO): Promise<Vehicle> {
-    const { companyId, licensePlate } = data;
+    const { companyId, plate } = data;
 
     if (!companyId) {
       throw new AppError('Company ID is required.');
     }
 
-    const vehicleExists = await this.vehicleRepository.findByLicensePlate(licensePlate, companyId);
+    const vehicleExists = await this.vehicleRepository.findByPlate(plate, companyId);
 
     if (vehicleExists) {
       throw new AppError('Vehicle with this license plate already exists for this company.', 409);

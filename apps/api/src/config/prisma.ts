@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prismaClient } from "../shared/database/prismaClient";
 
-const prisma = new PrismaClient();
-
-export { prisma };
+export const prisma = prismaClient;
 export { PrismaClient } from "@prisma/client";

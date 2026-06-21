@@ -22,6 +22,7 @@ import { financialRoutes } from './modules/financial/routes/financial.routes';
 import { usersRoutes } from './modules/users/routes/users.routes';
 import { companiesRoutes } from './modules/companies/routes/companies.routes';
 import { dashboardRouter } from './modules/dashboard/routes/dashboard.routes';
+import branchRoutes from './routes/branchRoutes';
 import auditRoutes from './routes/auditRoutes';
 
 const app = express();
@@ -37,7 +38,7 @@ app.use(cors({
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again after 15 minutes',
@@ -77,7 +78,7 @@ app.use('/api/financial', financialRoutes);
 app.use('/api/finance', financialRoutes); // Alias for frontend
 app.use('/api/users', usersRoutes);
 app.use('/api/companies', companiesRoutes);
-app.use('/api/branches', companiesRoutes); // Alias for frontend
+app.use('/api/branches', branchRoutes); // Correctly point to branchRoutes
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/audit', auditRoutes);
 app.use('/api/auditoria', auditRoutes); // Alias for frontend

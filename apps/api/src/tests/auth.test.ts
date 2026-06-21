@@ -11,7 +11,7 @@ describe('Authentication Integration Tests', () => {
         companyId: '00000000-0000-0000-0000-000000000000'
       });
 
-    expect(response.status).toBe(400); // Because Zod or AppError will catch it
+    expect(response.status).toBe(401); // Authentication failure should be 401
     expect(response.body.success).toBe(false);
   });
 });

@@ -1,10 +1,28 @@
 import { Queue, Worker, QueueOptions, WorkerOptions, JobsOptions } from 'bullmq';
 import { logger } from '../logger';
 
-const redisConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: Number(process.env.REDIS_PORT) || 6379,
+const getRedisConfig = () => {
+  const redisUrl = process.env.REDIS_URL;
+  if (redisUrl) {
+    try {
+      const parsed = new URL(redisUrl);
+      return {
+        host: parsed.hostname,
+        port: Number(parsed.port) || 6379,
+        username: parsed.username || undefined,
+        password: parsed.password || undefined,
+      };
+    } catch (err) {
+      logger.error({ err }, '[QueueProvider] Error parsing REDIS_URL, falling back to defaults');
+    }
+  }
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: Number(process.env.REDIS_PORT) || 6379,
+  };
 };
+
+const redisConfig = getRedisConfig();
 
 export class QueueProvider {
   private static queues: Record<string, Queue> = {};

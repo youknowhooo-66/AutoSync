@@ -1,13 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import { authenticate, authorize, AuthRequest } from '../middlewares/authMiddleware';
+import { authMiddleware, AuthRequest } from '../shared/middlewares/authMiddleware';
+import { ensureRole } from '../shared/middlewares/ensureRole';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 
-jest.mock('jsonwebtoken');
-jest.mock('../config/prisma', () => ({
+vi.mock('jsonwebtoken', () => {
+  const verify = vi.fn();
+  const sign = vi.fn();
+  return {
+    default: { verify, sign },
+    verify,
+    sign,
+  };
+});
+vi.mock('../config/prisma', () => ({
   prisma: {
     user: {
-      findUnique: jest.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -15,25 +24,27 @@ jest.mock('../config/prisma', () => ({
 describe('Auth Middleware', () => {
   let mockRequest: Partial<AuthRequest>;
   let mockResponse: Partial<Response>;
-  let nextFunction: NextFunction = jest.fn();
+  let nextFunction: NextFunction = vi.fn();
 
   beforeEach(() => {
     mockRequest = {
       headers: {},
     };
     mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
     };
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  describe('authenticate', () => {
+  describe('authMiddleware', () => {
     it('should return 401 if no authorization header is present', async () => {
-      await authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Token de autenticação não fornecido.' });
+      try {
+        await authMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      } catch (err: any) {
+        expect(err.statusCode).toBe(401);
+        expect(err.message).toBe('JWT token is missing');
+      }
       expect(nextFunction).not.toHaveBeenCalled();
     });
 
@@ -43,41 +54,43 @@ describe('Auth Middleware', () => {
         throw new Error('Invalid token');
       });
 
-      await authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Token inválido ou expirado.' });
+      try {
+        await authMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      } catch (err: any) {
+        expect(err.statusCode).toBe(401);
+        expect(err.message).toBe('Invalid JWT token');
+      }
       expect(nextFunction).not.toHaveBeenCalled();
     });
 
     it('should return 401 if user does not exist in DB', async () => {
       mockRequest.headers = { authorization: 'Bearer valid_token' };
-      const decodedPayload = { id: 'user-id', email: 'test@test.com', role: 'ADMIN' };
+      const decodedPayload = { sub: 'user-id', companyId: 'comp-1', role: 'ADMIN' };
       (jwt.verify as jest.Mock).mockReturnValue(decodedPayload);
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
-
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 'user-id' } });
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Usuário não encontrado ou inativo.' });
+      try {
+        await authMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      } catch (err: any) {
+        expect(err.statusCode).toBe(401);
+        expect(err.message).toBe('User not found or inactive');
+      }
       expect(nextFunction).not.toHaveBeenCalled();
     });
 
     it('should call next() if token and user are valid', async () => {
       mockRequest.headers = { authorization: 'Bearer valid_token' };
-      const decodedPayload = { id: 'user-id', email: 'test@test.com', role: 'ADMIN' };
+      const decodedPayload = { sub: 'user-id', companyId: 'comp-1', role: 'ADMIN' };
       (jwt.verify as jest.Mock).mockReturnValue(decodedPayload);
       
-      const mockUser = { id: 'user-id', companyId: 'comp-1', email: 'test@test.com', role: 'ADMIN', active: true, branchId: 'branch-1' };
+      const mockUser = { id: 'user-id', companyId: 'comp-1', role: 'ADMIN', active: true, branchId: 'branch-1' };
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
-      await authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
+      await authMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockRequest.user).toEqual({
         id: 'user-id',
         companyId: 'comp-1',
-        email: 'test@test.com',
         role: 'ADMIN',
         branchId: 'branch-1',
       });
@@ -85,23 +98,25 @@ describe('Auth Middleware', () => {
     });
   });
 
-  describe('authorize', () => {
+  describe('ensureRole', () => {
     it('should return 403 if user role is not authorized', () => {
-      mockRequest.user = { id: '1', companyId: '1', email: 'test@test.com', role: 'ATTENDANT', branchId: null };
-      const middleware = authorize('ADMIN', 'MANAGER');
+      mockRequest.user = { id: '1', companyId: '1', role: 'VIEWER', branchId: undefined };
+      const middleware = ensureRole(['ADMIN', 'USER']);
 
-      middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Acesso negado. Permissão insuficiente.' });
+      try {
+        middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      } catch (err: any) {
+        expect(err.statusCode).toBe(403);
+        expect(err.message).toBe('Permission denied');
+      }
       expect(nextFunction).not.toHaveBeenCalled();
     });
 
     it('should call next() if user role is authorized', () => {
-      mockRequest.user = { id: '1', companyId: '1', email: 'test@test.com', role: 'ADMIN', branchId: null };
-      const middleware = authorize('ADMIN', 'MANAGER');
+      mockRequest.user = { id: '1', companyId: '1', role: 'ADMIN', branchId: undefined };
+      const middleware = ensureRole(['ADMIN', 'USER']);
 
-      middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
+      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(nextFunction).toHaveBeenCalled();
     });

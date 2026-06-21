@@ -8,5 +8,6 @@ allowBuilds:
   '@scarf/scarf': false
   esbuild: false
   msgpackr-extract: false
+  msw: true
   prisma: false
   unrs-resolver: false
