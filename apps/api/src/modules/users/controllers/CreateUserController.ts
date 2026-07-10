@@ -1,22 +1,21 @@
 // apps/api/src/modules/users/controllers/CreateUserController.ts
 
 import { Request, Response } from 'express';
-import { CreateUserService } from '../services/CreateUserService';
+import { container } from '../../../container';
 
 export class CreateUserController {
-  constructor(private createUserService: CreateUserService) {}
+  constructor() {}
 
   async handle(request: Request, response: Response): Promise<Response> {
     const { name, email, password, role } = request.body;
     const { companyId } = request;
 
-    const user = await this.createUserService.execute({
+    const payload = {
       companyId,
       name,
       email,
-      password,
-      role,
-    } as any);
+    };
+    const user = await container.useCases.identity.createUser.execute(payload);
 
     return response.status(201).json(user);
   }

@@ -1,26 +1,22 @@
 // apps/api/src/modules/vehicles/controllers/UpdateVehicleController.ts
 
 import { Request, Response } from 'express';
-import { UpdateVehicleService } from '../services/UpdateVehicleService';
+import { container } from '../../../container';
 
 export class UpdateVehicleController {
-  constructor(private updateVehicleService: UpdateVehicleService) {}
+  constructor() {}
 
   async handle(request: Request, response: Response): Promise<Response> {
     const { id } = request.params;
     const { brand, model, year, licensePlate, color, clientId } = request.body;
     const { companyId } = request;
 
-    const vehicle = await this.updateVehicleService.execute({
-      id,
+    const payload = {
+      vehicleId: id,
       companyId,
-      brand,
-      model,
-      year,
-      licensePlate,
-      color,
-      clientId,
-    } as any);
+      plate: licensePlate || '',
+    };
+    const vehicle = await container.useCases.fleet.updateVehicle.execute(payload);
 
     return response.json(vehicle);
   }

@@ -1,16 +1,20 @@
 // apps/api/src/modules/auth/controllers/AuthenticateUserController.ts
 
 import { Request, Response } from 'express';
-import { AuthenticateUserService } from '../services/AuthenticateUserService';
 import { authenticateUserSchema } from '../validators/authSchema';
+import { container } from '../../../container';
 
 export class AuthenticateUserController {
-  constructor(private authenticateUserService: AuthenticateUserService) {}
-
   async handle(request: Request, response: Response): Promise<Response> {
     const data = authenticateUserSchema.parse(request.body);
 
-    const authResponse = await this.authenticateUserService.execute(data);
+    const mappedData = {
+      email: data.email,
+      password: data.password,
+      companyId: data.companyId || '',
+    };
+
+    const authResponse = await container.useCases.identity.authenticateUser.execute(mappedData);
     return response.json(authResponse);
   }
 }
