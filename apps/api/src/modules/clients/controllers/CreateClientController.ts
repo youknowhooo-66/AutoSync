@@ -13,8 +13,9 @@ export class CreateClientController {
 
     const client = await this.createClientService.execute({
       ...data,
+      document: data.document || '',
       companyId,
-    } as any);
+    });
 
     return response.status(201).json({
       success: true,

@@ -1,11 +1,11 @@
 // apps/api/src/modules/clients/controllers/UpdateClientController.ts
 
 import { Request, Response } from 'express';
-import { UpdateClientService } from '../services/UpdateClientService';
 import { updateClientSchema } from '../validators/updateSchema';
+import { container } from '../../../container';
 
 export class UpdateClientController {
-  constructor(private updateClientService: UpdateClientService) {}
+  constructor() {}
 
   async handle(request: Request, response: Response): Promise<Response> {
     const data = updateClientSchema.parse({
@@ -15,10 +15,12 @@ export class UpdateClientController {
     
     const { companyId } = request.user;
 
-    const client = await this.updateClientService.execute({
+    const client = await container.useCases.fleet.updateClient.execute({
       ...data,
+      document: data.document || '',
+      clientId: request.params.id,
       companyId,
-    } as any);
+    });
 
     return response.json({
       success: true,
