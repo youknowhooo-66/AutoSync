@@ -20,8 +20,8 @@ const deleteCompanyService = new DeleteCompanyService(prismaCompanyRepository);
 const listCompanyService = new ListCompanyService(prismaCompanyRepository);
 
 // Controllers
-const createCompanyController = new CreateCompanyController(createCompanyService);
-const updateCompanyController = new UpdateCompanyController(updateCompanyService);
+const createCompanyController = new CreateCompanyController();
+const updateCompanyController = new UpdateCompanyController();
 const deleteCompanyController = new DeleteCompanyController(deleteCompanyService);
 const listCompanyController = new ListCompanyController(listCompanyService);
 

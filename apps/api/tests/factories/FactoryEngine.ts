@@ -69,7 +69,7 @@ export class FactoryEngine {
       companyId,
       name: faker.person.fullName(),
       email: faker.internet.email(),
-      role: overrides.role || 'USER',
+      role: overrides.role || 'ATTENDANT',
       branchId: overrides.branchId || null,
       active: overrides.active !== undefined ? overrides.active : true,
       ...overrides,

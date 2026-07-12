@@ -14,7 +14,7 @@ export class CreateClientController {
     const client = await this.createClientService.execute({
       ...data,
       document: data.document || '',
-      companyId,
+      companyId, email: data.email || "", phone: data.phone || "", address: data.address || "", city: data.city || "", state: data.state || "", zipCode: data.zipCode || "",
     });
 
     return response.status(201).json({

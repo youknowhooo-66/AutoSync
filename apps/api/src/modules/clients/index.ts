@@ -22,7 +22,7 @@ const listClientService = new ListClientService(prismaClientRepository);
 
 // Controllers
 const createClientController = new CreateClientController(createClientService);
-const updateClientController = new UpdateClientController(updateClientService);
+const updateClientController = new UpdateClientController();
 const deleteClientController = new DeleteClientController(deleteClientService);
 const listClientController = new ListClientController(listClientService);
 

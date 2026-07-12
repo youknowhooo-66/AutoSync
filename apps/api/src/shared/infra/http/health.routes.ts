@@ -21,7 +21,8 @@ healthRouter.get('/health', async (req, res) => {
 
     // 2. Check Redis
     const redisQueue = QueueProvider.getQueue('health_check');
-    (await redisQueue.client).ping();
+      const redis = (await redisQueue.client) as any;
+      await redis.ping();
     status.redis = 'up';
 
     const isHealthy = status.database === 'up' && status.redis === 'up';

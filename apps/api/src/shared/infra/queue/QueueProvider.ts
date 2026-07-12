@@ -9,7 +9,7 @@ export class QueueProvider {
 
   public getQueue(name: string): Queue {
     if (!this.queues.has(name)) {
-      const queue = new Queue(name, { connection: redisClient });
+      const queue = new Queue(name, { connection: redisClient as any });
       this.queues.set(name, queue);
     }
     return this.queues.get(name)!;
@@ -21,7 +21,7 @@ export class QueueProvider {
   }
 
   public createWorker(queueName: string, processor: (job: Job) => Promise<void>) {
-    const worker = new Worker(queueName, processor, { connection: redisClient });
+    const worker = new Worker(queueName, processor, { connection: redisClient as any });
 
     worker.on('completed', (job) => {
       logger.info(`✅ Job ${job.id} from queue ${queueName} completed`);

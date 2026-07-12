@@ -72,7 +72,7 @@ export class AddItemsToServiceOrderUseCase {
           data: {
             partId: p.partId,
             branchId: os.branchId,
-            userId: data.userId || null,
+            userId: data.userId || 'system',
             type: 'OUT',
             quantity: p.quantity,
             reason: `Added to Service Order (OS: ${data.serviceOrderId})`,
