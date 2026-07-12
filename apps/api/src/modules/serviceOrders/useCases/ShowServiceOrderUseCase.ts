@@ -7,7 +7,7 @@ export class ShowServiceOrderUseCase {
       where: {
         id,
         companyId,
-        deletedAt: null,
+        
       },
       include: {
         client: true,

@@ -3,7 +3,7 @@ import { prismaClient } from '../../../shared/database/prismaClient';
 export class ListServiceOrdersUseCase {
   async execute(companyId: string) {
     const serviceOrders = await prismaClient.serviceOrder.findMany({
-      where: { companyId, deletedAt: null },
+      where: { companyId,  },
       include: {
         client: true,
         vehicle: true,

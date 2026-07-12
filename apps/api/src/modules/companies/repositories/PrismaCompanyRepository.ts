@@ -28,7 +28,7 @@ export class PrismaCompanyRepository implements ICompanyRepository {
     const company = await this.prisma.company.findFirst(({
           where: { 
             id,
-            deletedAt: null,
+            
           },
         } as unknown as Parameters<typeof this.prisma.company.findFirst>[0]));
     return company as Company | null;
@@ -69,12 +69,9 @@ export class PrismaCompanyRepository implements ICompanyRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.company.update(({
+    await this.prisma.company.delete(({
           where: { id },
-          data: {
-            deletedAt: new Date(),
-          },
-        } as unknown as Parameters<typeof this.prisma.company.update>[0]));
+        } as any));
   }
 }
 

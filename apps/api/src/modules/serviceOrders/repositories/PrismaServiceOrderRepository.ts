@@ -29,7 +29,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
 
   async findById(id: string, companyId: string) {
     return await this.prisma.serviceOrder.findFirst(({
-          where: { id, companyId, deletedAt: null },
+          where: { id, companyId,  },
           include: {
             parts: { include: { part: true } },
             services: true,
@@ -49,7 +49,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
     return await this.prisma.serviceOrder.findMany(({
           where: {
             companyId,
-            deletedAt: null,
+            
             ...filters,
           },
           include: {

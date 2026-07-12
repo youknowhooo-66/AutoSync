@@ -11,58 +11,78 @@ export class PrismaFinancialEntryRepository implements IFinancialEntryRepository
     this.prisma = prismaClient;
   }
 
-  async create(data: CreateFinancialDTO): Promise<FinancialEntry> {
-    const financialEntry = await this.prisma.financialRecord.create(({
-          data: {
-            companyId: data.companyId,
-            type: data.type,
-            amount: data.amount,
-            description: data.description,
-            date: data.date,
-            categoryId: data.categoryId,
-          },
-        } as unknown as Parameters<typeof this.prisma.financialRecord.create>[0]));
-    return financialEntry;
+  async create(data: CreateFinancialDTO & { branchId?: string }): Promise<FinancialEntry> {
+    let branchId = data.branchId;
+    
+    if (!branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { companyId: data.companyId },
+      });
+      if (!branch) {
+        throw new Error('A branch is required to create a financial record.');
+      }
+      branchId = branch.id;
+    }
+
+    const mappedType = 
+      data.type === 'EXPENSE' || (data.type as string) === 'PAYABLE' 
+        ? 'PAYABLE' 
+        : 'RECEIVABLE';
+
+    return await this.prisma.financialRecord.create({
+      data: {
+        companyId: data.companyId,
+        branchId,
+        type: mappedType,
+        amount: data.amount,
+        description: data.description,
+        category: data.categoryId || 'General',
+        dueDate: data.date || new Date(),
+        status: 'PENDING',
+      },
+    }) as any;
   }
 
   async findById(id: string, companyId: string): Promise<FinancialEntry | null> {
-    const financialEntry = await this.prisma.financialRecord.findUnique(({
-          where: {
-            id_companyId: {
-              id,
-              companyId,
-            },
-          },
-        } as unknown as Parameters<typeof this.prisma.financialRecord.findUnique>[0]));
-    return financialEntry;
+    return await this.prisma.financialRecord.findUnique({
+      where: {
+        id_companyId: {
+          id,
+          companyId,
+        },
+      },
+    }) as any;
   }
 
   async findManyByCompany(companyId: string): Promise<FinancialEntry[]> {
-    const financialEntries = await this.prisma.financialRecord.findMany(({
-          where: {
-            companyId,
-          },
-        } as unknown as Parameters<typeof this.prisma.financialRecord.findMany>[0]));
-    return financialEntries;
+    return await this.prisma.financialRecord.findMany({
+      where: {
+        companyId,
+      },
+    }) as any;
   }
 
-  async update(data: UpdateFinancialDTO): Promise<FinancialEntry> {
-    const financialEntry = await this.prisma.financialRecord.update(({
-          where: {
-            id_companyId: {
-              id: data.id,
-              companyId: data.companyId,
-            },
-          },
-          data: {
-            type: data.type,
-            amount: data.amount,
-            description: data.description,
-            date: data.date,
-            categoryId: data.categoryId,
-          },
-        } as unknown as Parameters<typeof this.prisma.financialRecord.update>[0]));
-    return financialEntry;
+  async update(data: UpdateFinancialDTO & { branchId?: string }): Promise<FinancialEntry> {
+    const mappedType = 
+      data.type === 'EXPENSE' || (data.type as string) === 'PAYABLE' 
+        ? 'PAYABLE' 
+        : 'RECEIVABLE';
+
+    return await this.prisma.financialRecord.update({
+      where: {
+        id_companyId: {
+          id: data.id,
+          companyId: data.companyId,
+        },
+      },
+      data: {
+        type: mappedType,
+        amount: data.amount,
+        description: data.description,
+        category: data.categoryId || 'General',
+        dueDate: data.date || new Date(),
+      },
+    }) as any;
   }
 
   async delete(id: string, companyId: string): Promise<void> {

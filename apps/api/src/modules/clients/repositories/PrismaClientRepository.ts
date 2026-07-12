@@ -33,7 +33,7 @@ export class PrismaClientRepository implements IClientRepository {
           where: {
             id,
             companyId,
-            deletedAt: null,
+            
           },
         } as unknown as Parameters<typeof this.prisma.client.findFirst>[0]));
     return client;
@@ -81,15 +81,12 @@ export class PrismaClientRepository implements IClientRepository {
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.client.update(({
+    await this.prisma.client.delete(({
           where: {
             id,
             companyId,
           },
-          data: {
-            deletedAt: new Date(),
-          },
-        } as unknown as Parameters<typeof this.prisma.client.update>[0]));
+        } as any));
   }
 }
 

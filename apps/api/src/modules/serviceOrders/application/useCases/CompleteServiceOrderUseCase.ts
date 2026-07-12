@@ -33,7 +33,7 @@ export class CompleteServiceOrderUseCase {
 
     // 1. Fetch OS data
     const serviceOrder = await prismaClient.serviceOrder.findFirst({
-      where: { id: serviceOrderId, companyId, deletedAt: null },
+      where: { id: serviceOrderId, companyId,  },
       include: {
         parts: true,
         services: true,

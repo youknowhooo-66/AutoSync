@@ -29,7 +29,7 @@ export class PrismaUserRepository implements IUserRepository {
           where: {
             id,
             companyId,
-            deletedAt: null,
+            
           },
         } as unknown as Parameters<typeof this.prisma.user.findFirst>[0]));
     return user as User | null;
@@ -74,15 +74,12 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.user.update(({
+    await this.prisma.user.delete(({
           where: {
             id,
             companyId,
           },
-          data: {
-            deletedAt: new Date(),
-          },
-        } as unknown as Parameters<typeof this.prisma.user.update>[0]));
+        } as any));
   }
 }
 

@@ -14,7 +14,7 @@ export class CompleteServiceOrderUseCase {
     return await prismaClient.$transaction(async (tx) => {
       // 1. Validate if OS exists and belongs to company
       const serviceOrder = await tx.serviceOrder.findFirst({
-        where: { id: serviceOrderId, companyId, deletedAt: null },
+        where: { id: serviceOrderId, companyId,  },
         include: {
           parts: true,
           services: true,

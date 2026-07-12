@@ -89,7 +89,7 @@ export class StockController {
     const { prismaClient } = await import('../../../shared/database/prismaClient');
     
     const suppliers = await prismaClient.supplier.findMany({
-      where: { companyId, deletedAt: null },
+      where: { companyId,  },
       include: { parts: { select: { id: true, name: true } } }
     });
 

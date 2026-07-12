@@ -10,7 +10,7 @@ interface IRequest {
 export class CancelServiceOrderUseCase {
   async execute({ serviceOrderId, companyId }: IRequest) {
     const serviceOrder = await prismaClient.serviceOrder.findFirst({
-      where: { id: serviceOrderId, companyId, deletedAt: null },
+      where: { id: serviceOrderId, companyId,  },
     });
 
     if (!serviceOrder) {

@@ -8,7 +8,7 @@ export class ListPartsService {
     }
 
     const parts = await prismaClient.part.findMany({
-      where: { companyId, deletedAt: null },
+      where: { companyId,  },
       include: {
         stocks: {
           include: {

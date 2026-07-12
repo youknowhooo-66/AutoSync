@@ -42,7 +42,7 @@ export class PrismaVehicleRepository implements IVehicleRepository {
           where: {
             id,
             companyId,
-            deletedAt: null,
+            
           },
           include: {
             client: {
@@ -136,15 +136,12 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   }
 
   async delete(id: string, companyId: string): Promise<void> {
-    await this.prisma.vehicle.update(({
+    await this.prisma.vehicle.delete(({
           where: {
             id,
             companyId,
           },
-          data: {
-            deletedAt: new Date(),
-          },
-        } as unknown as Parameters<typeof this.prisma.vehicle.update>[0]));
+        } as any));
   }
 }
 

@@ -26,7 +26,7 @@ export class CreatePartUseCase {
         where: {
           companyId: data.companyId,
           internalCode: data.internalCode,
-          deletedAt: null
+          
         }
       });
 
