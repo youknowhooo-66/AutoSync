@@ -20,8 +20,8 @@ const deleteFinancialService = new DeleteFinancialService(prismaFinancialReposit
 const listFinancialService = new ListFinancialService(prismaFinancialRepository);
 
 // Controllers
-const createFinancialController = new CreateFinancialController(createFinancialService);
-const updateFinancialController = new UpdateFinancialController(updateFinancialService);
+const createFinancialController = new CreateFinancialController();
+const updateFinancialController = new UpdateFinancialController();
 const deleteFinancialController = new DeleteFinancialController(deleteFinancialService);
 const listFinancialController = new ListFinancialController(listFinancialService);
 

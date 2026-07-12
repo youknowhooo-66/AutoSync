@@ -92,8 +92,9 @@ financialRoutes.get('/invoices/:id', async (req: any, res: any, next: any) => {
       totalAmount: Number(record.amount),
       amountPaid: record.status === 'PAID' ? Number(record.amount) : 0,
       status: record.status === 'CANCELLED' ? 'CANCELED' : record.status,
-      dueDate: record.dueDate.toISOString(),
+      dueDate: (record.dueDate ? record.dueDate.toISOString() : undefined) as any,
       createdAt: record.createdAt.toISOString(),
+      paymentDate: (record.paymentDate ? record.paymentDate.toISOString() : undefined) as any,
       payments
     };
 
@@ -220,7 +221,7 @@ financialRoutes.get('/invoices/:id/pdf', async (req: any, res: any, next: any) =
       if (os) {
         osNumber = os.number.toString();
         clientName = os.client.name;
-        clientDoc = os.client.document;
+        clientDoc = os.client.document || "";
         vehicleInfo = `${os.vehicle.brand} ${os.vehicle.model} (${os.vehicle.plate})`;
       }
     }
@@ -247,7 +248,7 @@ financialRoutes.get('/invoices/:id/pdf', async (req: any, res: any, next: any) =
     doc.fontSize(14).text(`FATURA / RECIBO`, 350, top, { align: 'right' });
     doc.fontSize(10).text(`Código: ${invoiceNum}`, 350, doc.y, { align: 'right' });
     doc.text(`Emissão: ${format(record.createdAt, "dd/MM/yyyy", { locale: ptBR })}`, 350, doc.y, { align: 'right' });
-    doc.text(`Vencimento: ${format(record.dueDate, "dd/MM/yyyy", { locale: ptBR })}`, 350, doc.y, { align: 'right' });
+    doc.text(`Vencimento: ${record.dueDate ? format(record.dueDate, "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}`, 350, doc.y, { align: 'right' });
 
     doc.moveDown(2);
     doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();

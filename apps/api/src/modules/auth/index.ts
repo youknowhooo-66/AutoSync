@@ -11,7 +11,7 @@ const prismaUserRepository = new PrismaUserRepository();
 const authenticateUserService = new AuthenticateUserService(prismaUserRepository);
 
 // Controllers
-const authenticateUserController = new AuthenticateUserController(authenticateUserService);
+const authenticateUserController = new AuthenticateUserController();
 
 export {
   authenticateUserController,

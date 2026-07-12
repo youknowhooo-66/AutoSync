@@ -20,8 +20,8 @@ const deleteUserService = new DeleteUserService(prismaUserRepository);
 const listUserService = new ListUserService(prismaUserRepository);
 
 // Controllers
-const createUserController = new CreateUserController(createUserService);
-const updateUserController = new UpdateUserController(updateUserService);
+const createUserController = new CreateUserController();
+const updateUserController = new UpdateUserController();
 const deleteUserController = new DeleteUserController(deleteUserService);
 const listUserController = new ListUserController(listUserService);
 

@@ -20,8 +20,8 @@ const deleteVehicleService = new DeleteVehicleService(prismaVehicleRepository);
 const listVehicleService = new ListVehicleService(prismaVehicleRepository);
 
 // Controllers
-const createVehicleController = new CreateVehicleController(createVehicleService);
-const updateVehicleController = new UpdateVehicleController(updateVehicleService);
+const createVehicleController = new CreateVehicleController();
+const updateVehicleController = new UpdateVehicleController();
 const deleteVehicleController = new DeleteVehicleController(deleteVehicleService);
 const listVehicleController = new ListVehicleController(listVehicleService);
 
