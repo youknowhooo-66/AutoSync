@@ -49,17 +49,19 @@ export class CreateServiceOrderService {
 
       // 3. Add Parts and Update Stock
       for (const part of parts) {
-        // Check stock
-        const stock = await tx.stock.findUnique({
+        // Atomic check and update
+        const updated = await tx.stock.updateMany({
           where: {
-            partId_branchId: {
-              partId: part.partId,
-              branchId: data.branchId,
-            },
+            partId: part.partId,
+            branchId: data.branchId,
+            quantity: { gte: part.quantity }
           },
+          data: {
+            quantity: { decrement: part.quantity }
+          }
         });
 
-        if (!stock || stock.quantity < part.quantity) {
+        if (updated.count === 0) {
           throw new AppError(`Insufficient stock for part ID ${part.partId}.`, 400);
         }
 
@@ -70,19 +72,6 @@ export class CreateServiceOrderService {
             partId: part.partId,
             quantity: part.quantity,
             unitPrice: part.unitPrice,
-          },
-        });
-
-        // Update Stock (Decrement)
-        await tx.stock.update({
-          where: {
-            partId_branchId: {
-              partId: part.partId,
-              branchId: data.branchId,
-            },
-          },
-          data: {
-            quantity: { decrement: part.quantity },
           },
         });
 

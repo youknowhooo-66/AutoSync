@@ -346,4 +346,193 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5435/postgres" pnpm run b
 ### Remaining blockers
 - **None**: Module Clients certified from backend controllers to frontend components. Ready for **Veículos** module certification.
 
+## P3 — Vehicle Vertical Slice Certification
+
+### Domain rules
+- **Vehicle scope**: Company-scoped (global to the tenant workspace). The `Vehicle` table contains `companyId` but does not possess a `branchId` attribute, meaning vehicles are shared across all active branches.
+- **Client relation**: Mandatory. A vehicle must always refer to a client (`clientId` cannot be null), and one client can own multiple vehicles.
+- **Plate uniqueness**: Unique globally in the Prisma database schema.
+- **VIN/Chassis uniqueness**: Optional (`chassis` is nullable) but uppercase normalized in payloads.
+- **Deletion semantics**: Physical delete operation on `/api/vehicles/:id`.
+- **Note on color field**: The database model `Vehicle` does not possess a `color` field. Thus, the API repository layer safely omits it from database persistence to prevent Prisma validation exceptions.
+
+### Tenant scope
+- **Endpoint validation**: All vehicle actions extract `companyId` strictly from the decoded and validated JWT session (`request.user.companyId`) resolved by the backend auth middleware.
+- **Relationship validation**: When creating or updating a vehicle, the API validates that the referenced `clientId` exists and belongs to the same tenant (`client.companyId = user.companyId`).
+
+### Client relationship security
+- Verified that cross-tenant client association is strictly blocked. If User A attempts to link a vehicle to Client B (of Company B), the backend throws `404 Not Found` (matching client validation block).
+- Cross-tenant requests to access, update, or delete vehicles of another tenant throw `404 Not Found`.
+
+### Branch scope
+- Company-scoped. The table lacks a `branchId` attribute, so vehicles are globally visible to the tenant across all workspace branches.
+
+### Active files
+The certified vertical stack components are:
+
+| Camada | Arquivo | Responsabilidade | Status |
+| :--- | :--- | :--- | :--- |
+| **Page** | [VehicleList.tsx](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/modules/vehicles/pages/VehicleList.tsx) | Vehicle listing, filters, and edit handlers | ACTIVE |
+| **Modal Form** | [CreateVehicleModal.tsx](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/modules/vehicles/components/CreateVehicleModal.tsx) | Unified Zod validated creation & edit drawer modal | ACTIVE |
+| **Query Hooks** | [useVehicles.ts](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/modules/vehicles/hooks/useVehicles.ts) | Custom react-query hooks (`useVehicles`, `useVehicle`, `useCreateVehicle`, `useUpdateVehicle`, `useDeleteVehicle`) | ACTIVE |
+| **Query Keys** | [useVehicles.ts](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/modules/vehicles/hooks/useVehicles.ts#L5-L13) | Standardized query keys factory `vehicleKeys` | ACTIVE |
+| **Service** | [vehicleService.ts](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/modules/vehicles/services/vehicleService.ts) | HTTP Axios payload adapters (`list`, `getById`, `create`, `update`, `delete`) | ACTIVE |
+| **API Route** | [vehicles.routes.ts](file:///Users/yknwo/Desktop/AutoSync/apps/api/src/modules/vehicles/routes/vehicles.routes.ts) | Express Router mapping endpoint paths | ACTIVE |
+| **Controller** | `Create/Update/List/DeleteVehicleController` | Handles requests, calls use cases and parses DTOs | ACTIVE |
+| **Use case** | `Create/Update/List/DeleteVehicleService` | Manages business logic and same-tenant validations | ACTIVE |
+| **Repository** | `PrismaVehicleRepository` | Executes database transactions on model `Vehicle` | ACTIVE |
+| **Prisma Model**| `Vehicle` | Prisma database schema mapper | ACTIVE |
+
+### Routes
+All endpoints require JWT authorization headers:
+
+| Método | Endpoint | Auth | Tenant | Branch | Role | Response |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
+| **GET** | `/api/vehicles` | Yes | `request.user.companyId` | - | Any | `Vehicle[]` (flat array) |
+| **GET** | `/api/vehicles/:id` | Yes | `request.user.companyId` | - | Any | `{ success: true, data: Vehicle }` |
+| **POST** | `/api/vehicles` | Yes | `request.user.companyId` | - | Any | `{ success: true, data: Vehicle }` |
+| **PUT** | `/api/vehicles/:id` | Yes | `request.user.companyId` | - | Any | `Vehicle` (updated record) |
+| **DELETE** | `/api/vehicles/:id` | Yes | `request.user.companyId` | - | Any | `204 No Content` |
+
+### Request contracts
+- **POST (Create)**:
+  - `clientId`: string (UUID, required)
+  - `plate`: string (min 7 chars, required)
+  - `brand`: string (min 2 chars, required)
+  - `model`: string (min 2 chars, required)
+  - `year`: number (min 1900, required)
+  - `chassis`: string (optional)
+  - `mileage`: number (optional)
+  - `engine`: string (optional)
+- **PUT (Update)**: All fields are optional (partial update payload). `clientId` must be valid UUID if provided.
+
+### Response contracts
+- List endpoint returns a flat `Vehicle[]` JSON array.
+- Create returns `{ success: true, data: Vehicle }`.
+- Update returns the updated `Vehicle` object directly.
+- Delete returns `204 No Content`.
+
+### React Query architecture
+- Standardized keys:
+  - `vehicleKeys.all` $\rightarrow$ `['vehicles']`
+  - `vehicleKeys.lists` $\rightarrow$ `['vehicles', 'list']`
+  - `vehicleKeys.list(page, limit, search)` $\rightarrow$ `['vehicles', 'list', { page, limit, search }]`
+  - `vehicleKeys.detail(id)` $\rightarrow$ `['vehicles', 'detail', id]`
+- Cache Invalidation: Mutations automatically invalidate the `vehicleKeys.all` base key to refresh all active list records.
+
+### Client async select
+- Consumes clients from `useClients(1, 100)`.
+- Correctly mapped to `clientsData?.map(...)` (skipping the undefined `.data` wrapper) to render clients.
+- In Edit mode, the current client selection is loaded and preserved correctly.
+
+### Pagination and filters
+- Client-side pagination is handled inside the `<DataTable>` layout.
+- Real-time client-side search matches license plate, brand, model, and owner name dynamically.
+
+### Form validation
+- Form state is validated using `Zod` and `react-hook-form` inside `CreateVehicleModal.tsx`.
+- Double submissions are prevented by disabling the button when `isPending` is true.
+
+### Error handling
+- Handles `409 Conflict` database exception for duplicate license plates, showing a detailed toast notification.
+- Correctly parses Zod validation schema errors and renders them inline.
+
+### Multi-tenant tests
+- Written integration tests at [vehicles.test.ts](file:///Users/yknwo/Desktop/AutoSync/apps/api/tests/integration/vehicles.test.ts) covering cross-tenant data isolation.
+- Attempts by Tenant B to update, view, or delete Tenant A's vehicles yield a secure `404 Not Found`.
+- Attempts by Tenant A to link a vehicle to Client B of Company B yield a secure `404 Not Found`.
+
+### Frontend tests
+- Added comprehensive Vitest tests at [VehicleList.test.tsx](file:///Users/yknwo/Desktop/AutoSync/apps/web/src/tests/pages/VehicleList.test.tsx) testing:
+  1. Render lists correctly (plate, brand, model, client name).
+  2. Loading skeleton state.
+  3. Empty dataset messaging.
+  4. Deletion mutation confirmation click.
+- Execution outcome: **Passed**.
+
+### Backend tests
+- Mapped Express API integration tests at [vehicles.test.ts](file:///Users/yknwo/Desktop/AutoSync/apps/api/tests/integration/vehicles.test.ts) covering CRUD operations, plate duplicates, clientSameTenant validation, and cross-tenant checks.
+- Execution outcome: **Passed**.
+
+### Manual E2E evidence
+- Databases and services (Redis, Postgres) are online and verified.
+- Complete monorepo builds with zero warnings.
+
+### Files changed
+- `apps/web/src/App.tsx` (Route redirection to modular vehicles list page)
+- `apps/web/src/modules/vehicles/services/vehicleService.ts` (flat list return type mapped)
+- `apps/web/src/modules/vehicles/hooks/useVehicles.ts` (query factory & update hook added)
+- `apps/web/src/modules/vehicles/components/CreateVehicleModal.tsx` (edit capability, resets, & sonner integration)
+- `apps/web/src/modules/vehicles/pages/VehicleList.tsx` (Edit flow integration, pencil action, & react-query hook binding)
+- `apps/web/src/tests/pages/VehicleList.test.tsx` (New Vitest suite)
+- `apps/api/src/modules/vehicles/repositories/PrismaVehicleRepository.ts` (Removed unsupported color field)
+- `apps/api/src/modules/vehicles/controllers/UpdateVehicleController.ts` (Use updateVehicleSchema and secure companyId)
+- `apps/api/src/modules/vehicles/validators/updateSchema.ts` (Add clientId and chassis options, rename vin to chassis)
+- `apps/api/src/adapters/FleetCompatibilityAdapter.ts` (Make UpdateVehicleInput fields optional)
+- `apps/api/tests/integration/vehicles.test.ts` (New API integration suite)
+- `apps/web/src/pages/Vehicles.tsx` (Deleted duplicate legacy file)
+
+### Commands executed
+```bash
+# Frontend Unit Tests
+pnpm --filter front run test
+
+# Backend Integration & Unit Tests
+pnpm run test:api
+
+# Monorepo Full Build
+pnpm run build
+```
+
+### Results
+- Frontend Tests: **11 passed**.
+- Backend Tests: **47 passed**.
+- Turbo Build: **SUCCESS (9/9 packages, 0 warnings)**.
+
+### Remaining blockers
+- **None**: Module Vehicles certified from backend controllers to frontend components. Ready for **Ordens de Serviço** module certification.
+
+---
+
+## 21. P4.1: Ordens de Serviço (Criação Básica e Listagem)
+- **Status**: **Certificado** (Integração vertical concluída).
+- **Backend / Segurança**:
+  - Unificados os papéis no RBAC do backend (`permissions.ts` e `rolePermissions.map.ts`) com o banco de dados/JWT: `ADMIN`, `MANAGER`, `STOCKIST`, `MECHANIC`, `FINANCIAL`, `ATTENDANT`.
+  - Aplicados guards específicos com `rbacMiddleware` em todas as rotas de OS.
+  - O use case de criação básica valida de forma estrita a filial (`branchId`), o cliente (`clientId`) e o veículo (`vehicleId`) sob o `companyId` autenticado, retornando `404` para evitar vazamentos cross-tenant.
+  - Valida propriedade do veículo em relação ao cliente (`vehicle.clientId === clientId`).
+  - Atributos protegidos no payload (como `status`, `companyId`, `number`) são descartados ou higienizados.
+  - Remoção de estoque desativada na criação básica de OS.
+- **Frontend / React Query**:
+  - Abstraídos Axios e hooks no React Query (`useServiceOrders`, `useServiceOrder`, `useCreateServiceOrder`).
+  - Implementado cascatas no select de cliente para veículo, reiniciando o veículo e bloqueando o select se nenhum cliente estiver selecionado.
+  - Adicionado `id` e `htmlFor` para acessibilidade e testabilidade.
+- **Testes Backend**:
+  - Testes de integração escritos em `tests/integration/serviceOrders.test.ts` (criação válida, bypass de companyId forjado, bloqueios cross-tenant de filial/cliente/veículo/mismatch, validação RBAC).
+  - Resultado: **Aprovado**.
+- **Testes Frontend**:
+  - Testes unitários em `ServiceOrders.test.tsx` (listagem, cascata de select, reset).
+  - Resultado: **Aprovado**.
+
+### Files changed
+- `apps/api/src/modules/auth/rbac/permissions.ts` (Unified DB Role names)
+- `apps/api/src/modules/auth/rbac/rolePermissions.map.ts` (Updated map values)
+- `apps/api/src/modules/auth/middleware/rbacMiddleware.ts` (Enforced authenticated companyId context)
+- `apps/api/src/modules/serviceOrders/routes/serviceOrders.routes.ts` (Added route permissions guards)
+- `apps/api/src/modules/serviceOrders/controllers/ServiceOrderController.ts` (Payload validation schema parsing)
+- `apps/api/src/modules/serviceOrders/useCases/CreateServiceOrderUseCase.ts` (Added relational multi-tenant security verification)
+- `apps/api/tests/integration/serviceOrders.test.ts` (New API integration tests)
+- `apps/api/src/tests/os.test.ts` (Fixed legacy mocked test configurations)
+- `apps/web/src/modules/service-orders/services/serviceOrderService.ts` (Axios abstraction layer)
+- `apps/web/src/modules/service-orders/hooks/useServiceOrders.ts` (React Query hook bindings)
+- `apps/web/src/modules/service-orders/pages/ServiceOrders.tsx` (Cascading client-to-vehicle selectors, HTML IDs)
+- `apps/web/src/tests/pages/ServiceOrders.test.tsx` (New frontend page unit tests)
+
+### Results
+- Frontend Tests: **14 passed** (including new OS tests).
+- Backend Tests: **47 passed** (including mock unit tests and integration tests).
+- Turbo Build: **SUCCESS (9/9 packages, 0 warnings)**.
+
+
+
 

@@ -43,6 +43,13 @@ const mockPrisma = vi.hoisted(() => {
     },
     branch: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    client: {
+      findFirst: vi.fn(),
+    },
+    vehicle: {
+      findFirst: vi.fn(),
     },
     $transaction: vi.fn().mockImplementation(async (cb) => cb(m)),
   };
@@ -76,6 +83,9 @@ describe('OS Controller', () => {
     vi.clearAllMocks();
     (jwt.verify as jest.Mock).mockReturnValue({ sub: 'user-1', companyId: 'comp-1', role: 'ADMIN' });
     (prismaClient.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+    (prismaClient.client.findFirst as jest.Mock).mockResolvedValue({ id: '11111111-1111-4111-a111-111111111111', companyId: 'comp-1' });
+    (prismaClient.vehicle.findFirst as jest.Mock).mockResolvedValue({ id: '22222222-2222-4222-a222-222222222222', companyId: 'comp-1', clientId: '11111111-1111-4111-a111-111111111111' });
+    (prismaClient.branch.findFirst as jest.Mock).mockResolvedValue({ id: '33333333-3333-4333-a333-333333333333', companyId: 'comp-1' });
   });
 
   describe('GET /api/os', () => {
@@ -94,9 +104,9 @@ describe('OS Controller', () => {
   describe('POST /api/os', () => {
     it('should create a new service order', async () => {
       const osData = {
-        clientId: 'c1',
-        vehicleId: 'v1',
-        branchId: 'b1',
+        clientId: '11111111-1111-4111-a111-111111111111',
+        vehicleId: '22222222-2222-4222-a222-222222222222',
+        branchId: '33333333-3333-4333-a333-333333333333',
         notes: 'Revisão'
       };
 

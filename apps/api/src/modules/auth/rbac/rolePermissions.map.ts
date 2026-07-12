@@ -23,16 +23,21 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.STOCK_VIEW,
   ],
 
-  [Role.FINANCE]: [
+  [Role.FINANCIAL]: [
     Permission.SERVICE_ORDER_VIEW,
     Permission.FINANCIAL_VIEW,
     Permission.FINANCIAL_CREATE,
     Permission.AUDIT_VIEW,
   ],
 
-  [Role.RECEPTIONIST]: [
+  [Role.ATTENDANT]: [
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_CREATE,
     Permission.STOCK_VIEW,
+  ],
+
+  [Role.STOCKIST]: [
+    Permission.STOCK_VIEW,
+    Permission.STOCK_UPDATE,
   ],
 };

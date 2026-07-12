@@ -22,11 +22,51 @@ interface IRequest {
   notes?: string;
   parts: IPartRequest[];
   services: IServiceRequest[];
+  userId: string;
 }
 
 export class CreateServiceOrderUseCase {
   async execute(data: IRequest) {
     return await prismaClient.$transaction(async (tx) => {
+      // 0. Validate Tenant ownership & client-vehicle relationship
+      const client = await tx.client.findFirst({
+        where: {
+          id: data.clientId,
+          companyId: data.companyId,
+        },
+      });
+
+      if (!client) {
+        throw new AppError('Client not found or belongs to another tenant.', 404);
+      }
+
+      const vehicle = await tx.vehicle.findFirst({
+        where: {
+          id: data.vehicleId,
+          companyId: data.companyId,
+        },
+      });
+
+      if (!vehicle) {
+        throw new AppError('Vehicle not found or belongs to another tenant.', 404);
+      }
+
+      if (vehicle.clientId !== data.clientId) {
+        throw new AppError('Vehicle does not belong to the selected client.', 404);
+      }
+
+      const branch = await tx.branch.findFirst({
+        where: {
+          id: data.branchId,
+          companyId: data.companyId,
+          deletedAt: null,
+        },
+      });
+
+      if (!branch) {
+        throw new AppError('Branch not found or belongs to another tenant.', 404);
+      }
+
       // 1. Calculate totals
       const parts = data.parts || [];
       const services = data.services || [];
@@ -53,20 +93,24 @@ export class CreateServiceOrderUseCase {
 
       // 3. Create OSParts & Update Stock
       for (const p of parts) {
-        // a. Verify Stock
-        const stock = await tx.stock.findUnique({
-          where: { partId_branchId: { partId: p.partId, branchId: data.branchId } }
+        // Atomic check and update
+        const updated = await tx.stock.updateMany({
+          where: {
+            partId: p.partId,
+            branchId: data.branchId,
+            quantity: { gte: p.quantity }
+          },
+          data: {
+            quantity: { decrement: p.quantity }
+          }
         });
 
-        if (!stock || stock.quantity < p.quantity) {
-          throw new AppError(`Insufficient stock for part ${p.partId}. Available: ${stock?.quantity || 0}`, 400);
+        if (updated.count === 0) {
+          const currentStock = await tx.stock.findUnique({
+            where: { partId_branchId: { partId: p.partId, branchId: data.branchId } }
+          });
+          throw new AppError(`Insufficient stock for part ${p.partId}. Available: ${currentStock?.quantity || 0}`, 400);
         }
-
-        // b. Deduct Stock
-        await tx.stock.update({
-          where: { id: stock.id },
-          data: { quantity: { decrement: p.quantity } }
-        });
 
         // c. Record OSPart
         await tx.oSPart.create({

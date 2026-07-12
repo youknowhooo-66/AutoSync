@@ -7,12 +7,25 @@ import { ListServiceOrdersUseCase } from '../useCases/ListServiceOrdersUseCase';
 import { ShowServiceOrderUseCase } from '../useCases/ShowServiceOrderUseCase';
 import { UpdateServiceOrderStatusUseCase } from '../useCases/UpdateServiceOrderStatusUseCase';
 import { AddItemsToServiceOrderUseCase } from '../useCases/AddItemsToServiceOrderUseCase';
+import { createServiceOrderSchema } from '../validators/createSchema';
 
 export class ServiceOrderController {
   async create(req: Request, res: Response) {
     const { companyId, id: userId } = req.user;
+    const data = createServiceOrderSchema.parse(req.body);
+
     const useCase = new CreateServiceOrderUseCase();
-    const result = await useCase.execute({ ...req.body, companyId, userId } as any);
+    const result = await useCase.execute({
+      clientId: data.clientId,
+      vehicleId: data.vehicleId,
+      branchId: data.branchId,
+      mechanicId: data.mechanicId,
+      notes: data.notes,
+      parts: data.parts || [],
+      services: data.services || [],
+      companyId,
+      userId,
+    });
     return res.status(201).json({ 
       success: true, 
       message: 'Ordem de Serviço aberta com sucesso.',

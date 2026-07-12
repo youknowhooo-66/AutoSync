@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Wrench, Plus, Save } from 'lucide-react';
 import api from '@/services/api';
@@ -8,9 +8,11 @@ import { ServiceOrderDetailSheet } from '../components/ServiceOrderDetailSheet';
 import { Button } from '@/components/ui/button';
 import Modal from '@/components/Modal';
 import type { ServiceOrder } from '../types/serviceOrder.types';
+import { useServiceOrders, useCreateServiceOrder } from '../hooks/useServiceOrders';
+import { useClients } from '../../clients/hooks/useClients';
+import { useVehicles } from '../../vehicles/hooks/useVehicles';
 
 export default function ServiceOrders() {
-  const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedOS, setSelectedOS] = useState<ServiceOrder | null>(null);
   
@@ -21,19 +23,19 @@ export default function ServiceOrders() {
   const [mechanicId, setMechanicId] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Fetch OS List
-  const { data: osList = [], isLoading } = useQuery<ServiceOrder[]>({
-    queryKey: ['os-list'],
-    queryFn: async () => {
-      const { data } = await api.get('/os');
-      return data;
-    },
+  // Fetch OS List via standard hook
+  const { data: osList = [], isLoading } = useServiceOrders();
+
+  // Re-use official clients & vehicles query hooks
+  const { data: clients = [] } = useClients(1, 100);
+  const { data: vehicles = [] } = useVehicles(1, 100);
+
+  // Fetch branches and mechanics
+  const { data: branches = [] } = useQuery({ 
+    queryKey: ['branches'], 
+    queryFn: async () => (await api.get('/branches')).data 
   });
 
-  // Fetch Aux Data
-  const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: async () => (await api.get('/clients')).data });
-  const { data: vehicles = [] } = useQuery({ queryKey: ['vehicles'], queryFn: async () => (await api.get('/vehicles')).data });
-  const { data: branches = [] } = useQuery({ queryKey: ['branches'], queryFn: async () => (await api.get('/branches')).data });
   const { data: mechanics = [] } = useQuery({
     queryKey: ['mechanics'],
     queryFn: async () => {
@@ -42,33 +44,54 @@ export default function ServiceOrders() {
     },
   });
 
-  // Create OS Mutation
-  const createMutation = useMutation({
-    mutationFn: async (payload: any) => api.post('/os', payload),
-    onSuccess: () => {
-      toast.success('Ordem de Serviço criada com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['os-list'] });
-      setShowCreateModal(false);
-      resetForm();
-    },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao criar OS.'),
-  });
+  // Create OS Mutation via hook
+  const createMutation = useCreateServiceOrder();
 
   const resetForm = () => {
-    setClientId(''); setVehicleId(''); setMechanicId(''); setNotes('');
+    setClientId('');
+    setVehicleId('');
+    setMechanicId('');
+    setNotes('');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.branchId) setBranchId(user.branchId);
   };
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!clientId) {
+      toast.error('Selecione um cliente.');
+      return;
+    }
+    if (!vehicleId) {
+      toast.error('Selecione um veículo.');
+      return;
+    }
+    if (!branchId) {
+      toast.error('Selecione a filial.');
+      return;
+    }
+
     createMutation.mutate({
       clientId,
       vehicleId,
       branchId,
       mechanicId: mechanicId || null,
       notes,
+    }, {
+      onSuccess: () => {
+        toast.success('Ordem de Serviço criada com sucesso!');
+        setShowCreateModal(false);
+        resetForm();
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Erro ao criar OS.');
+      }
     });
+  };
+
+  const handleClientChange = (val: string) => {
+    setClientId(val);
+    setVehicleId(''); // Clear vehicle selection when client changes
   };
 
   const filteredVehicles = vehicles.filter((v: any) => v.clientId === clientId);
@@ -109,40 +132,65 @@ export default function ServiceOrders() {
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Nova Ordem de Serviço" width="600px">
         <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Cliente *</label>
-            <select required value={clientId} onChange={e => setClientId(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+            <label htmlFor="client-select" className="text-sm font-medium">Cliente *</label>
+            <select 
+              id="client-select"
+              required 
+              value={clientId} 
+              onChange={e => handleClientChange(e.target.value)} 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+            >
               <option value="">Selecione um cliente...</option>
               {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Veículo *</label>
-            <select required value={vehicleId} onChange={e => setVehicleId(e.target.value)} disabled={!clientId} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+            <label htmlFor="vehicle-select" className="text-sm font-medium">Veículo *</label>
+            <select 
+              id="vehicle-select"
+              required 
+              value={vehicleId} 
+              onChange={e => setVehicleId(e.target.value)} 
+              disabled={!clientId} 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+            >
               <option value="">{clientId ? 'Selecione um veículo...' : 'Selecione o cliente primeiro'}</option>
               {filteredVehicles.map((v: any) => <option key={v.id} value={v.id}>{v.model} — {v.plate}</option>)}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Filial *</label>
-            <select required value={branchId} onChange={e => setBranchId(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+            <label htmlFor="branch-select" className="text-sm font-medium">Filial *</label>
+            <select 
+              id="branch-select"
+              required 
+              value={branchId} 
+              onChange={e => setBranchId(e.target.value)} 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+            >
               <option value="">Selecione a filial...</option>
               {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Mecânico Responsável</label>
-            <select value={mechanicId} onChange={e => setMechanicId(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+            <label htmlFor="mechanic-select" className="text-sm font-medium">Mecânico Responsável</label>
+            <select 
+              id="mechanic-select"
+              value={mechanicId} 
+              onChange={e => setMechanicId(e.target.value)} 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+            >
               <option value="">Sem mecânico designado</option>
               {mechanics.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Observações / Problema</label>
+            <label htmlFor="notes-textarea" className="text-sm font-medium">Observações / Problema</label>
             <textarea 
+              id="notes-textarea"
               value={notes} 
               onChange={e => setNotes(e.target.value)} 
               placeholder="Relato do cliente, sintomas..." 

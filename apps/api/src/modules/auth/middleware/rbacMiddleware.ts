@@ -14,7 +14,7 @@ export function rbacMiddleware(requiredPermission: Permission) {
 
     // Context for policy check
     const context = {
-      companyId: companyId || user.companyId,
+      companyId: user.companyId,
       correlationId: req.headers['x-correlation-id'] as string,
     };
 

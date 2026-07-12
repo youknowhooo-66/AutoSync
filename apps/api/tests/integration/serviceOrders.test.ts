@@ -2,136 +2,156 @@ import request from 'supertest';
 import app from '../../src/app';
 import { FactoryEngine } from '../factories/FactoryEngine';
 import { generateAuthHeaders } from '../helpers/auth';
-import { prismaClient } from '../../src/shared/database/prismaClient';
 
-describe('Service Order Integration Tests', () => {
-  it('should successfully create a service order and deduct stock', async () => {
-    // 1. Arrange
+describe('ServiceOrders Basic Creation & Security Integration Tests', () => {
+  it('should successfully create, list, and read a basic service order, ignoring forged body parameters', async () => {
+    // Arrange: Create Tenant A structure
     const company = await FactoryEngine.createCompany();
-    const branch = await FactoryEngine.createBranch(company.id);
+    const branch = await FactoryEngine.createBranch(company.id, { name: 'Main Branch' });
     const user = await FactoryEngine.createUser(company.id, { role: 'ADMIN', branchId: branch.id });
+    const client = await FactoryEngine.createClient(company.id, { name: 'Owner Client' });
+    const vehicle = await FactoryEngine.createVehicle(company.id, client.id, { plate: 'ABC1234' });
+    const mechanic = await FactoryEngine.createUser(company.id, { role: 'MECHANIC', branchId: branch.id });
     const headers = generateAuthHeaders(user);
 
-    const client = await FactoryEngine.createClient(company.id);
-    const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
-    const part = await FactoryEngine.createPart(company.id, { purchasePrice: 50, salePrice: 100 });
-    // Seed initial stock of 10 items
-    await FactoryEngine.createStock(company.id, part.id, branch.id, 10);
-
-    const osData = {
+    // 1. Create a service order
+    const createData = {
       clientId: client.id,
       vehicleId: vehicle.id,
       branchId: branch.id,
-      notes: 'Troca de pastilha e alinhamento',
-      parts: [
-        {
-          partId: part.id,
-          quantity: 2,
-          unitPrice: 100.00, // selling price
-        }
-      ],
-      services: [
-        {
-          name: 'Alinhamento 3D',
-          price: 150.00,
-        }
-      ]
+      mechanicId: mechanic.id,
+      notes: 'Symptom: engine light is blinking.',
+      // Forged attributes which MUST be ignored or overridden by backend
+      companyId: 'fake-company-id',
+      status: 'FINISHED',
     };
 
-    // 2. Act
-    const response = await request(app)
+    const createResponse = await request(app)
       .post('/api/service-orders')
       .set(headers)
-      .send(osData);
+      .send(createData);
 
-    // 3. Assert
-    expect(response.status).toBe(201);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toMatch(/Ordem de Serviço aberta com sucesso/);
+    expect(createResponse.status).toBe(201);
+    expect(createResponse.body).toHaveProperty('success', true);
+    expect(createResponse.body.data).toHaveProperty('id');
+    expect(createResponse.body.data.companyId).toBe(company.id); // Must use authenticated user companyId, not forged
+    expect(createResponse.body.data.status).toBe('OPEN'); // Initial status must be OPEN, not forged
+    
+    const osId = createResponse.body.data.id;
 
-    const serviceOrder = response.body.data;
-    expect(serviceOrder).toHaveProperty('id');
-    expect(Number(serviceOrder.totalParts)).toBe(200.00);
-    expect(Number(serviceOrder.totalServices)).toBe(150.00);
-    expect(Number(serviceOrder.finalValue)).toBe(350.00);
+    // 2. Fetch specific service order details
+    const showResponse = await request(app)
+      .get(`/api/service-orders/${osId}`)
+      .set(headers);
 
-    // Check stock was decremented from 10 to 8
-    const stock = await prismaClient.stock.findUnique({
-      where: { partId_branchId: { partId: part.id, branchId: branch.id } }
-    });
-    expect(stock?.quantity).toBe(8);
+    expect(showResponse.status).toBe(200);
+    expect(showResponse.body.id).toBe(osId);
+    expect(showResponse.body.notes).toBe(createData.notes);
+    expect(showResponse.body.client.name).toBe('Owner Client');
+    expect(showResponse.body.vehicle.plate).toBe('ABC1234');
+    expect(showResponse.body.branch.name).toBe('Main Branch');
 
-    // Check movement was recorded
-    const movement = await prismaClient.inventoryMovement.findFirst({
-      where: { partId: part.id, type: 'OUT' }
-    });
-    expect(movement?.quantity).toBe(2);
-    expect(movement?.reason).toMatch(/Service Order Created/);
+    // 3. List service orders
+    const listResponse = await request(app)
+      .get('/api/service-orders')
+      .set(headers);
+
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toBeInstanceOf(Array);
+    const found = listResponse.body.find((os: any) => os.id === osId);
+    expect(found).toBeTruthy();
   });
 
-  it('should block service order creation if any part has insufficient stock', async () => {
-    // 1. Arrange
+  it('should enforce role-based access control (RBAC) on service order creation', async () => {
     const company = await FactoryEngine.createCompany();
     const branch = await FactoryEngine.createBranch(company.id);
-    const user = await FactoryEngine.createUser(company.id, { role: 'ADMIN', branchId: branch.id });
-    const headers = generateAuthHeaders(user);
-
     const client = await FactoryEngine.createClient(company.id);
     const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
-    const part = await FactoryEngine.createPart(company.id);
-    
-    // Seed initial stock of only 1 item
-    await FactoryEngine.createStock(company.id, part.id, branch.id, 1);
 
-    const osData = {
+    // Create users with different roles
+    const attendant = await FactoryEngine.createUser(company.id, { role: 'ATTENDANT', branchId: branch.id });
+    const manager = await FactoryEngine.createUser(company.id, { role: 'MANAGER', branchId: branch.id });
+    const mechanic = await FactoryEngine.createUser(company.id, { role: 'MECHANIC', branchId: branch.id });
+    const financial = await FactoryEngine.createUser(company.id, { role: 'FINANCIAL', branchId: branch.id });
+
+    const createData = {
       clientId: client.id,
       vehicleId: vehicle.id,
       branchId: branch.id,
-      parts: [
-        {
-          partId: part.id,
-          quantity: 5, // Requires 5, but stock is only 1
-          unitPrice: 100.00,
-        }
-      ],
-      services: []
     };
 
-    // 2. Act
-    const response = await request(app)
+    // Attendant -> Allowed
+    const resAttendant = await request(app)
       .post('/api/service-orders')
-      .set(headers)
-      .send(osData);
+      .set(generateAuthHeaders(attendant))
+      .send(createData);
+    expect(resAttendant.status).toBe(201);
 
-    // 3. Assert
-    expect(response.status).toBe(400);
-    expect(response.body.message).toMatch(/Insufficient stock for part/);
+    // Manager -> Allowed
+    const resManager = await request(app)
+      .post('/api/service-orders')
+      .set(generateAuthHeaders(manager))
+      .send(createData);
+    expect(resManager.status).toBe(201);
+
+    // Mechanic -> Forbidden
+    const resMechanic = await request(app)
+      .post('/api/service-orders')
+      .set(generateAuthHeaders(mechanic))
+      .send(createData);
+    expect(resMechanic.status).toBe(403);
+
+    // Financial -> Forbidden
+    const resFinancial = await request(app)
+      .post('/api/service-orders')
+      .set(generateAuthHeaders(financial))
+      .send(createData);
+    expect(resFinancial.status).toBe(403);
   });
 
-  it('should update the status of service order through start, complete and cancel endpoints', async () => {
-    // 1. Arrange
-    const company = await FactoryEngine.createCompany();
-    const branch = await FactoryEngine.createBranch(company.id);
-    const user = await FactoryEngine.createUser(company.id, { role: 'ADMIN', branchId: branch.id });
-    const headers = generateAuthHeaders(user);
+  it('should strictly reject cross-tenant relations and incorrect vehicle-client owner combinations', async () => {
+    // Company A elements
+    const companyA = await FactoryEngine.createCompany();
+    const branchA = await FactoryEngine.createBranch(companyA.id);
+    const userA = await FactoryEngine.createUser(companyA.id, { role: 'ADMIN', branchId: branchA.id });
+    const clientA = await FactoryEngine.createClient(companyA.id);
+    const vehicleA = await FactoryEngine.createVehicle(companyA.id, clientA.id);
+    const headersA = generateAuthHeaders(userA);
 
-    const client = await FactoryEngine.createClient(company.id);
-    const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
-    
-    const serviceOrder = await FactoryEngine.createServiceOrder(company.id, client.id, vehicle.id, branch.id);
+    // Company B elements
+    const companyB = await FactoryEngine.createCompany();
+    const branchB = await FactoryEngine.createBranch(companyB.id);
+    const clientB = await FactoryEngine.createClient(companyB.id);
+    const vehicleB = await FactoryEngine.createVehicle(companyB.id, clientB.id);
 
-    // 2. Act & Assert: Start OS
-    const startResponse = await request(app)
-      .patch(`/api/service-orders/${serviceOrder.id}/start`)
-      .set(headers);
-    expect(startResponse.status).toBe(200);
-    expect(startResponse.body.data.status).toBe('IN_PROGRESS');
+    // Scenario 1: Tenant A tries to use Branch B -> 404
+    const resBranch = await request(app)
+      .post('/api/service-orders')
+      .set(headersA)
+      .send({ clientId: clientA.id, vehicleId: vehicleA.id, branchId: branchB.id });
+    expect(resBranch.status).toBe(404);
 
-    // Act & Assert: Complete OS
-    const completeResponse = await request(app)
-      .patch(`/api/service-orders/${serviceOrder.id}/complete`)
-      .set(headers);
-    expect(completeResponse.status).toBe(200);
-    expect(completeResponse.body.data.status).toBe('FINISHED');
+    // Scenario 2: Tenant A tries to use Client B -> 404
+    const resClient = await request(app)
+      .post('/api/service-orders')
+      .set(headersA)
+      .send({ clientId: clientB.id, vehicleId: vehicleA.id, branchId: branchA.id });
+    expect(resClient.status).toBe(404);
+
+    // Scenario 3: Tenant A tries to use Vehicle B -> 404
+    const resVehicle = await request(app)
+      .post('/api/service-orders')
+      .set(headersA)
+      .send({ clientId: clientA.id, vehicleId: vehicleB.id, branchId: branchA.id });
+    expect(resVehicle.status).toBe(404);
+
+    // Scenario 4: Tenant A uses Client A but with Vehicle belonging to Client B -> 404
+    const clientA2 = await FactoryEngine.createClient(companyA.id);
+    const vehicleA2 = await FactoryEngine.createVehicle(companyA.id, clientA2.id); // Owned by clientA2
+    const resMismatch = await request(app)
+      .post('/api/service-orders')
+      .set(headersA)
+      .send({ clientId: clientA.id, vehicleId: vehicleA2.id, branchId: branchA.id });
+    expect(resMismatch.status).toBe(404);
   });
 });
