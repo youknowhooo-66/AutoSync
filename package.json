@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "description": "AutoSync ERP Monorepo",
   "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=22.13.0",
+    "pnpm": ">=11.1.2"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
