@@ -126,7 +126,7 @@ export class StockController {
     const { name, cnpj, phone, address, email } = req.body;
 
     const existing = await prismaClient.supplier.findFirst({
-      where: { id: String(id), companyId: String(companyId), deletedAt: null }
+      where: { id: String(id), companyId: String(companyId) }
     });
 
     if (!existing) {

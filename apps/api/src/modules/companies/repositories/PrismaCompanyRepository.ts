@@ -38,8 +38,7 @@ export class PrismaCompanyRepository implements ICompanyRepository {
     const company = await this.prisma.company.findFirst(({
           where: { 
             document,
-            deletedAt: null,
-          },
+            },
         } as unknown as Parameters<typeof this.prisma.company.findFirst>[0]));
     return company as Company | null;
   }
@@ -47,8 +46,7 @@ export class PrismaCompanyRepository implements ICompanyRepository {
   async findMany(): Promise<Company[]> {
     const companies = await this.prisma.company.findMany(({
           where: {
-            deletedAt: null,
-          },
+            },
         } as unknown as Parameters<typeof this.prisma.company.findMany>[0]));
     return companies as Company[];
   }

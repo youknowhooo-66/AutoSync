@@ -11,7 +11,7 @@ export class AuthenticateUserController {
     const mappedData = {
       email: data.email,
       password: data.password,
-      companyId: data.companyId || '',
+      ...(data.companyId ? { companyId: data.companyId } : {}),
     };
 
     const authResponse = await container.useCases.identity.authenticateUser.execute(mappedData);

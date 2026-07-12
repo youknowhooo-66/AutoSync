@@ -7,6 +7,49 @@ import { PrismaUserRepository } from '../modules/users/repositories/PrismaUserRe
 import { PrismaCompanyRepository } from '../modules/companies/repositories/PrismaCompanyRepository';
 import { Role } from '@prisma/client';
 
+export interface AuthenticateUserInput {
+  email: string;
+  password?: string;
+  companyId?: string;
+}
+
+export interface UpdateCompanyInput {
+  companyId: string;
+  name: string;
+  document?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  isActive?: boolean;
+}
+
+export interface RegisterCompanyInput {
+  name: string;
+  document: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface UpdateUserInput {
+  userId: string;
+  companyId: string;
+  name: string;
+  email: string;
+  password?: string;
+  role: Role;
+  branchId?: string;
+}
+
+export interface CreateUserInput {
+  companyId: string;
+  name: string;
+  email: string;
+  password?: string;
+  role?: Role;
+  branchId?: string;
+}
+
 export class IdentityCompatibilityAdapter {
   constructor(
     private authenticateUserService: AuthenticateUserService,
@@ -17,13 +60,13 @@ export class IdentityCompatibilityAdapter {
   ) {}
 
   authenticateUser = {
-    execute: async (payload: { email: string; password?: string; companyId: string }) => {
+    execute: async (payload: AuthenticateUserInput) => {
       return this.authenticateUserService.execute(payload);
     }
   };
 
   updateCompany = {
-    execute: async (payload: any) => {
+    execute: async (payload: UpdateCompanyInput) => {
       return this.updateCompanyService.execute({
         id: payload.companyId,
         ...payload
@@ -32,26 +75,26 @@ export class IdentityCompatibilityAdapter {
   };
 
   registerCompany = {
-    execute: async (payload: any) => {
+    execute: async (payload: RegisterCompanyInput) => {
       return this.registerCompanyService.execute(payload);
     }
   };
 
   updateUser = {
-    execute: async (payload: any) => {
+    execute: async (payload: UpdateUserInput) => {
       return this.updateUserService.execute({
         id: payload.userId,
-        ...payload
+        ...payload,
+        role: payload.role as any
       });
     }
   };
 
   createUser = {
-    execute: async (payload: any) => {
+    execute: async (payload: CreateUserInput) => {
       return this.createUserService.execute({
-        role: Role.ATTENDANT,
-        password: payload.password || '123456',
-        ...payload
+        ...payload,
+        role: payload.role as any || Role.ATTENDANT
       });
     }
   };

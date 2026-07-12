@@ -12,9 +12,12 @@ export class UpdateUserController {
     const { companyId } = request;
 
     const payload = {
-      userId: id,
-      companyId,
-      name,
+      userId: String(id),
+      companyId: String(companyId),
+      name: String(name),
+      email: String(email),
+      role: role as any,
+      password: password ? String(password) : undefined,
     };
     const user = await container.useCases.identity.updateUser.execute(payload);
 

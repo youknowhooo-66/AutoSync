@@ -11,9 +11,13 @@ export class UpdateCompanyController {
     const { name, document, address, phone, email, isActive } = request.body;
 
     const payload = {
-      companyId: id,
-      name: name,
-      document: document,
+      companyId: String(id),
+      name: String(name),
+      document: document ? String(document) : undefined,
+      address: address ? String(address) : undefined,
+      phone: phone ? String(phone) : undefined,
+      email: email ? String(email) : undefined,
+      isActive: isActive !== undefined ? Boolean(isActive) : undefined,
     };
     const company = await container.useCases.identity.updateCompany.execute(payload);
 

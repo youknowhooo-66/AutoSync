@@ -41,7 +41,7 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
 
   async findByNumber(number: number, companyId: string) {
     return await this.prisma.serviceOrder.findFirst(({
-          where: { number, companyId, deletedAt: null },
+          where: { number, companyId },
         } as unknown as Parameters<typeof this.prisma.serviceOrder.findFirst>[0]));
   }
 

@@ -62,8 +62,7 @@ export class PrismaVehicleRepository implements IVehicleRepository {
       where: {
         plate,
         companyId,
-        deletedAt: null,
-      },
+        },
     });
     if (!vehicle) return null;
     return vehicle;
@@ -73,8 +72,7 @@ export class PrismaVehicleRepository implements IVehicleRepository {
     const vehicles = await this.prisma.vehicle.findMany(({
           where: {
             companyId,
-            deletedAt: null,
-          },
+            },
           include: {
             client: {
               select: {
@@ -95,8 +93,7 @@ export class PrismaVehicleRepository implements IVehicleRepository {
           where: {
             clientId,
             companyId,
-            deletedAt: null,
-          },
+            },
           include: {
             client: {
               select: {

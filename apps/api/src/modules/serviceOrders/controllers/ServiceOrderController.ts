@@ -12,7 +12,7 @@ export class ServiceOrderController {
   async create(req: Request, res: Response) {
     const { companyId, id: userId } = req.user;
     const useCase = new CreateServiceOrderUseCase();
-    const result = await useCase.execute({ ...req.body, companyId } as any);
+    const result = await useCase.execute({ ...req.body, companyId, userId } as any);
     return res.status(201).json({ 
       success: true, 
       message: 'Ordem de Serviço aberta com sucesso.',

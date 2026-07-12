@@ -44,8 +44,7 @@ export class PrismaClientRepository implements IClientRepository {
           where: {
             name,
             companyId,
-            deletedAt: null,
-          },
+            },
         } as unknown as Parameters<typeof this.prisma.client.findFirst>[0]));
     return client;
   }
@@ -54,8 +53,7 @@ export class PrismaClientRepository implements IClientRepository {
     const clients = await this.prisma.client.findMany(({
           where: {
             companyId,
-            deletedAt: null,
-          },
+            },
         } as unknown as Parameters<typeof this.prisma.client.findMany>[0]));
     return clients;
   }

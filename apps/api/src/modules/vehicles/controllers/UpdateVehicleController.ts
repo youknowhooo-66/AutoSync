@@ -12,9 +12,14 @@ export class UpdateVehicleController {
     const { companyId } = request;
 
     const payload = {
-      vehicleId: id,
-      companyId,
-      plate: licensePlate || '',
+      vehicleId: String(id),
+      companyId: String(companyId),
+      clientId: String(clientId),
+      plate: String(licensePlate || ''),
+      brand: String(brand || ''),
+      model: String(model || ''),
+      year: Number(year || 0),
+      color: color ? String(color) : undefined,
     };
     const vehicle = await container.useCases.fleet.updateVehicle.execute(payload);
 

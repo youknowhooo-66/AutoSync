@@ -16,6 +16,10 @@ vi.mock('../config/prisma', () => ({
   prisma: mockPrisma,
 }));
 
+vi.mock('../shared/database/prismaClient', () => ({
+  prismaClient: mockPrisma,
+}));
+
 vi.mock('jsonwebtoken', () => {
   const verify = vi.fn();
   const sign = vi.fn();

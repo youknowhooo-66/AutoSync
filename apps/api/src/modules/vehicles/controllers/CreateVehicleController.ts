@@ -13,8 +13,15 @@ export class CreateVehicleController {
 
     const payload = {
       companyId,
-      plate: data.plate,
       clientId: data.clientId,
+      plate: data.plate,
+      brand: data.brand,
+      model: data.model,
+      year: data.year,
+      color: data.color,
+      chassis: data.chassis,
+      mileage: data.mileage,
+      engine: data.engine,
     };
     const vehicle = await container.useCases.fleet.registerVehicle.execute(payload);
 

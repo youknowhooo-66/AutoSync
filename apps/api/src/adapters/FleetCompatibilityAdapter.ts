@@ -4,6 +4,46 @@ import { UpdateVehicleService } from '../modules/vehicles/services/UpdateVehicle
 import { PrismaClientRepository } from '../modules/clients/repositories/PrismaClientRepository';
 import { PrismaVehicleRepository } from '../modules/vehicles/repositories/PrismaVehicleRepository';
 
+export interface UpdateClientInput {
+  clientId: string;
+  companyId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  document?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+}
+
+export interface RegisterVehicleInput {
+  companyId: string;
+  clientId: string;
+  plate: string;
+  brand: string;
+  model: string;
+  year: number;
+  color?: string;
+  chassis?: string;
+  mileage?: number;
+  engine?: string;
+}
+
+export interface UpdateVehicleInput {
+  vehicleId: string;
+  companyId: string;
+  clientId: string;
+  plate: string;
+  brand: string;
+  model: string;
+  year: number;
+  color?: string;
+  chassis?: string;
+  mileage?: number;
+  engine?: string;
+}
+
 export class FleetCompatibilityAdapter {
   constructor(
     private updateClientService: UpdateClientService,
@@ -12,7 +52,7 @@ export class FleetCompatibilityAdapter {
   ) {}
 
   updateClient = {
-    execute: async (payload: any) => {
+    execute: async (payload: UpdateClientInput) => {
       return this.updateClientService.execute({
         id: payload.clientId,
         ...payload
@@ -21,18 +61,13 @@ export class FleetCompatibilityAdapter {
   };
 
   registerVehicle = {
-    execute: async (payload: any) => {
-      return this.registerVehicleService.execute({
-        year: payload.year || new Date().getFullYear(),
-        brand: payload.brand || 'N/A',
-        model: payload.model || 'N/A',
-        ...payload
-      });
+    execute: async (payload: RegisterVehicleInput) => {
+      return this.registerVehicleService.execute(payload);
     }
   };
 
   updateVehicle = {
-    execute: async (payload: any) => {
+    execute: async (payload: UpdateVehicleInput) => {
       return this.updateVehicleService.execute({
         id: payload.vehicleId,
         ...payload

@@ -17,9 +17,11 @@ export class UpdateClientController {
 
     const client = await container.useCases.fleet.updateClient.execute({
       ...data,
+      name: data.name || '',
+      email: data.email || '',
       document: data.document || '',
-      clientId: request.params.id,
-      companyId,
+      clientId: String(request.params.id),
+      companyId: String(companyId),
     });
 
     return response.json({
