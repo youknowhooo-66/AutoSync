@@ -11,7 +11,7 @@ export class WorkItemApprovedHandler {
   ) {}
 
   async handle(event: WorkItemApprovedV1): Promise<void> {
-    const { workItemId, estimatedCost } = event.payload;
+    const { workItemId } = event.payload;
 
     // 1. Reserve Stock (assuming standard stock logic for this POC)
     // In a real scenario, the WorkItem would have a Bill of Materials.
