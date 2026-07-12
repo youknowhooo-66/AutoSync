@@ -5,7 +5,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import Login from './modules/auth/pages/Login';
 import Unauthorized from './modules/auth/pages/Unauthorized';
 import ExecutiveDashboard from './modules/dashboard/pages/ExecutiveDashboard';
-import Clients from './pages/Clients';
+import Clients from './modules/clients/pages/ClientList';
 import Inventory from './modules/inventory/pages/Inventory';
 import ServiceOrders from './modules/service-orders/pages/ServiceOrders';
 import Vehicles from './pages/Vehicles';

@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
-import { useCreateClient } from '../hooks/useClients';
+import { useCreateClient, useUpdateClient } from '../hooks/useClients';
+import type { Client } from '../types';
+import { toast } from 'sonner';
 
 const clientSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('E-mail inválido'),
-  phone: z.string().optional(),
-  document: z.string().optional(),
+  phone: z.string().optional().nullable().transform(v => v || ''),
+  document: z.string().optional().nullable().transform(v => v || ''),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -17,10 +19,14 @@ type ClientFormData = z.infer<typeof clientSchema>;
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingClient?: Client | null;
 }
 
-export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
-  const { mutateAsync: createClient, isPending } = useCreateClient();
+export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClientModalProps) {
+  const { mutateAsync: createClient, isPending: isCreating } = useCreateClient();
+  const { mutateAsync: updateClient, isPending: isUpdating } = useUpdateClient();
+
+  const isPending = isCreating || isUpdating;
 
   const {
     register,
@@ -31,24 +37,43 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
     resolver: zodResolver(clientSchema),
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        name: editingClient?.name || '',
+        email: editingClient?.email || '',
+        phone: editingClient?.phone || '',
+        document: editingClient?.document || '',
+      });
+    }
+  }, [isOpen, editingClient, reset]);
+
   if (!isOpen) return null;
 
   const onSubmit = async (data: ClientFormData) => {
     try {
-      await createClient(data);
+      if (editingClient) {
+        await updateClient({ id: editingClient.id, payload: data });
+        toast.success('Cliente atualizado com sucesso!');
+      } else {
+        await createClient(data);
+        toast.success('Cliente cadastrado com sucesso!');
+      }
       reset();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Erro ao criar cliente');
+      toast.error(error.response?.data?.message || 'Erro ao salvar cliente.');
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-250">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-xl font-bold text-slate-900">Novo Cliente</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
+          </h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <X size={20} className="text-slate-500" />
           </button>

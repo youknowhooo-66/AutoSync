@@ -30,6 +30,10 @@ export default function Login() {
       
       const { user, token } = response.data
 
+      if (!user.companyId) {
+        throw new Error('Empresa do usuário não configurada no cadastro. Acesso negado.');
+      }
+
       // Adaptando o payload do backend (que usa companyId) para o formato SaaS multi-tenant que montamos
       const session = {
         token,
@@ -38,9 +42,9 @@ export default function Login() {
           name: user.name,
           email: user.email,
           role: user.role,
-          tenantId: user.companyId || 'tn_default', // companyId is treated as tenantId
+          tenantId: user.companyId,
           tenant: {
-            id: user.companyId || 'tn_default',
+            id: user.companyId,
             name: 'AutoSync Workspace',
             plan: 'ENTERPRISE' as const,
             isActive: true,
@@ -57,7 +61,7 @@ export default function Login() {
       navigate(from, { replace: true })
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || 'Email ou senha inválidos.')
+      toast.error(error.response?.data?.message || error.message || 'Email ou senha inválidos.')
     } finally {
       setIsLoading(false)
     }

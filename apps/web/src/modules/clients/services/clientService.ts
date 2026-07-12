@@ -1,9 +1,9 @@
 import { api } from '../../../lib/axios';
-import { Client, CreateClientDTO, ClientListResponse } from '../types';
+import type { Client, CreateClientDTO } from '../types';
 
 export const clientService = {
   async list(page = 1, limit = 10, search = '') {
-    const { data } = await api.get<ClientListResponse>('/clients', {
+    const { data } = await api.get<Client[]>('/clients', {
       params: { page, limit, search },
     });
     return data;

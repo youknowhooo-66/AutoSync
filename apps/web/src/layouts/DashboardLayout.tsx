@@ -15,11 +15,11 @@ import {
   FileText,
   Shield
 } from 'lucide-react';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuth } from '../modules/auth/hooks/useAuth';
 import { useBranch } from '../contexts/BranchContext';
 
 export function DashboardLayout() {
-  const { signOut, user } = useAuthStore();
+  const { logout, user } = useAuth();
   const { activeBranch, setIsSelectingBranch } = useBranch();
   const location = useLocation();
 
@@ -80,7 +80,7 @@ export function DashboardLayout() {
 
         <div className="p-4 border-t border-slate-100">
           <button
-            onClick={signOut}
+            onClick={logout}
             className="flex items-center gap-3 px-3 py-2 w-full text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
           >
             <LogOut size={20} />

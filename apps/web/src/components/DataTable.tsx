@@ -3,10 +3,10 @@ import {
   useReactTable,
   getCoreRowModel,
   flexRender,
-  ColumnDef,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
+  type ColumnDef,
+  type SortingState,
 } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 

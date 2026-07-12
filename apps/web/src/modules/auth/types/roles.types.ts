@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'MANAGER' | 'TECHNICIAN' | 'FINANCE' | 'STOCK_OPERATOR'
+export type Role = 'ADMIN' | 'MANAGER' | 'MECHANIC' | 'FINANCIAL' | 'STOCKIST' | 'ATTENDANT'
 
 export type AppPermission = 
   // Service Orders
@@ -19,15 +19,18 @@ export const ROLE_PERMISSIONS: Record<Role, AppPermission[]> = {
     'stock.view', 'stock.adjust', 'stock.movement', 'stock.cost.view',
     'invoice.create', 'invoice.receive_payment', 'invoice.discount'
   ],
-  TECHNICIAN: [
+  MECHANIC: [
     'os.change_status',
     'stock.view'
   ],
-  FINANCE: [
+  FINANCIAL: [
     'invoice.create', 'invoice.receive_payment', 'invoice.discount', 'invoice.cancel',
     'stock.view', 'os.change_status'
   ],
-  STOCK_OPERATOR: [
+  STOCKIST: [
     'stock.view', 'stock.adjust', 'stock.movement'
+  ],
+  ATTENDANT: [
+    'os.create', 'os.change_status'
   ]
 }
