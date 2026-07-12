@@ -45,7 +45,7 @@ coverage/
 
 # Prisma
 .env.test
-prisma/
+/prisma/
 
 # Electron
 .vite/
