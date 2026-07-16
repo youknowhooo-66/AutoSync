@@ -533,6 +533,143 @@ pnpm run build
 - Backend Tests: **47 passed** (including mock unit tests and integration tests).
 - Turbo Build: **SUCCESS (9/9 packages, 0 warnings)**.
 
+---
+
+## P4.2 — Diagnosis Vertical Slice
+
+### Cardinality
+- **Diagnóstico**: Não modelado no banco de dados atual.
+- **Implementação temporária**: Um diagnóstico textual por OS.
+- **Persistência temporária**: Armazenado sob a coluna `notes` (String?) do model `ServiceOrder`.
+
+### Source of truth
+- O banco relacional atual não possui a tabela `Diagnosis` (ou similar). Assim, a fonte de verdade temporária do diagnóstico do veículo baseia-se no campo `ServiceOrder.notes`.
+- Para evitar a perda/sobrescrita de dados de reclamações iniciais registradas na abertura da OS, foi adotado um formato estruturado que delimita a abertura e a avaliação técnica:
+  `[OBSERVAÇÕES DE ABERTURA] ... [DIAGNÓSTICO TÉCNICO] ...`
+
+### Domain rules
+- **Fase operacional**: O diagnóstico técnico pode ser executado em Ordens de Serviço sob status genéricos `OPEN` ou `IN_PROGRESS`.
+- **Mudança de status**: O registro do diagnóstico move automaticamente o status da OS de `OPEN` para `IN_PROGRESS`.
+- **Estabilidade**: Não foram implementados work items, consumo de estoque ou apontamento de faturamento.
+
+### Tenant and branch scope
+- Apenas usuários com permissão associados ao mesmo `companyId` da Ordem de Serviço podem consultar, registrar ou editar o diagnóstico técnico.
+- Tentativas de acessar OS de outro tenant retornam `404 Not Found`.
+
+### RBAC
+- Foi mapeada a permissão específica `SERVICE_ORDER_DIAGNOSE`.
+- Permissões por perfil:
+  - `ADMIN` $\rightarrow$ Sim (Visualizar, Registrar, Editar)
+  - `MANAGER` $\rightarrow$ Sim (Visualizar, Registrar, Editar)
+  - `MECHANIC` $\rightarrow$ Sim (Visualizar, Registrar, Editar)
+  - `ATTENDANT`, `STOCKIST`, `FINANCIAL` $\rightarrow$ Não (Somente visualizar, se aplicável, escrita negada com `403 Forbidden`).
+
+### Service order status transition
+- **OPEN** $\rightarrow$ **IN_PROGRESS** (quando o diagnóstico é adicionado).
+- Ordens de Serviço finalizadas ou canceladas (`FINISHED`, `CANCELLED`) rejeitam novos diagnósticos com `400 Bad Request`.
+
+### Routes
+- `PUT /api/service-orders/:id/diagnosis` (Atualiza ou registra o diagnóstico técnico).
+
+### Request contracts
+- Payload: `{ "description": "Descrição do diagnóstico técnico com pelo menos 5 caracteres..." }`
+
+### Response contracts
+- Resposta JSON padronizada:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "serviceOrderId": "uuid-da-os",
+      "description": "Found visual leak at radiator terminal.",
+      "status": "IN_PROGRESS",
+      "updatedAt": "2026-07-12T19:00:00Z"
+    }
+  }
+  ```
+
+### Transaction boundaries
+- O use case executa em um bloco `prismaClient.$transaction` garantindo a atomicidade na persistência das `notes` formatadas e na transição de status do cabeçalho da OS.
+
+### React Query
+- Keys correspondentes:
+  - `diagnosisKeys.byServiceOrder(serviceOrderId)`
+- Invalidações após mutação:
+  - Invalida `['os-detail', serviceOrderId]` (atualizando a tela de detalhes)
+  - Invalida `['os-list']` (atualizando a listagem principal)
+
+### Diagnosis form
+- Desenvolvido no frontend usando `react-hook-form` e `zod`.
+- Valida tamanho mínimo de 5 caracteres e máximo de 1000 caracteres.
+- Desabilita campos se o status não for editável (`OPEN` ou `IN_PROGRESS`) ou se o usuário não possuir as permissões RBAC necessárias.
+- Lida com loading, estados pendentes de mutação e impede múltiplos cliques concorrentes.
+
+### Evidence support
+- Não suportado nativamente pelo schema. Armazenamento de fotos/mídia não implementado nesta fase.
+
+### Backend tests
+- Adicionados em `apps/api/tests/integration/serviceOrders.test.ts`:
+  1. Criação de diagnóstico com sucesso e transição de status genérico.
+  2. Preservação de observações iniciais sem perda de dados.
+  3. Rejeição de perfis sem permissão (`ATTENDANT` $\rightarrow$ `403`).
+  4. Bloqueio contra acesso cross-tenant (`Tenant B` $\rightarrow$ `404`).
+  5. Rejeição de descrição muito curta (`400`).
+- Resultado: **Aprovado** (50/50 testes backend passando).
+
+### Frontend tests
+- Adicionados em `apps/web/src/tests/pages/DiagnosisSection.test.tsx`:
+  1. Renderização do placeholder de diagnóstico vazio.
+  2. Exibição correta do texto de observações e do diagnóstico parseado.
+  3. Edição, validação local do formulário e chamada à API.
+  4. Bloqueio de edição para status finalizados.
+- Resultado: **Aprovado** (18/18 testes frontend passando).
+
+### Manual persistence evidence
+- **Criação da OS**:
+  - `POST /api/service-orders` $\rightarrow$ Retorna OS ID: `4508ef74-372c-4333-8c5a-0a6a6156acb3` com `notes: "Customer notes: engine check."` e `status: "OPEN"`.
+- **Registro do Diagnóstico**:
+  - `PUT /api/service-orders/4508ef74-372c-4333-8c5a-0a6a6156acb3/diagnosis` com payload `{"description": "Found visual leak at radiator terminal."}`.
+  - Retorna `status: "IN_PROGRESS"`.
+- **Verificação PostgreSQL (após restart)**:
+  - Consulta: `SELECT notes, status FROM "ServiceOrder" WHERE id = '4508ef74-372c-4333-8c5a-0a6a6156acb3';`
+  - Resultado:
+    - `notes`: `"Customer notes: engine check.\n\n[DIAGNÓSTICO TÉCNICO]\nFound visual leak at radiator terminal."`
+    - `status`: `"IN_PROGRESS"`
+
+### Files changed
+- `apps/api/src/modules/auth/rbac/permissions.ts`
+- `apps/api/src/modules/auth/rbac/rolePermissions.map.ts`
+- `apps/api/src/modules/serviceOrders/controllers/ServiceOrderController.ts`
+- `apps/api/src/modules/serviceOrders/routes/serviceOrders.routes.ts`
+- `apps/api/src/modules/serviceOrders/useCases/RegisterDiagnosisUseCase.ts`
+- `apps/api/src/modules/serviceOrders/validators/registerDiagnosisSchema.ts`
+- `apps/api/tests/integration/serviceOrders.test.ts`
+- `apps/web/src/modules/service-orders/types/diagnosis.types.ts`
+- `apps/web/src/modules/service-orders/services/diagnosisService.ts`
+- `apps/web/src/modules/service-orders/hooks/useDiagnosis.ts`
+- `apps/web/src/modules/service-orders/components/DiagnosisSection.tsx`
+- `apps/web/src/modules/service-orders/components/ServiceOrderDetailSheet.tsx`
+- `apps/web/src/tests/pages/DiagnosisSection.test.tsx`
+
+### Commands executed
+```bash
+# Executa testes backend
+pnpm --filter back run test
+# Executa testes frontend
+pnpm --filter front run test
+# Executa build completo
+pnpm run build
+```
+
+### Results
+- Backend Tests: **50 passed**.
+- Frontend Tests: **18 passed**.
+- Turbo Build: **SUCCESS (9/9 packages, 0 warnings)**.
+
+### Remaining blockers for Work Items
+- **Nenhum**.
+
+
 
 
 

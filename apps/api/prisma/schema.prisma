@@ -30,15 +30,16 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  branches         Branch[]
-  users            User[]
-  clients          Client[]
-  vehicles         Vehicle[]
-  parts            Part[]
-  suppliers        Supplier[]
-  serviceOrders    ServiceOrder[]
-  financialRecords FinancialRecord[]
-  stocks           Stock[]
+  branches              Branch[]
+  users                 User[]
+  clients               Client[]
+  vehicles              Vehicle[]
+  parts                 Part[]
+  suppliers             Supplier[]
+  serviceOrders         ServiceOrder[]
+  financialRecords      FinancialRecord[]
+  stocks                Stock[]
+  serviceOrderApprovals ServiceOrderApproval[]
 }
 
 model Branch {
@@ -57,14 +58,15 @@ model Branch {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  company            Company             @relation(fields: [companyId], references: [id])
-  users              User[]
-  stocks             Stock[]
-  serviceOrders      ServiceOrder[]
-  inventoryMovements InventoryMovement[]
-  financialRecords   FinancialRecord[]
-  sourceTransfers    InventoryMovement[] @relation("SourceBranch")
-  targetTransfers    InventoryMovement[] @relation("TargetBranch")
+  company               Company                @relation(fields: [companyId], references: [id])
+  users                 User[]
+  stocks                Stock[]
+  serviceOrders         ServiceOrder[]
+  inventoryMovements    InventoryMovement[]
+  financialRecords      FinancialRecord[]
+  sourceTransfers       InventoryMovement[]    @relation("SourceBranch")
+  targetTransfers       InventoryMovement[]    @relation("TargetBranch")
+  serviceOrderApprovals ServiceOrderApproval[]
 }
 
 model User {
@@ -79,11 +81,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company            Company             @relation(fields: [companyId], references: [id])
-  branch             Branch?             @relation(fields: [branchId], references: [id])
-  serviceOrders      ServiceOrder[]      @relation("MechanicOS")
-  inventoryMovements InventoryMovement[]
-  auditLogs          AuditLog[]
+  company              Company                @relation(fields: [companyId], references: [id])
+  branch               Branch?                @relation(fields: [branchId], references: [id])
+  serviceOrders        ServiceOrder[]         @relation("MechanicOS")
+  inventoryMovements   InventoryMovement[]
+  auditLogs            AuditLog[]
+  requestedApprovals   ServiceOrderApproval[] @relation("ApprovalRequestedBy")
+  approvedApprovals    ServiceOrderApproval[] @relation("ApprovalApprovedBy")
+  rejectedApprovals    ServiceOrderApproval[] @relation("ApprovalRejectedBy")
+  invalidatedApprovals ServiceOrderApproval[] @relation("ApprovalInvalidatedBy")
 }
 
 model Client {
@@ -216,13 +222,14 @@ model ServiceOrder {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  company  Company     @relation(fields: [companyId], references: [id])
-  client   Client      @relation(fields: [clientId], references: [id])
-  vehicle  Vehicle     @relation(fields: [vehicleId], references: [id])
-  mechanic User?       @relation("MechanicOS", fields: [mechanicId], references: [id])
-  branch   Branch      @relation(fields: [branchId], references: [id])
-  parts    OSPart[]
-  services OSService[]
+  company   Company                @relation(fields: [companyId], references: [id])
+  client    Client                 @relation(fields: [clientId], references: [id])
+  vehicle   Vehicle                @relation(fields: [vehicleId], references: [id])
+  mechanic  User?                  @relation("MechanicOS", fields: [mechanicId], references: [id])
+  branch    Branch                 @relation(fields: [branchId], references: [id])
+  parts     OSPart[]
+  services  OSService[]
+  approvals ServiceOrderApproval[]
 
   @@unique([id, companyId])
 }
@@ -319,4 +326,71 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  INVALIDATED
+}
+
+enum ApprovalMethod {
+  ASSISTED
+  CUSTOMER_PORTAL
+  DIGITAL_SIGNATURE
+}
+
+model ServiceOrderApproval {
+  id             String @id @default(uuid())
+  serviceOrderId String
+  companyId      String
+  branchId       String
+
+  version Int
+  status  ApprovalStatus @default(PENDING)
+
+  snapshotVersion Int  @default(1)
+  snapshot        Json
+
+  totalParts    Decimal @db.Decimal(12, 2)
+  totalServices Decimal @db.Decimal(12, 2)
+  discount      Decimal @default(0) @db.Decimal(12, 2)
+  finalValue    Decimal @db.Decimal(12, 2)
+
+  approvalMethod ApprovalMethod @default(ASSISTED)
+
+  requestedAt   DateTime @default(now())
+  requestedById String
+
+  approvedAt   DateTime?
+  approvedById String?
+
+  rejectedAt      DateTime?
+  rejectedById    String?
+  rejectionReason String?
+
+  invalidatedAt      DateTime?
+  invalidatedById    String?
+  invalidationReason String?
+
+  customerName     String?
+  customerDocument String?
+  notes            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  serviceOrder  ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  company       Company      @relation(fields: [companyId], references: [id])
+  branch        Branch       @relation(fields: [branchId], references: [id])
+  requestedBy   User         @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  approvedBy    User?        @relation("ApprovalApprovedBy", fields: [approvedById], references: [id])
+  rejectedBy    User?        @relation("ApprovalRejectedBy", fields: [rejectedById], references: [id])
+  invalidatedBy User?        @relation("ApprovalInvalidatedBy", fields: [invalidatedById], references: [id])
+
+  @@unique([serviceOrderId, version])
+  @@index([companyId, branchId])
+  @@index([serviceOrderId, status])
+  @@index([requestedAt])
 }

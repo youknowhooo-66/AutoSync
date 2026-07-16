@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { ServiceOrderController } from '../controllers/ServiceOrderController';
+import { ServiceOrderApprovalController } from '../controllers/ServiceOrderApprovalController';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 
 const serviceOrderRouter = Router();
 const controller = new ServiceOrderController();
+const approvalController = new ServiceOrderApprovalController();
 
 serviceOrderRouter.get('/', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.index);
 serviceOrderRouter.post('/', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.create);
@@ -16,6 +18,14 @@ serviceOrderRouter.patch('/:id/start', rbacMiddleware(Permission.SERVICE_ORDER_S
 serviceOrderRouter.patch('/:id/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), controller.complete);
 serviceOrderRouter.patch('/:id/cancel', rbacMiddleware(Permission.SERVICE_ORDER_CANCEL), controller.cancel);
 serviceOrderRouter.patch('/:id/status', rbacMiddleware(Permission.SERVICE_ORDER_CANCEL), controller.updateStatus);
-serviceOrderRouter.post('/:id/items', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.addItems);
+serviceOrderRouter.put('/:id/diagnosis', rbacMiddleware(Permission.SERVICE_ORDER_DIAGNOSE), controller.registerDiagnosis);
+serviceOrderRouter.post('/:id/items', rbacMiddleware(Permission.SERVICE_ORDER_ITEM_ADD), controller.addItems);
+serviceOrderRouter.delete('/:id/items/:itemId', rbacMiddleware(Permission.SERVICE_ORDER_ITEM_REMOVE), controller.removeItem);
+
+serviceOrderRouter.get('/:id/approval', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_VIEW), approvalController.show);
+serviceOrderRouter.post('/:id/approval/request', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_REQUEST), approvalController.request);
+serviceOrderRouter.post('/:id/approval/approve', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.approve);
+serviceOrderRouter.post('/:id/approval/reject', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_REJECT), approvalController.reject);
+serviceOrderRouter.post('/:id/approval/invalidate', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.invalidate);
 
 export { serviceOrderRouter };

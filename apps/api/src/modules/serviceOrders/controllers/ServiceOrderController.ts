@@ -8,6 +8,10 @@ import { ShowServiceOrderUseCase } from '../useCases/ShowServiceOrderUseCase';
 import { UpdateServiceOrderStatusUseCase } from '../useCases/UpdateServiceOrderStatusUseCase';
 import { AddItemsToServiceOrderUseCase } from '../useCases/AddItemsToServiceOrderUseCase';
 import { createServiceOrderSchema } from '../validators/createSchema';
+import { RegisterDiagnosisUseCase } from '../useCases/RegisterDiagnosisUseCase';
+import { registerDiagnosisSchema } from '../validators/registerDiagnosisSchema';
+import { addItemsSchema } from '../validators/addItemsSchema';
+import { RemoveItemFromServiceOrderUseCase } from '../useCases/RemoveItemFromServiceOrderUseCase';
 
 export class ServiceOrderController {
   async create(req: Request, res: Response) {
@@ -87,15 +91,33 @@ export class ServiceOrderController {
   async addItems(req: Request, res: Response) {
     const { id } = req.params;
     const { companyId, id: userId } = req.user;
-    const { parts, services } = req.body;
+    
+    // Validate with Zod
+    const parsedBody = addItemsSchema.parse(req.body);
+
     const useCase = new AddItemsToServiceOrderUseCase();
     const result = await useCase.execute({
       serviceOrderId: id as string,
       companyId: companyId as string,
       userId: userId as string,
-      parts,
-      services,
+      parts: parsedBody.parts,
+      services: parsedBody.services,
     });
+    return res.json({ success: true, data: result });
+  }
+
+  async removeItem(req: Request, res: Response) {
+    const { id, itemId } = req.params;
+    const { companyId } = req.user;
+    const { type } = req.query; // 'PART' or 'SERVICE'
+
+    if (type !== 'PART' && type !== 'SERVICE') {
+      return res.status(400).json({ message: "Query parameter 'type' must be PART or SERVICE." });
+    }
+
+    const useCase = new RemoveItemFromServiceOrderUseCase();
+    const result = await useCase.execute(id as string, companyId as string, itemId as string, type as 'PART' | 'SERVICE');
+    
     return res.json({ success: true, data: result });
   }
 
@@ -127,6 +149,24 @@ export class ServiceOrderController {
     }));
 
     return res.json(servicesWithDetails);
+  }
+
+  async registerDiagnosis(req: Request, res: Response) {
+    const { id } = req.params;
+    const { companyId } = req.user;
+    const data = registerDiagnosisSchema.parse(req.body);
+
+    const useCase = new RegisterDiagnosisUseCase();
+    const result = await useCase.execute({
+      serviceOrderId: id as string,
+      companyId,
+      description: data.description,
+    });
+
+    return res.json({
+      success: true,
+      data: result,
+    });
   }
 
   async generatePDF(req: Request, res: Response) {

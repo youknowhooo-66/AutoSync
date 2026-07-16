@@ -16,6 +16,9 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { toast } from 'sonner'
 import { RoleGuard } from '@/modules/auth/components/RoleGuard'
+import { DiagnosisSection } from './DiagnosisSection'
+import { ServiceOrderItemsSection } from './ServiceOrderItemsSection'
+import { ServiceOrderApprovalSection } from './ServiceOrderApprovalSection'
 
 interface Props {
   os: ServiceOrder | null
@@ -188,102 +191,16 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
                 </div>
               </div>
 
-              {/* Parts */}
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
-                    <PackageSearch className="w-4 h-4 text-muted-foreground" />
-                    Peças
-                  </h3>
-                  <RoleGuard action="os.edit">
-                    {os.status !== 'COMPLETED' && os.status !== 'BILLED' && os.status !== 'CANCELED' && (
-                      <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" onClick={() => setShowAddPart(true)}>
-                        <Plus className="w-3 h-3 mr-1" /> Adicionar
-                      </Button>
-                    )}
-                  </RoleGuard>
-                </div>
-                
-                {showAddPart && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg border border-primary/20 bg-primary/5 animate-in slide-in-from-top-2">
-                    <select 
-                      value={itemPartId} 
-                      onChange={e => { 
-                        setItemPartId(e.target.value); 
-                        const p = parts.find((x: any) => x.id === e.target.value); 
-                        if (p) setItemPrice(String(p.salePrice)); 
-                      }} 
-                      className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm"
-                    >
-                      <option value="">Selecione...</option>
-                      {parts.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <input type="number" min="1" value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qtd" className="w-16 h-8 rounded-md border border-input bg-background px-2 text-sm" />
-                    <input type="number" step="0.01" value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="R$" className="w-24 h-8 rounded-md border border-input bg-background px-2 text-sm" />
-                    <Button size="sm" className="h-8" onClick={handleAddPart} disabled={addItemMutation.isPending}><CheckCircle2 className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => setShowAddPart(false)}><X className="w-4 h-4" /></Button>
-                  </div>
-                )}
+              {/* Diagnosis Section */}
+              <DiagnosisSection
+                serviceOrderId={osDetail.id}
+                notes={osDetail.notes}
+                status={osDetail.status}
+              />
 
-                <div className="border border-border/50 rounded-xl overflow-hidden bg-background">
-                  {osDetail.parts?.length === 0 ? (
-                    <div className="p-4 text-sm text-center text-muted-foreground">Nenhuma peça adicionada.</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {osDetail.parts?.map((p: any, i: number) => (
-                        <div key={i} className="flex justify-between items-center p-3 text-sm border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{p.part.name}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">x{p.quantity}</Badge>
-                          </div>
-                          <span className="font-semibold">R$ {(p.unitPrice * p.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ServiceOrderItemsSection serviceOrder={osDetail} />
 
-              {/* Services */}
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-muted-foreground" />
-                    Serviços
-                  </h3>
-                  <RoleGuard action="os.edit">
-                    {os.status !== 'COMPLETED' && os.status !== 'BILLED' && os.status !== 'CANCELED' && (
-                      <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" onClick={() => setShowAddService(true)}>
-                        <Plus className="w-3 h-3 mr-1" /> Adicionar
-                      </Button>
-                    )}
-                  </RoleGuard>
-                </div>
-
-                {showAddService && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg border border-primary/20 bg-primary/5 animate-in slide-in-from-top-2">
-                    <input value={svcName} onChange={e => setSvcName(e.target.value)} placeholder="Descrição do serviço..." className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm" />
-                    <input type="number" step="0.01" value={svcPrice} onChange={e => setSvcPrice(e.target.value)} placeholder="R$" className="w-28 h-8 rounded-md border border-input bg-background px-2 text-sm" />
-                    <Button size="sm" className="h-8" onClick={handleAddService} disabled={addItemMutation.isPending}><CheckCircle2 className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => setShowAddService(false)}><X className="w-4 h-4" /></Button>
-                  </div>
-                )}
-
-                <div className="border border-border/50 rounded-xl overflow-hidden bg-background">
-                  {osDetail.services?.length === 0 ? (
-                    <div className="p-4 text-sm text-center text-muted-foreground">Nenhum serviço adicionado.</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {osDetail.services?.map((s: any, i: number) => (
-                        <div key={i} className="flex justify-between items-center p-3 text-sm border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
-                          <span className="font-medium">{s.name}</span>
-                          <span className="font-semibold">R$ {Number(s.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ServiceOrderApprovalSection serviceOrder={osDetail} />
 
               {/* Total Summary */}
               <div className="flex items-center justify-between p-4 rounded-xl border border-primary/20 bg-primary/5">

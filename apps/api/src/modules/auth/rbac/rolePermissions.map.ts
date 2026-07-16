@@ -5,8 +5,17 @@ export const rolePermissions: Record<Role, Permission[]> = {
   
   [Role.MANAGER]: [
     Permission.SERVICE_ORDER_VIEW,
+    Permission.SERVICE_ORDER_ITEM_VIEW,
+    Permission.SERVICE_ORDER_ITEM_ADD,
+    Permission.SERVICE_ORDER_ITEM_UPDATE,
+    Permission.SERVICE_ORDER_ITEM_REMOVE,
+    Permission.SERVICE_ORDER_APPROVAL_VIEW,
+    Permission.SERVICE_ORDER_APPROVAL_REQUEST,
+    Permission.SERVICE_ORDER_APPROVAL_APPROVE,
+    Permission.SERVICE_ORDER_APPROVAL_REJECT,
     Permission.SERVICE_ORDER_CREATE,
     Permission.SERVICE_ORDER_START,
+    Permission.SERVICE_ORDER_DIAGNOSE,
     Permission.SERVICE_ORDER_COMPLETE,
     Permission.SERVICE_ORDER_CANCEL,
     Permission.STOCK_VIEW,
@@ -18,13 +27,21 @@ export const rolePermissions: Record<Role, Permission[]> = {
 
   [Role.MECHANIC]: [
     Permission.SERVICE_ORDER_VIEW,
+    Permission.SERVICE_ORDER_ITEM_VIEW,
+    Permission.SERVICE_ORDER_ITEM_ADD,
+    Permission.SERVICE_ORDER_ITEM_UPDATE,
+    Permission.SERVICE_ORDER_ITEM_REMOVE,
+    Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.SERVICE_ORDER_START,
+    Permission.SERVICE_ORDER_DIAGNOSE,
     Permission.SERVICE_ORDER_COMPLETE,
     Permission.STOCK_VIEW,
   ],
 
   [Role.FINANCIAL]: [
     Permission.SERVICE_ORDER_VIEW,
+    Permission.SERVICE_ORDER_ITEM_VIEW,
+    Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.FINANCIAL_VIEW,
     Permission.FINANCIAL_CREATE,
     Permission.AUDIT_VIEW,
@@ -32,11 +49,19 @@ export const rolePermissions: Record<Role, Permission[]> = {
 
   [Role.ATTENDANT]: [
     Permission.SERVICE_ORDER_VIEW,
+    Permission.SERVICE_ORDER_ITEM_VIEW,
+    Permission.SERVICE_ORDER_ITEM_ADD,
+    Permission.SERVICE_ORDER_ITEM_UPDATE,
+    Permission.SERVICE_ORDER_ITEM_REMOVE,
+    Permission.SERVICE_ORDER_APPROVAL_VIEW,
+    Permission.SERVICE_ORDER_APPROVAL_REQUEST,
     Permission.SERVICE_ORDER_CREATE,
     Permission.STOCK_VIEW,
   ],
 
   [Role.STOCKIST]: [
+    Permission.SERVICE_ORDER_ITEM_VIEW,
+    Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.STOCK_VIEW,
     Permission.STOCK_UPDATE,
   ],
