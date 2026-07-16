@@ -20,6 +20,7 @@ import { DiagnosisSection } from './DiagnosisSection'
 import { ServiceOrderItemsSection } from './ServiceOrderItemsSection'
 import { ServiceOrderApprovalSection } from './ServiceOrderApprovalSection'
 import { ServiceOrderExecutionSection } from './ServiceOrderExecutionSection'
+import { ServiceOrderStockConsumptionSection } from './ServiceOrderStockConsumptionSection'
 
 interface Props {
   os: ServiceOrder | null
@@ -204,6 +205,8 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
               <ServiceOrderApprovalSection serviceOrder={osDetail} />
 
               <ServiceOrderExecutionSection serviceOrderId={osDetail.id} />
+
+              <ServiceOrderStockConsumptionSection serviceOrderId={osDetail.id} />
 
               {/* Total Summary */}
               <div className="flex items-center justify-between p-4 rounded-xl border border-primary/20 bg-primary/5">

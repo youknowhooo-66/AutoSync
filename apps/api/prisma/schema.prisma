@@ -229,27 +229,33 @@ model ServiceOrder {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  company   Company                @relation(fields: [companyId], references: [id])
-  client    Client                 @relation(fields: [clientId], references: [id])
-  vehicle   Vehicle                @relation(fields: [vehicleId], references: [id])
-  mechanic  User?                  @relation("MechanicOS", fields: [mechanicId], references: [id])
-  branch    Branch                 @relation(fields: [branchId], references: [id])
-  parts     OSPart[]
-  services  OSService[]
-  approvals ServiceOrderApproval[]
+  company            Company                @relation(fields: [companyId], references: [id])
+  client             Client                 @relation(fields: [clientId], references: [id])
+  vehicle            Vehicle                @relation(fields: [vehicleId], references: [id])
+  mechanic           User?                  @relation("MechanicOS", fields: [mechanicId], references: [id])
+  branch             Branch                 @relation(fields: [branchId], references: [id])
+  parts              OSPart[]
+  services           OSService[]
+  approvals          ServiceOrderApproval[]
+  inventoryMovements InventoryMovement[]
 
   @@unique([id, companyId])
 }
 
 model OSPart {
-  id             String  @id @default(uuid())
-  serviceOrderId String
-  partId         String
-  quantity       Int
-  unitPrice      Decimal @db.Decimal(10, 2)
+  id               String  @id @default(uuid())
+  serviceOrderId   String
+  partId           String
+  quantity         Int
+  consumedQuantity Int     @default(0)
+  unitPrice        Decimal @db.Decimal(10, 2)
 
-  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
-  part         Part         @relation(fields: [partId], references: [id])
+  serviceOrder ServiceOrder        @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  part         Part                @relation(fields: [partId], references: [id])
+  movements    InventoryMovement[]
+
+  @@index([serviceOrderId])
+  @@index([partId])
 }
 
 enum ServiceExecutionStatus {
@@ -323,11 +329,21 @@ model InventoryMovement {
   targetBranchId String?
   createdAt      DateTime     @default(now())
 
-  part         Part    @relation(fields: [partId], references: [id])
-  branch       Branch  @relation(fields: [branchId], references: [id])
-  user         User    @relation(fields: [userId], references: [id])
-  sourceBranch Branch? @relation("SourceBranch", fields: [sourceBranchId], references: [id])
-  targetBranch Branch? @relation("TargetBranch", fields: [targetBranchId], references: [id])
+  serviceOrderId String?
+  osPartId       String?
+  idempotencyKey String? @unique
+
+  part         Part          @relation(fields: [partId], references: [id])
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  sourceBranch Branch?       @relation("SourceBranch", fields: [sourceBranchId], references: [id])
+  targetBranch Branch?       @relation("TargetBranch", fields: [targetBranchId], references: [id])
+  serviceOrder ServiceOrder? @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict)
+  osPart       OSPart?       @relation(fields: [osPartId], references: [id], onDelete: Restrict)
+
+  @@index([serviceOrderId])
+  @@index([osPartId])
+  @@index([branchId, createdAt])
 }
 
 enum FinancialType {

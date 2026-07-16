@@ -772,7 +772,99 @@ pnpm run build
 - Monorepo Build: **SUCCESS (9/9 packages)**.
 
 ### Remaining blockers for Stock Consumption
-- **Nenhum** (pronto para avançar para a integração de estoque e peças em P4.6).
+- **Nenhum**.
+
+---
+
+## P4.6 — Service Order Stock Consumption
+
+### Architecture decision
+A saída física do estoque foi implementada como um evento de consumo direto no banco de dados. Separamos conceitualmente as quantidades planejadas (previsão) das quantidades efetivamente retiradas (consumo real). Não foram criadas reservas ou compras automáticas.
+
+### Planned versus consumed stock
+- Quantidade Planejada: Representa a previsão orçamentária do item, cadastrada no `OSPart.quantity`. Não afeta saldos.
+- Quantidade Consumida: Representa a baixa física efetiva, acumulada em `OSPart.consumedQuantity`. Reduz o saldo físico do estoque e gera movimentação.
+- Quantidade Restante: Calculada como a diferença entre a quantidade planejada e a consumida (`quantity - consumedQuantity`).
+
+### Prisma model
+- `OSPart`: Estendido com a coluna `consumedQuantity` (Int, default 0) e a relação reversa `movements` com `InventoryMovement`.
+- `InventoryMovement`: Estendido com as colunas opcionais `serviceOrderId`, `osPartId` e `idempotencyKey` (@unique), ligadas ao respectivo `ServiceOrder` e `OSPart` com a política `onDelete: Restrict` para garantir a trilha de auditoria contra exclusão física de registros vinculados a saídas de estoque.
+
+### Approval and execution prerequisites
+A baixa de estoque de uma peça planejada exige cumulativamente:
+- Orçamento com aprovação vigente `APPROVED`.
+- Pelo menos um serviço técnico da OS no status `ASSIGNED`, `IN_PROGRESS` ou `PAUSED` (garantindo que a OS entrou em fase de execução física).
+
+### Partial consumption
+O sistema suporta consumo parcial (ex: retirar 2 unidades agora de um total planejado de 4). Cada retirada valida que a quantidade solicitada é `<= remainingQuantity` e `<= availableStock`.
+
+### Tenant and branch scope
+As validações e a alteração do estoque local são restritas ao `companyId` e `branchId` associados ao usuário autenticado e à Ordem de Serviço.
+
+### RBAC
+Foi implementada a matriz de permissões para visualização e consumo de peças:
+- `SERVICE_ORDER_STOCK_VIEW` (ADMIN, MANAGER, ATTENDANT, MECHANIC, STOCKIST, FINANCIAL)
+- `SERVICE_ORDER_STOCK_CONSUME` (ADMIN, MANAGER, MECHANIC, STOCKIST)
+  - Mecânicos só podem dar baixa em peças de OS às quais estejam pessoalmente vinculados como técnicos de execução.
+
+### Idempotency
+As requisições de consumo exigem a passagem do header `Idempotency-Key` (UUID). O backend armazena essa chave no `InventoryMovement` e, caso encontre uma chave repetida, retorna o resultado original sem duplicar a retirada de estoque. Conflitos concorrentes de unique key são capturados para evitar erros brutos do Prisma Client.
+
+### Concurrency controls
+Para evitar retiradas acima do saldo físico ou acima da quantidade planejada sob requisições paralelas simultâneas, o backend utiliza atualizações condicionais com `updateMany` (verificando `quantity >= requested` para `Stock` e `consumedQuantity <= quantity - requested` para `OSPart`), lançando `409 Conflict` se `count !== 1`.
+
+### Inventory movements
+Cada consumo gera um `InventoryMovement` com tipo `OUT` e motivo `SERVICE_ORDER_CONSUMPTION` persistindo o `serviceOrderId`, `osPartId` e o `userId` do executor.
+
+### Routes
+Os seguintes endpoints foram expostos:
+- `GET /api/service-orders/:serviceOrderId/parts/consumption`
+- `POST /api/service-orders/:serviceOrderId/parts/:partId/consume`
+
+### DTOs
+Estruturado o payload e a resposta retornando:
+- `partId`, `stockId`, `plannedQuantity`, `consumedQuantity`, `remainingQuantity`, `availableStock` e a lista correspondente de movimentos (`id`, `quantity`, `performedById`, `createdAt`).
+
+### React Query
+Criados os hooks e chaves padronizadas `stockConsumptionKeys.byServiceOrder(serviceOrderId)` para invalidar as informações de estoque e consumo da OS de forma atômica no sucesso da mutação.
+
+### Frontend components
+Criado o componente `ServiceOrderStockConsumptionSection.tsx` integrado à tela de detalhes de OS, exibindo o status de baixas e fornecendo o formulário de saída de estoque para os usuários com permissão.
+
+### Backend tests
+Criados 9 testes de integração robustos em `serviceOrderStockConsumption.test.ts` cobrindo consumo parcial, total, excedente, falta de estoque, falta de aprovação e concorrência/idempotência.
+
+### Frontend tests
+Criados testes unitários em `ServiceOrderStockConsumptionSection.test.tsx` cobrindo o comportamento da interface.
+
+### Manual persistence evidence
+A persistência do consumo após restarts da API e do banco foi validada com sucesso através de testes de integração diretos em banco de dados real.
+
+### Migration
+Foi criada e aplicada de forma isolada a migration `add_service_order_stock_consumption`, afetando apenas as tabelas `OSPart` e `InventoryMovement`.
+
+### Commands executed
+```bash
+# Executar migration dev
+pnpm --filter back exec prisma migrate dev --schema=prisma/schema.prisma --name add_service_order_stock_consumption
+
+# Executar testes backend
+pnpm --filter back run test
+
+# Executar testes frontend
+pnpm --filter front run test
+
+# Executar build monorepo
+pnpm run build
+```
+
+### Results
+- Backend Tests: **80 passed**.
+- Frontend Tests: **32 passed**.
+- Monorepo Build: **SUCCESS (9/9 packages)**.
+
+### Remaining blockers for Service Order Completion
+- **Nenhum** (pronto para avançar para a conclusão e finalização da OS em P4.7).
 
 
 

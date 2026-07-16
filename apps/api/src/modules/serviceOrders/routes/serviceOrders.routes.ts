@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ServiceOrderController } from '../controllers/ServiceOrderController';
 import { ServiceOrderApprovalController } from '../controllers/ServiceOrderApprovalController';
 import { ServiceOrderExecutionController } from '../controllers/ServiceOrderExecutionController';
+import { ServiceOrderStockConsumptionController } from '../controllers/ServiceOrderStockConsumptionController';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 
@@ -9,6 +10,7 @@ const serviceOrderRouter = Router();
 const controller = new ServiceOrderController();
 const approvalController = new ServiceOrderApprovalController();
 const executionController = new ServiceOrderExecutionController();
+const stockConsumptionController = new ServiceOrderStockConsumptionController();
 
 serviceOrderRouter.get('/', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.index);
 serviceOrderRouter.post('/', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.create);
@@ -37,5 +39,9 @@ serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/start', rbacMiddle
 serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/pause', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_PAUSE), executionController.pause);
 serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/resume', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_RESUME), executionController.resume);
 serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/complete', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_COMPLETE), executionController.complete);
+
+// Stock Consumption Routes
+serviceOrderRouter.get('/:serviceOrderId/parts/consumption', rbacMiddleware(Permission.SERVICE_ORDER_STOCK_VIEW), (req, res) => stockConsumptionController.getPartsConsumption(req, res));
+serviceOrderRouter.post('/:serviceOrderId/parts/:partId/consume', rbacMiddleware(Permission.SERVICE_ORDER_STOCK_CONSUME), (req, res) => stockConsumptionController.consume(req, res));
 
 export { serviceOrderRouter };
