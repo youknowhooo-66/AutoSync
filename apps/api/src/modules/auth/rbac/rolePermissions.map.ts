@@ -23,6 +23,12 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.FINANCIAL_VIEW,
     Permission.AUDIT_VIEW,
     Permission.USER_MANAGE,
+    Permission.SERVICE_ORDER_EXECUTION_VIEW,
+    Permission.SERVICE_ORDER_EXECUTION_ASSIGN,
+    Permission.SERVICE_ORDER_EXECUTION_START,
+    Permission.SERVICE_ORDER_EXECUTION_PAUSE,
+    Permission.SERVICE_ORDER_EXECUTION_RESUME,
+    Permission.SERVICE_ORDER_EXECUTION_COMPLETE,
   ],
 
   [Role.MECHANIC]: [
@@ -36,6 +42,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_DIAGNOSE,
     Permission.SERVICE_ORDER_COMPLETE,
     Permission.STOCK_VIEW,
+    Permission.SERVICE_ORDER_EXECUTION_VIEW,
+    Permission.SERVICE_ORDER_EXECUTION_START,
+    Permission.SERVICE_ORDER_EXECUTION_PAUSE,
+    Permission.SERVICE_ORDER_EXECUTION_RESUME,
+    Permission.SERVICE_ORDER_EXECUTION_COMPLETE,
   ],
 
   [Role.FINANCIAL]: [
@@ -45,6 +56,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.FINANCIAL_VIEW,
     Permission.FINANCIAL_CREATE,
     Permission.AUDIT_VIEW,
+    Permission.SERVICE_ORDER_EXECUTION_VIEW,
   ],
 
   [Role.ATTENDANT]: [
@@ -57,6 +69,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_APPROVAL_REQUEST,
     Permission.SERVICE_ORDER_CREATE,
     Permission.STOCK_VIEW,
+    Permission.SERVICE_ORDER_EXECUTION_VIEW,
   ],
 
   [Role.STOCKIST]: [
@@ -64,5 +77,6 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.STOCK_VIEW,
     Permission.STOCK_UPDATE,
+    Permission.SERVICE_ORDER_EXECUTION_VIEW,
   ],
 };

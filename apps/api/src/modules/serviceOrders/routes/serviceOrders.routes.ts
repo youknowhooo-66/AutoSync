@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { ServiceOrderController } from '../controllers/ServiceOrderController';
 import { ServiceOrderApprovalController } from '../controllers/ServiceOrderApprovalController';
+import { ServiceOrderExecutionController } from '../controllers/ServiceOrderExecutionController';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 
 const serviceOrderRouter = Router();
 const controller = new ServiceOrderController();
 const approvalController = new ServiceOrderApprovalController();
+const executionController = new ServiceOrderExecutionController();
 
 serviceOrderRouter.get('/', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.index);
 serviceOrderRouter.post('/', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.create);
@@ -27,5 +29,13 @@ serviceOrderRouter.post('/:id/approval/request', rbacMiddleware(Permission.SERVI
 serviceOrderRouter.post('/:id/approval/approve', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.approve);
 serviceOrderRouter.post('/:id/approval/reject', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_REJECT), approvalController.reject);
 serviceOrderRouter.post('/:id/approval/invalidate', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.invalidate);
+
+// Technical Execution Routes
+serviceOrderRouter.get('/:serviceOrderId/execution', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_VIEW), executionController.index);
+serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/assign', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_ASSIGN), executionController.assign);
+serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/start', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_START), executionController.start);
+serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/pause', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_PAUSE), executionController.pause);
+serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/resume', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_RESUME), executionController.resume);
+serviceOrderRouter.post('/:serviceOrderId/services/:serviceId/complete', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_COMPLETE), executionController.complete);
 
 export { serviceOrderRouter };

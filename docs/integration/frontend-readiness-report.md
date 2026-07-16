@@ -669,6 +669,111 @@ pnpm run build
 ### Remaining blockers for Work Items
 - **Nenhum**.
 
+---
+
+## P4.5 — Technical Execution
+
+### Architecture decision
+A equipe optou por não reintroduzir prematuramente o aggregate `WorkItem` (DDD) para não criar escrita dupla, divergência de dados ou duplicação com a API procedural Express atual. A migração completa de arquitetura será agendada futuramente de forma isolada.
+
+### Procedural source of truth
+A fonte procedural temporária e real da execução técnica na API atual do AutoSync é o modelo `OSService`.
+
+### Prisma model
+O model `OSService` foi estendido com os campos `executionStatus` (utilizando o novo enum `ServiceExecutionStatus`), `technicianId`, `assignedAt`, `assignedById`, `startedAt`, `startedById`, `pausedAt`, `pausedById`, `pauseReason`, `resumedAt`, `resumedById`, `completedAt`, `completedById` e `completionNotes`. Todas as referências a `User` possuem a política `onDelete: SetNull`.
+
+### Approval prerequisite
+Qualquer ação de execução técnica (atribuição, início, pausa, retomada ou conclusão) exige que a OS tenha uma aprovação formal com status `APPROVED` como versão vigente e sem invalidação posterior.
+
+### Snapshot validation
+O `OSService` é validado contra o snapshot da aprovação vigente antes de qualquer transição (validando `id`, `name/description` e `price`). Qualquer divergência retorna `409 Conflict`.
+
+### Execution lifecycle
+O ciclo de vida de execução de cada item de serviço segue as transições:
+`PENDING → ASSIGNED → IN_PROGRESS → PAUSED → IN_PROGRESS → COMPLETED`.
+
+### Technician assignment
+Apenas usuários com a role `MECHANIC` ativos e pertencentes à mesma empresa e filial da OS podem ser atribuídos como técnicos de execução.
+
+### RBAC
+Foi implementada a matriz RBAC com permissões específicas:
+- `SERVICE_ORDER_EXECUTION_VIEW` (ADMIN, MANAGER, ATTENDANT, MECHANIC, STOCKIST, FINANCIAL)
+- `SERVICE_ORDER_EXECUTION_ASSIGN` (ADMIN, MANAGER)
+- `SERVICE_ORDER_EXECUTION_START` (ADMIN, MANAGER, MECHANIC)
+- `SERVICE_ORDER_EXECUTION_PAUSE` (ADMIN, MANAGER, MECHANIC)
+- `SERVICE_ORDER_EXECUTION_RESUME` (ADMIN, MANAGER, MECHANIC)
+- `SERVICE_ORDER_EXECUTION_COMPLETE` (ADMIN, MANAGER, MECHANIC)
+
+Os mecânicos só podem agir em serviços atribuídos a si mesmos, com exceção de gestores e administradores que têm escopo global.
+
+### Tenant and branch scope
+As consultas e escritas de execução técnica validam rigorosamente o tenant `companyId` e `branchId` com base no escopo e no contexto do usuário autenticado.
+
+### Routes
+Os seguintes endpoints foram expostos na API:
+- `GET /api/service-orders/:serviceOrderId/execution`
+- `POST /api/service-orders/:serviceOrderId/services/:serviceId/assign`
+- `POST /api/service-orders/:serviceOrderId/services/:serviceId/start`
+- `POST /api/service-orders/:serviceOrderId/services/:serviceId/pause`
+- `POST /api/service-orders/:serviceOrderId/services/:serviceId/resume`
+- `POST /api/service-orders/:serviceOrderId/services/:serviceId/complete`
+
+### Use cases
+Foram criados e desacoplados os seguintes casos de uso:
+- `GetServiceOrderExecutionUseCase`
+- `AssignTechnicianToServiceUseCase`
+- `StartServiceExecutionUseCase`
+- `PauseServiceExecutionUseCase`
+- `ResumeServiceExecutionUseCase`
+- `CompleteServiceExecutionUseCase`
+
+### Concurrency controls
+Para evitar concorrência ou duplicação de transições (ex: iniciar duas vezes), a API utiliza atualizações condicionais com `updateMany` baseando-se no `executionStatus` esperado e lançando `409 Conflict` se `count !== 1`.
+
+### Pause limitation
+A implementação atual não preserva o histórico de múltiplas pausas, registrando apenas a data, o autor e a justificativa da pausa mais recente.
+
+### Frontend integration
+Foram criados os arquivos `execution.types.ts`, `executionService.ts`, o hook `useServiceOrderExecution.ts` e a seção visual `ServiceOrderExecutionSection.tsx` injetada na folha de detalhes da OS, respeitando a visualização por roles e regras de negócio.
+
+### Backend tests
+Uma suíte completa de testes de integração foi criada em `serviceOrderExecution.test.ts` cobrando todas as restrições, transições válidas e concorrência.
+
+### Frontend tests
+Os testes unitários em `ServiceOrderExecutionSection.test.tsx` cobrem o bloqueio inicial sem orçamento, listagem de itens e a execução do fluxo.
+
+### Stock isolation
+Foi comprovado via testes que a execução de serviços não altera a quantidade em estoque (`Stock`) e não gera movimentações físicas (`InventoryMovement`).
+
+### Financial isolation
+Foi verificado que as transições de execução técnica não criam ou afetam lançamentos financeiros (`FinancialRecord`).
+
+### Migration
+Foi criada e aplicada de forma isolada a migration `add_os_service_execution`, afetando apenas o enum `ServiceExecutionStatus`, a tabela `OSService` e os relacionamentos inversos correspondentes.
+
+### Commands executed
+```bash
+# Executar migration dev
+pnpm --filter back exec prisma migrate dev --schema=prisma/schema.prisma --name add_os_service_execution
+
+# Executar testes backend
+pnpm --filter back run test
+
+# Executar testes frontend
+pnpm --filter front run test
+
+# Executar build monorepo
+pnpm run build
+```
+
+### Results
+- Backend Tests: **71 passed**.
+- Frontend Tests: **29 passed**.
+- Monorepo Build: **SUCCESS (9/9 packages)**.
+
+### Remaining blockers for Stock Consumption
+- **Nenhum** (pronto para avançar para a integração de estoque e peças em P4.6).
+
 
 
 
