@@ -927,6 +927,121 @@ pnpm run build
 - Frontend Tests: **42 passed**.
 - Monorepo Build: **SUCCESS (9/9 packages)**.
 
+---
+
+## 22. P5 — End-to-End Regression and Architectural Consolidation
+
+### Certification Scope
+The P5 phase certifies the entire AutoSync Service Order lifecycle via actual HTTP requests using `supertest` executing against the Express application. This proves that database persistence, multi-tenant/branch isolation, RBAC controls, concurrent execution safety, idempotency guarantees, audit trails, and transactional rollbacks operate cleanly in a real PostgreSQL/Redis stack.
+
+### Repository Baseline
+- **Current Branch**: `main`
+- **Current Commit**: `c64f7810` ("feat(service-orders): add financial receivable integration")
+- **Node Version**: `v22.20.0`
+- **pnpm Version**: `11.1.2`
+- **Docker Version**: `29.4.3`
+- **Docker Compose Version**: `v5.1.3`
+- **Workspace Tree**: Clean (0 dirty files)
+
+### Workspace Inventory
+The AutoSync monorepo consists of the following 9 packages:
+
+| Workspace Package | Responsabilidade | Build | Test | Ativo |
+|---|---|---|---|---|
+| `back` (apps/api) | Express API & Prisma Client database model | `SUCCESS` | `126 tests` | Yes |
+| `front` (apps/web) | Vite + React SPA SPA UI Pages and hooks | `SUCCESS` | `42 tests` | Yes |
+| `@autosync/desktop` | Desktop electron wrapper (unaltered) | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/domain` | Disconnected DDD aggregates, entities & value objects | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/application` | Disconnected DDD use cases and event handlers | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/infrastructure` | Disconnected DDD repository implementations & queue consumers | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/read-models` | Disconnected DDD read projections database schema | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/types` | Standard TypeScript typings and interfaces | `SUCCESS` | `0 tests` | Yes |
+| `@autosync/tests-e2e` | In-memory Vitest E2E domain model testing suite | `SUCCESS` | `6 specs` | Yes |
+
+### Infrastructure Inventory
+Local test services are orchestrating via `docker-compose.test.yml`:
+
+| Serviço | Porta | Banco | Healthcheck | Usado em teste |
+|---|---|---|---|---|
+| **PostgreSQL** | `5436` | `autosync_test` | `pg_isready -U postgres` | Yes |
+| **Redis** | `6380` | - | `redis-cli ping` | Yes |
+
+### Migration Audit
+All 7 migrations were successfully applied on a clean Postgres database:
+
+| Migration Name | Objetivo | Isolada | Aplicável | Risco |
+|---|---|---|---|---|
+| `20260514171202_finalize_schema` | Base schema (User, Company, Branch, Client, Vehicle) | Yes | Yes | None |
+| `20260625051051_add_part_labor_to_worktype` | Add fields to worktype tables | Yes | Yes | None |
+| `20260716033149_add_service_order_budget_approval` | Create OS, Parts, Services, Approval tables | Yes | Yes | None |
+| `20260716035128_add_os_service_execution` | Add Execution fields and technician relation | Yes | Yes | None |
+| `20260716041013_add_service_order_stock_consumption` | Add stock consumption columns and movements | Yes | Yes | None |
+| `20260716042627_add_service_order_completion_fields` | Add finishedAt, finishedById and index fields | Yes | Yes | None |
+| `20260717040613_add_service_order_financial_links` | Add serviceOrderId and serviceOrderApprovalId | Yes | Yes | None |
+
+### Full Lifecycle API E2E
+The test suite `apps/api/tests/e2e/serviceOrderFullLifecycle.e2e.test.ts` executes the complete vertical cycle via HTTP:
+```text
+POST /api/clients (Create Client)
+→ POST /api/vehicles (Create Vehicle)
+→ POST /api/service-orders (Create OS)
+→ PUT /api/service-orders/:id/diagnosis (Technical Diagnosis notes)
+→ POST /api/service-orders/:id/items (Add Services & planned Parts)
+→ POST /api/service-orders/:id/approval/request (Request budget approval)
+→ POST /api/service-orders/:id/approval/approve (Approve budget version)
+→ POST /api/service-orders/:id/services/:serviceId/assign (Assign mechanic)
+→ POST /api/service-orders/:id/services/:serviceId/start (Start execution)
+→ POST /api/service-orders/:id/parts/:partId/consume (Consume stock, OUT movement)
+→ POST /api/service-orders/:id/services/:serviceId/complete (Complete service)
+→ GET /api/service-orders/:id/completion/readiness (Verify readiness)
+→ POST /api/service-orders/:id/complete (Complete Service Order -> FINISHED)
+→ POST /api/service-orders/:id/finance/receivable (Generate Financial Obligation)
+→ GET /api/service-orders/:id/finance (Verify finance status -> GENERATED)
+```
+
+### Multi-tenant & Branch Isolation
+- **Tenant Isolation**: Tested cross-tenant access between Company A and Company B. Attempts to access or write Client A, Vehicle A, or OS A by Company B users are strictly blocked, returning `404 Not Found`.
+- **Branch Isolation**: Verified branch isolation. Users assigned to Branch A1 attempting to complete an OS belonging to Branch A2 under the same company are denied, returning `404 Not Found`.
+
+### RBAC Matrix
+The E2E suite verifies the RBAC middleware permissions at each lifecycle step:
+- Attendants are forbidden from completing an OS (`403 Forbidden`).
+- Mechanics are forbidden from generating financial receivables (`403 Forbidden`).
+- Appropriate permissions are required for creating, diagnosing, approving, consuming, completing, and faturando.
+
+### Concurrency & Idempotency
+- **Concurrency**: Simultaneous execution starts, stock consumptions, and faturamento requests were fired in parallel. Only one request is allowed to write to the database (returning `200/201`), while the duplicate returns `400/409` controlled error.
+- **Idempotency**: Duplicate stock consumption requests using the same `Idempotency-Key` or duplicate faturamento calls result in a single write operation, returning the original response and preventing duplication.
+
+### Reconciliations
+- **Stock Reconciliation**: `OSPart.consumedQuantity === SUM(InventoryMovement OUT quantity)`. Verified that Stock is decremented exactly by the consumed quantity.
+- **Financial Reconciliation**: `ServiceOrderApproval.finalValue === FinancialRecord.amount`. Amount is strictly derived from the approved snapshot value.
+
+### Rollback Evidence
+Simulated a database failure in `AuditLogService.log` inside the faturamento transaction. Proved that `FinancialRecord` creation is rolled back completely, leaving zero orphan records in the database.
+
+### Frontend/Backend Contracts
+Frontend TypeScript contracts (`apps/web/src/modules/service-orders/types/*.types.ts`) are fully compatible with backend models:
+- Decimals are correctly handled as `string` in JSON serialization.
+- Status values (e.g. `'FINISHED'`) are mapped cleanly on both sides.
+
+### Legacy Code & Routes Classification
+- **Deprecated Routes**: `PATCH /api/service-orders/:serviceOrderId/complete` (deprecated alias for POST complete, kept for frontend backwards compatibility).
+- **Aliases**: `/api/os` (alias for `/api/service-orders`), `/api/inventory` (alias for `/api/stock`), `/api/finance` (alias for `/api/financial`), `/api/auditoria` (alias for `/api/audit`).
+- **DDD Domain Models**: `@autosync/domain` (`WorkItem`, `Maintenance`, `Saga`) are preserved for future DDD migration but kept disconnected from the procedural HTTP API.
+
+### Commands Executed
+```bash
+# Deploy migrations and run checks
+./scripts/certify-p5.sh --preserve-test-db
+```
+
+### Test Totals
+- **Backend Tests**: 126 passed.
+- **Frontend Tests**: 42 passed.
+- **Build**: SUCCESS (9/9 packages built).
+- **Certification Status**: FULLY CERTIFIED.
+
 
 
 

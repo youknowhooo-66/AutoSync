@@ -72,17 +72,22 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        working-directory: apps/api
-        run: pnpm exec prisma generate
+        run: pnpm --filter back exec prisma generate --schema=prisma/schema.prisma
 
-      - name: Typecheck API
-        working-directory: apps/api
-        run: pnpm exec tsc --noEmit
+      - name: Deploy migrations
+        run: pnpm --filter back exec prisma migrate deploy --schema=prisma/schema.prisma
 
-      - name: Build API
-        working-directory: apps/api
+      - name: Typecheck backend
+        run: pnpm --filter back run typecheck
+
+      - name: Typecheck frontend
+        run: pnpm --filter front exec tsc --noEmit
+
+      - name: Run backend tests
+        run: pnpm --filter back run test
+
+      - name: Run frontend tests
+        run: pnpm --filter front run test
+
+      - name: Build monorepo
         run: pnpm run build
-
-      - name: Run API tests
-        working-directory: apps/api
-        run: pnpm test
