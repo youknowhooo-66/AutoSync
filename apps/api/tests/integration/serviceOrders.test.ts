@@ -154,4 +154,156 @@ describe('ServiceOrders Basic Creation & Security Integration Tests', () => {
       .send({ clientId: clientA.id, vehicleId: vehicleA2.id, branchId: branchA.id });
     expect(resMismatch.status).toBe(404);
   });
+
+  describe('PUT /api/service-orders/:id/diagnosis', () => {
+    it('should successfully register a diagnosis, transition status to IN_PROGRESS, and preserve opening notes', async () => {
+      const company = await FactoryEngine.createCompany();
+      const branch = await FactoryEngine.createBranch(company.id);
+      const user = await FactoryEngine.createUser(company.id, { role: 'MECHANIC', branchId: branch.id });
+      const client = await FactoryEngine.createClient(company.id);
+      const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
+
+      // Create a service order with opening notes
+      const headers = generateAuthHeaders(user);
+      const createResponse = await request(app)
+        .post('/api/service-orders')
+        .set(generateAuthHeaders(await FactoryEngine.createUser(company.id, { role: 'ADMIN' })))
+        .send({
+          clientId: client.id,
+          vehicleId: vehicle.id,
+          branchId: branch.id,
+          notes: 'Customer notes: engine check.'
+        });
+      
+      const osId = createResponse.body.data.id;
+      expect(createResponse.body.data.status).toBe('OPEN');
+
+      // Now register a diagnosis as MECHANIC
+      const diagnosisResponse = await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(headers)
+        .send({ description: 'Found visual leak at radiator terminal.' });
+
+      expect(diagnosisResponse.status).toBe(200);
+      expect(diagnosisResponse.body.success).toBe(true);
+      expect(diagnosisResponse.body.data.serviceOrderId).toBe(osId);
+      expect(diagnosisResponse.body.data.description).toBe('Found visual leak at radiator terminal.');
+      expect(diagnosisResponse.body.data.status).toBe('IN_PROGRESS'); // Transitions OPEN -> IN_PROGRESS
+
+      // Confirm in DB that notes contains both customer notes and technical diagnosis header
+      const showResponse = await request(app)
+        .get(`/api/service-orders/${osId}`)
+        .set(headers);
+
+      expect(showResponse.body.notes).toContain('Customer notes: engine check.');
+      expect(showResponse.body.notes).toContain('[DIAGNÓSTICO TÉCNICO]');
+      expect(showResponse.body.notes).toContain('Found visual leak at radiator terminal.');
+    });
+
+    it('should block unauthorized roles with 403 and other tenants with 404', async () => {
+      const companyA = await FactoryEngine.createCompany();
+      const branchA = await FactoryEngine.createBranch(companyA.id);
+      const adminA = await FactoryEngine.createUser(companyA.id, { role: 'ADMIN', branchId: branchA.id });
+      const clientA = await FactoryEngine.createClient(companyA.id);
+      const vehicleA = await FactoryEngine.createVehicle(companyA.id, clientA.id);
+
+      const createResponse = await request(app)
+        .post('/api/service-orders')
+        .set(generateAuthHeaders(adminA))
+        .send({ clientId: clientA.id, vehicleId: vehicleA.id, branchId: branchA.id });
+      
+      const osId = createResponse.body.data.id;
+
+      // 1. Attendant tries to diagnose -> 403 Forbidden
+      const attendantA = await FactoryEngine.createUser(companyA.id, { role: 'ATTENDANT', branchId: branchA.id });
+      const resAttendant = await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(generateAuthHeaders(attendantA))
+        .send({ description: 'Radiator replacement required.' });
+      expect(resAttendant.status).toBe(403);
+
+      // 2. Tenant B (Mechanic) tries to diagnose Tenant A's OS -> 404 Not Found
+      const companyB = await FactoryEngine.createCompany();
+      const branchB = await FactoryEngine.createBranch(companyB.id);
+      const mechanicB = await FactoryEngine.createUser(companyB.id, { role: 'MECHANIC', branchId: branchB.id });
+      const resCross = await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(generateAuthHeaders(mechanicB))
+        .send({ description: 'Malicious diagnosis attempt.' });
+      expect(resCross.status).toBe(404);
+    });
+
+    it('should reject invalid description lengths with 400', async () => {
+      const company = await FactoryEngine.createCompany();
+      const branch = await FactoryEngine.createBranch(company.id);
+      const admin = await FactoryEngine.createUser(company.id, { role: 'ADMIN', branchId: branch.id });
+      const client = await FactoryEngine.createClient(company.id);
+      const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
+
+      const createResponse = await request(app)
+        .post('/api/service-orders')
+        .set(generateAuthHeaders(admin))
+        .send({ clientId: client.id, vehicleId: vehicle.id, branchId: branch.id });
+      
+      const osId = createResponse.body.data.id;
+
+      // Empty or too short description -> 400 Bad Request
+      const response = await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(generateAuthHeaders(admin))
+        .send({ description: 'No' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Validation error');
+    });
+
+    it('should correctly parse and replace diagnosis string without duplicating markers or losing opening notes', async () => {
+      const company = await FactoryEngine.createCompany();
+      const branch = await FactoryEngine.createBranch(company.id);
+      const admin = await FactoryEngine.createUser(company.id, { role: 'ADMIN', branchId: branch.id });
+      const client = await FactoryEngine.createClient(company.id);
+      const vehicle = await FactoryEngine.createVehicle(company.id, client.id);
+      const headers = generateAuthHeaders(admin);
+
+      const createResponse = await request(app)
+        .post('/api/service-orders')
+        .set(headers)
+        .send({ clientId: client.id, vehicleId: vehicle.id, branchId: branch.id, notes: 'Initial problem: tires.' });
+      
+      const osId = createResponse.body.data.id;
+
+      // 1. Initial diagnosis (notes currently has only observations)
+      await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(headers)
+        .send({ description: 'Front left tire punctured.' });
+      
+      let showResponse = await request(app).get(`/api/service-orders/${osId}`).set(headers);
+      expect(showResponse.body.notes).toBe('Initial problem: tires.\n\n[DIAGNÓSTICO TÉCNICO]\nFront left tire punctured.');
+
+      // 2. Double update (notes already has a diagnosis)
+      await request(app)
+        .put(`/api/service-orders/${osId}/diagnosis`)
+        .set(headers)
+        .send({ description: 'Front left tire punctured.\nAlignment needed.' });
+      
+      showResponse = await request(app).get(`/api/service-orders/${osId}`).set(headers);
+      // Ensure marker is not duplicated and previous notes remain
+      expect(showResponse.body.notes).toBe('Initial problem: tires.\n\n[DIAGNÓSTICO TÉCNICO]\nFront left tire punctured.\nAlignment needed.');
+
+      // 3. Test with initially empty notes
+      const createEmptyResponse = await request(app)
+        .post('/api/service-orders')
+        .set(headers)
+        .send({ clientId: client.id, vehicleId: vehicle.id, branchId: branch.id }); // no notes
+      const osIdEmpty = createEmptyResponse.body.data.id;
+
+      await request(app)
+        .put(`/api/service-orders/${osIdEmpty}/diagnosis`)
+        .set(headers)
+        .send({ description: 'Battery dead.' });
+      
+      const showEmptyResponse = await request(app).get(`/api/service-orders/${osIdEmpty}`).set(headers);
+      expect(showEmptyResponse.body.notes).toBe('[DIAGNÓSTICO TÉCNICO]\nBattery dead.');
+    });
+  });
 });

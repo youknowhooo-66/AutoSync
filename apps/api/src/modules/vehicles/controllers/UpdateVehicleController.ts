@@ -1,25 +1,29 @@
-// apps/api/src/modules/vehicles/controllers/UpdateVehicleController.ts
-
 import { Request, Response } from 'express';
+import { updateVehicleSchema } from '../validators/updateSchema';
 import { container } from '../../../container';
 
 export class UpdateVehicleController {
   constructor() {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { id } = request.params;
-    const { brand, model, year, licensePlate, color, clientId } = request.body;
-    const { companyId } = request;
+    const data = updateVehicleSchema.parse({
+      ...request.body,
+      id: request.params.id,
+    });
+    const { companyId } = request.user;
 
     const payload = {
-      vehicleId: String(id),
+      vehicleId: data.id,
       companyId: String(companyId),
-      clientId: String(clientId),
-      plate: String(licensePlate || ''),
-      brand: String(brand || ''),
-      model: String(model || ''),
-      year: Number(year || 0),
-      color: color ? String(color) : undefined,
+      clientId: data.clientId,
+      plate: data.plate,
+      brand: data.brand,
+      model: data.model,
+      year: data.year,
+      color: data.color,
+      chassis: data.chassis,
+      mileage: data.mileage,
+      engine: data.engine,
     };
     const vehicle = await container.useCases.fleet.updateVehicle.execute(payload);
 

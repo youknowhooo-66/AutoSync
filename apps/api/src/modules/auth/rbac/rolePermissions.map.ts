@@ -42,7 +42,6 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.SERVICE_ORDER_START,
     Permission.SERVICE_ORDER_DIAGNOSE,
-    Permission.SERVICE_ORDER_COMPLETE,
     Permission.STOCK_VIEW,
     Permission.SERVICE_ORDER_EXECUTION_VIEW,
     Permission.SERVICE_ORDER_EXECUTION_START,

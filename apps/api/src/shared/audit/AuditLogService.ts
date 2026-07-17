@@ -10,6 +10,7 @@ interface IAuditLogRequest {
   oldValue?: any;
   newValue?: any;
   ip?: string;
+  tx?: any;
 }
 
 export class AuditLogService {
@@ -22,9 +23,11 @@ export class AuditLogService {
     oldValue,
     newValue,
     ip,
+    tx,
   }: IAuditLogRequest) {
     try {
-      await prismaClient.auditLog.create({
+      const client = tx || prismaClient;
+      await client.auditLog.create({
         data: {
           userId,
           action,

@@ -1,9 +1,9 @@
 import { api } from '../../../lib/axios';
-import { Vehicle, CreateVehicleDTO, VehicleListResponse } from '../types';
+import type { Vehicle, CreateVehicleDTO } from '../types';
 
 export const vehicleService = {
   async list(page = 1, limit = 10, search = '') {
-    const { data } = await api.get<VehicleListResponse>('/vehicles', {
+    const { data } = await api.get<Vehicle[]>('/vehicles', {
       params: { page, limit, search },
     });
     return data;

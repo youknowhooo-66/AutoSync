@@ -9,7 +9,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "build": "tsc"
+    "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm run prisma:generate && tsc"
   },
   "keywords": [],
   "author": "",

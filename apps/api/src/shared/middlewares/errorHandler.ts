@@ -13,6 +13,7 @@ export function errorHandler(
       message: err.message,
       error: err.message,
       statusCode: err.statusCode,
+      ...(err.details !== undefined && { details: err.details }),
     });
   }
 

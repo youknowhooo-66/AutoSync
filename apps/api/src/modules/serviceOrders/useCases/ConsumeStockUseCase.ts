@@ -8,11 +8,12 @@ interface ConsumeStockRequest {
   quantity: number;
   companyId: string;
   userId: string;
+  userRole: string;
   idempotencyKey: string;
 }
 
 export class ConsumeStockUseCase {
-  async execute({ serviceOrderId, osPartId, quantity, companyId, userId, idempotencyKey }: ConsumeStockRequest) {
+  async execute({ serviceOrderId, osPartId, quantity, companyId, userId, userRole, idempotencyKey }: ConsumeStockRequest) {
     if (!idempotencyKey) {
       throw new AppError('Chave de idempotência (Idempotency-Key) é obrigatória', 400);
     }
@@ -109,6 +110,17 @@ export class ConsumeStockUseCase {
 
         if (!hasExecutionActive) {
           throw new AppError('O consumo de peças só é permitido após o início da execução da Ordem de Serviço', 400);
+        }
+
+        if (userRole === 'MECHANIC') {
+          const isAssigned = os.services.some(
+            (s) =>
+              s.technicianId === userId &&
+              ['ASSIGNED', 'IN_PROGRESS', 'PAUSED'].includes(s.executionStatus)
+          );
+          if (!isAssigned) {
+            throw new AppError('Mecânicos só podem consumir peças de OS às quais estejam designados', 403);
+          }
         }
 
         // 4. Validate latest active approval

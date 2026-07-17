@@ -15,6 +15,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
   let manager: any;
   let stockist: any;
   let mechanic1: any;
+  let mechanic2: any;
   let attendant: any;
   let financial: any;
   let client: any;
@@ -37,6 +38,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
     manager = await FactoryEngine.createUser(company.id, { role: 'MANAGER', branchId: branch.id });
     stockist = await FactoryEngine.createUser(company.id, { role: 'STOCKIST', branchId: branch.id });
     mechanic1 = await FactoryEngine.createUser(company.id, { role: 'MECHANIC', branchId: branch.id });
+    mechanic2 = await FactoryEngine.createUser(company.id, { role: 'MECHANIC', branchId: branch.id });
     attendant = await FactoryEngine.createUser(company.id, { role: 'ATTENDANT', branchId: branch.id });
     financial = await FactoryEngine.createUser(company.id, { role: 'FINANCIAL', branchId: branch.id });
 
@@ -289,6 +291,24 @@ describe('Service Order Stock Consumption (P4.6)', () => {
       .set('Idempotency-Key', randomUUID())
       .send({ quantity: 1 });
     expect(resConsume.status).toBe(403); // Forbidden
+
+    // Another mechanic (not assigned) trying to consume
+    const headersMechanic2 = generateAuthHeaders(mechanic2);
+    const resMechanic2 = await request(app)
+      .post(`/api/service-orders/${osId}/parts/${osPartId}/consume`)
+      .set(headersMechanic2)
+      .set('Idempotency-Key', randomUUID())
+      .send({ quantity: 1 });
+    expect(resMechanic2.status).toBe(403);
+    expect(resMechanic2.body.message).toContain('Mecânicos só podem consumir peças de OS às quais estejam designados');
+
+    // Assigned mechanic can consume
+    const resMechanic1 = await request(app)
+      .post(`/api/service-orders/${osId}/parts/${osPartId}/consume`)
+      .set(headersMechanic1)
+      .set('Idempotency-Key', randomUUID())
+      .send({ quantity: 1 });
+    expect(resMechanic1.status).toBe(200);
   });
 
   it('should not allow consuming stock if budget approval is not APPROVED', async () => {

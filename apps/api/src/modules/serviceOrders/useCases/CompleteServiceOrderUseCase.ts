@@ -1,109 +1,109 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { AuditLogService } from '../../../shared/audit/AuditLogService';
-import { ServiceOrderStatus } from '../enums/ServiceOrderStatus';
+import {
+  evaluateCompletionBlockers,
+  validateCompletionNotes,
+} from '../policies/ServiceOrderCompletionPolicy';
 
 interface IRequest {
   serviceOrderId: string;
   companyId: string;
+  branchId: string;
   userId: string;
+  completionNotes: string;
 }
 
 export class CompleteServiceOrderUseCase {
-  async execute({ serviceOrderId, companyId, userId }: IRequest) {
+  async execute({ serviceOrderId, companyId, branchId, userId, completionNotes }: IRequest) {
+    // 1. Validate completionNotes before entering the transaction
+    const notesBlocker = validateCompletionNotes(completionNotes);
+    if (notesBlocker) {
+      throw new AppError(notesBlocker.message, 400);
+    }
+
     return await prismaClient.$transaction(async (tx) => {
-      // 1. Validate if OS exists and belongs to company
-      const serviceOrder = await tx.serviceOrder.findFirst({
-        where: { id: serviceOrderId, companyId,  },
+      // 2. Fetch OS — must belong to the same company AND branch
+      const os = await tx.serviceOrder.findFirst({
+        where: { id: serviceOrderId, companyId, branchId },
         include: {
-          parts: true,
-          services: true,
+          parts: { select: { id: true, partId: true, quantity: true, consumedQuantity: true, unitPrice: true } },
+          services: { select: { id: true, name: true, price: true, executionStatus: true } },
         },
       });
 
-      if (!serviceOrder) {
-        throw new AppError('Service Order not found.', 404);
+      if (!os) {
+        throw new AppError('Ordem de Serviço não encontrada.', 404);
       }
 
-      // 2. Validate Status Transitions (State Machine)
-      if (serviceOrder.status === 'CANCELLED') {
-        throw new AppError('Cannot complete a canceled service order.', 400);
+      // 3. Fetch latest approval version only
+      const latestApproval = await tx.serviceOrderApproval.findFirst({
+        where: { serviceOrderId, companyId },
+        orderBy: { version: 'desc' },
+      });
+
+      // 4. Fetch OUT movements for this OS
+      const movements = await tx.inventoryMovement.findMany({
+        where: { serviceOrderId, type: 'OUT' },
+        select: { osPartId: true, quantity: true, type: true },
+      });
+
+      // 5. Run all business gates via shared policy
+      const blockers = evaluateCompletionBlockers(os, latestApproval, movements);
+
+      if (blockers.length > 0) {
+        throw new AppError(
+          `Não é possível concluir a OS. Blockers: ${blockers.map((b) => b.message).join(' | ')}`,
+          409,
+          blockers,
+        );
       }
 
-      if (serviceOrder.status === 'FINISHED') {
-        throw new AppError('Service order is already completed.', 400);
-      }
-
-      // 3. Deduct Stock for all parts
-      for (const item of serviceOrder.parts) {
-        const stock = await tx.stock.findUnique({
-          where: {
-            partId_branchId: {
-              partId: item.partId,
-              branchId: serviceOrder.branchId,
-            },
-          },
-        });
-
-        if (!stock || stock.quantity < item.quantity) {
-          const part = await tx.part.findUnique({ where: { id: item.partId } });
-          throw new AppError(`Insufficient stock for part: ${part?.name || item.partId}`, 400);
-        }
-
-        // Atomically decrement stock
-        await tx.stock.update({
-          where: { id: stock.id },
-          data: { quantity: { decrement: item.quantity } },
-        });
-
-        // Record stock movement
-        await tx.inventoryMovement.create({
-          data: {
-            partId: item.partId,
-            branchId: serviceOrder.branchId,
-            userId,
-            type: 'OUT',
-            quantity: item.quantity,
-            reason: `OS Completion #${serviceOrder.number}`,
-          },
-        });
-      }
-
-      // 4. Update Status to COMPLETED
-      const updatedOS = await tx.serviceOrder.update({
-        where: { id: serviceOrderId },
+      // 6. Conditional update: only transitions IN_PROGRESS → FINISHED
+      // Prevents double-completion in concurrent scenarios
+      const result = await tx.serviceOrder.updateMany({
+        where: {
+          id: serviceOrderId,
+          companyId,
+          branchId,
+          status: 'IN_PROGRESS',
+        },
         data: {
           status: 'FINISHED',
+          finishedAt: new Date(),
+          finishedById: userId,
+          completionNotes: completionNotes.trim(),
         },
       });
 
-      // 5. Generate Financial Record (REVENUE)
-      await tx.financialRecord.create({
-        data: {
-          companyId,
-          branchId: serviceOrder.branchId,
-          type: 'RECEIVABLE',
-          category: 'SERVICE_ORDER',
-          description: `Revenue from OS #${serviceOrder.number}`,
-          amount: serviceOrder.finalValue,
-          dueDate: new Date(),
-          status: 'PAID',
-          paymentDate: new Date(),
-        },
-      });
+      if (result.count !== 1) {
+        throw new AppError(
+          'A ordem de serviço foi alterada ou já foi concluída por outro processo.',
+          409,
+        );
+      }
 
-      // 6. Audit Log (SaaS standard)
+      // 7. Audit log
       await AuditLogService.log({
         userId,
         companyId,
         action: 'OS_COMPLETED',
         resource: 'SERVICE_ORDER',
-        resourceId: serviceOrder.id,
-        oldValue: { status: serviceOrder.status },
-        newValue: { status: 'FINISHED' },
+        resourceId: serviceOrderId,
+        oldValue: { status: 'IN_PROGRESS' },
+        newValue: { status: 'FINISHED', finishedAt: new Date().toISOString() },
+        tx,
       });
 
-      return updatedOS;
+      // 8. Return updated OS
+      return tx.serviceOrder.findFirst({
+        where: { id: serviceOrderId },
+        include: {
+          parts: true,
+          services: true,
+          finishedBy: { select: { id: true, name: true } },
+        },
+      });
     });
   }
 }

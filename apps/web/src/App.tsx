@@ -8,7 +8,7 @@ import ExecutiveDashboard from './modules/dashboard/pages/ExecutiveDashboard';
 import Clients from './modules/clients/pages/ClientList';
 import Inventory from './modules/inventory/pages/Inventory';
 import ServiceOrders from './modules/service-orders/pages/ServiceOrders';
-import Vehicles from './pages/Vehicles';
+import Vehicles from './modules/vehicles/pages/VehicleList';
 import Financial from './modules/finance/invoices/pages/Invoices';
 import Branches from './pages/Branches';
 import Suppliers from './pages/Suppliers';

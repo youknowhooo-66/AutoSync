@@ -3,6 +3,7 @@ import { ServiceOrderController } from '../controllers/ServiceOrderController';
 import { ServiceOrderApprovalController } from '../controllers/ServiceOrderApprovalController';
 import { ServiceOrderExecutionController } from '../controllers/ServiceOrderExecutionController';
 import { ServiceOrderStockConsumptionController } from '../controllers/ServiceOrderStockConsumptionController';
+import { ServiceOrderCompletionController } from '../controllers/ServiceOrderCompletionController';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 
@@ -11,6 +12,7 @@ const controller = new ServiceOrderController();
 const approvalController = new ServiceOrderApprovalController();
 const executionController = new ServiceOrderExecutionController();
 const stockConsumptionController = new ServiceOrderStockConsumptionController();
+const completionController = new ServiceOrderCompletionController();
 
 serviceOrderRouter.get('/', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.index);
 serviceOrderRouter.post('/', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.create);
@@ -19,7 +21,6 @@ serviceOrderRouter.get('/top-services', rbacMiddleware(Permission.SERVICE_ORDER_
 serviceOrderRouter.get('/:id', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.show);
 serviceOrderRouter.get('/:id/pdf', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.generatePDF);
 serviceOrderRouter.patch('/:id/start', rbacMiddleware(Permission.SERVICE_ORDER_START), controller.start);
-serviceOrderRouter.patch('/:id/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), controller.complete);
 serviceOrderRouter.patch('/:id/cancel', rbacMiddleware(Permission.SERVICE_ORDER_CANCEL), controller.cancel);
 serviceOrderRouter.patch('/:id/status', rbacMiddleware(Permission.SERVICE_ORDER_CANCEL), controller.updateStatus);
 serviceOrderRouter.put('/:id/diagnosis', rbacMiddleware(Permission.SERVICE_ORDER_DIAGNOSE), controller.registerDiagnosis);
@@ -31,6 +32,11 @@ serviceOrderRouter.post('/:id/approval/request', rbacMiddleware(Permission.SERVI
 serviceOrderRouter.post('/:id/approval/approve', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.approve);
 serviceOrderRouter.post('/:id/approval/reject', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_REJECT), approvalController.reject);
 serviceOrderRouter.post('/:id/approval/invalidate', rbacMiddleware(Permission.SERVICE_ORDER_APPROVAL_APPROVE), approvalController.invalidate);
+
+// Completion Routes (P4.7)
+serviceOrderRouter.get('/:serviceOrderId/completion/readiness', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), (req, res) => completionController.readiness(req, res));
+serviceOrderRouter.post('/:serviceOrderId/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), (req, res) => completionController.complete(req, res));
+serviceOrderRouter.patch('/:serviceOrderId/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), (req, res) => completionController.complete(req, res)); // Deprecated alias
 
 // Technical Execution Routes
 serviceOrderRouter.get('/:serviceOrderId/execution', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_VIEW), executionController.index);

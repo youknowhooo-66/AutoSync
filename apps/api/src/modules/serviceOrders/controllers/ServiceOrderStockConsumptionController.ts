@@ -29,8 +29,9 @@ export class ServiceOrderStockConsumptionController {
     const idempotencyKey = String(Array.isArray(rawKey) ? rawKey[0] : rawKey);
     const companyId = req.user?.companyId;
     const userId = req.user?.id;
+    const userRole = req.user?.role;
 
-    if (!companyId || !userId) {
+    if (!companyId || !userId || !userRole) {
       throw new AppError('Usuário não autenticado', 401);
     }
 
@@ -45,6 +46,7 @@ export class ServiceOrderStockConsumptionController {
       quantity: Number(quantity),
       companyId: String(companyId),
       userId: String(userId),
+      userRole: String(userRole),
       idempotencyKey
     });
 

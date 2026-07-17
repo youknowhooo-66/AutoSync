@@ -11,6 +11,7 @@ const mockPrisma = vi.hoisted(() => {
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       groupBy: vi.fn(),
     },
     oSService: {
@@ -30,6 +31,13 @@ const mockPrisma = vi.hoisted(() => {
       findUnique: vi.fn(),
     },
     inventoryMovement: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+    },
+    serviceOrderApproval: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
       create: vi.fn(),
     },
     financialRecord: {
@@ -77,7 +85,7 @@ vi.mock('jsonwebtoken', () => {
 
 describe('OS Controller', () => {
   const mockToken = 'mock-token';
-  const mockUser = { id: 'user-1', role: 'ADMIN', active: true };
+  const mockUser = { id: 'user-1', role: 'ADMIN', active: true, companyId: 'comp-1', branchId: '33333333-3333-4333-a333-333333333333' };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -126,19 +134,34 @@ describe('OS Controller', () => {
     it('should update OS status to FINISHED', async () => {
       (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({ 
         id: 'os-1', 
-        status: 'OPEN',
+        status: 'IN_PROGRESS',
         parts: [],
         services: [],
-        branchId: 'b1',
+        branchId: '33333333-3333-4333-a333-333333333333',
         number: 101,
-        finalValue: 100
+        finalValue: 100,
+        notes: '[DIAGNÓSTICO TÉCNICO]\nO motor apresenta barulho incomum.'
       });
+      (prismaClient.serviceOrderApproval.findFirst as jest.Mock).mockResolvedValue({
+        id: 'app-1',
+        status: 'APPROVED',
+        version: 1,
+        snapshot: {
+          parts: [],
+          services: []
+        }
+      });
+      (prismaClient.inventoryMovement.findMany as jest.Mock).mockResolvedValue([]);
+      (prismaClient.serviceOrder.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
       (prismaClient.serviceOrder.update as jest.Mock).mockResolvedValue({ id: 'os-1', status: 'FINISHED' });
       (prismaClient.financialRecord.create as jest.Mock).mockResolvedValue({});
 
       const response = await request(app)
         .patch('/api/os/os-1/complete')
-        .set('Authorization', `Bearer ${mockToken}`);
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({ completionNotes: 'Serviço concluído com sucesso e testado.' });
+
+      console.log('PATCH RESPONSE:', response.status, response.body);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

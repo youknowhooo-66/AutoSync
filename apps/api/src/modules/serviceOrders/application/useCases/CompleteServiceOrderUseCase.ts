@@ -1,3 +1,8 @@
+/**
+ * @deprecated Não está conectado às rotas da API procedural.
+ * Preservado temporariamente para a futura migração ao aggregate Maintenance.
+ * O use case ativo em produção é: src/modules/serviceOrders/useCases/CompleteServiceOrderUseCase.ts
+ */
 import { prismaClient } from '../../../../shared/database/prismaClient';
 import { AppError } from '../../../../shared/errors/AppError';
 import { ServiceOrderStatus } from '../../enums/ServiceOrderStatus';

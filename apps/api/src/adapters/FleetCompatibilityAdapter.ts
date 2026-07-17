@@ -33,11 +33,11 @@ export interface RegisterVehicleInput {
 export interface UpdateVehicleInput {
   vehicleId: string;
   companyId: string;
-  clientId: string;
-  plate: string;
-  brand: string;
-  model: string;
-  year: number;
+  clientId?: string;
+  plate?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
   color?: string;
   chassis?: string;
   mileage?: number;

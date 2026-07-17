@@ -9,8 +9,10 @@ export const STATUS_CONFIG: Record<ServiceOrderStatus, { label: string; icon: Re
   WAITING_PARTS: { label: 'Aguardando Peças', icon: <PauseCircle className="w-3 h-3 mr-1" />, className: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20' },
   IN_PROGRESS: { label: 'Em Execução', icon: <Clock className="w-3 h-3 mr-1" />, className: 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20' },
   COMPLETED: { label: 'Finalizada', icon: <CheckCircle2 className="w-3 h-3 mr-1" />, className: 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20' },
+  FINISHED: { label: 'Finalizada', icon: <CheckCircle2 className="w-3 h-3 mr-1" />, className: 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20' },
   BILLED: { label: 'Faturada', icon: <DollarSign className="w-3 h-3 mr-1" />, className: 'bg-teal-500/10 text-teal-500 hover:bg-teal-500/20 border-teal-500/20' },
-  CANCELED: { label: 'Cancelada', icon: <XCircle className="w-3 h-3 mr-1" />, className: 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20' }
+  CANCELED: { label: 'Cancelada', icon: <XCircle className="w-3 h-3 mr-1" />, className: 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20' },
+  CANCELLED: { label: 'Cancelada', icon: <XCircle className="w-3 h-3 mr-1" />, className: 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20' }
 }
 
 interface Props {

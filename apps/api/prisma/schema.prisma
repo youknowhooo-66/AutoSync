@@ -91,12 +91,13 @@ model User {
   rejectedApprovals    ServiceOrderApproval[] @relation("ApprovalRejectedBy")
   invalidatedApprovals ServiceOrderApproval[] @relation("ApprovalInvalidatedBy")
 
-  technicianServices OSService[] @relation("OSServiceTechnician")
-  assignedServices   OSService[] @relation("OSServiceAssignedBy")
-  startedServices    OSService[] @relation("OSServiceStartedBy")
-  pausedServices     OSService[] @relation("OSServicePausedBy")
-  resumedServices    OSService[] @relation("OSServiceResumedBy")
-  completedServices  OSService[] @relation("OSServiceCompletedBy")
+  technicianServices    OSService[]    @relation("OSServiceTechnician")
+  assignedServices      OSService[]    @relation("OSServiceAssignedBy")
+  finishedServiceOrders ServiceOrder[] @relation("ServiceOrderFinishedBy")
+  startedServices       OSService[]    @relation("OSServiceStartedBy")
+  pausedServices        OSService[]    @relation("OSServicePausedBy")
+  resumedServices       OSService[]    @relation("OSServiceResumedBy")
+  completedServices     OSService[]    @relation("OSServiceCompletedBy")
 }
 
 model Client {
@@ -212,27 +213,31 @@ enum OSStatus {
 }
 
 model ServiceOrder {
-  id            String   @id @default(uuid())
-  companyId     String
-  number        Int      @unique @default(autoincrement())
-  clientId      String
-  vehicleId     String
-  mechanicId    String?
-  branchId      String
-  status        OSStatus @default(OPEN)
-  totalParts    Decimal  @default(0) @db.Decimal(10, 2)
-  totalServices Decimal  @default(0) @db.Decimal(10, 2)
-  discount      Decimal  @default(0) @db.Decimal(10, 2)
-  finalValue    Decimal  @default(0) @db.Decimal(10, 2)
-  totalValue    Decimal? @db.Decimal(10, 2) // compat alias
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(uuid())
+  companyId       String
+  number          Int       @unique @default(autoincrement())
+  clientId        String
+  vehicleId       String
+  mechanicId      String?
+  branchId        String
+  status          OSStatus  @default(OPEN)
+  totalParts      Decimal   @default(0) @db.Decimal(10, 2)
+  totalServices   Decimal   @default(0) @db.Decimal(10, 2)
+  discount        Decimal   @default(0) @db.Decimal(10, 2)
+  finalValue      Decimal   @default(0) @db.Decimal(10, 2)
+  totalValue      Decimal?  @db.Decimal(10, 2) // compat alias
+  notes           String?
+  finishedAt      DateTime?
+  finishedById    String?
+  completionNotes String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   company            Company                @relation(fields: [companyId], references: [id])
   client             Client                 @relation(fields: [clientId], references: [id])
   vehicle            Vehicle                @relation(fields: [vehicleId], references: [id])
   mechanic           User?                  @relation("MechanicOS", fields: [mechanicId], references: [id])
+  finishedBy         User?                  @relation("ServiceOrderFinishedBy", fields: [finishedById], references: [id], onDelete: SetNull)
   branch             Branch                 @relation(fields: [branchId], references: [id])
   parts              OSPart[]
   services           OSService[]
@@ -240,6 +245,8 @@ model ServiceOrder {
   inventoryMovements InventoryMovement[]
 
   @@unique([id, companyId])
+  @@index([finishedById])
+  @@index([status, finishedAt])
 }
 
 model OSPart {

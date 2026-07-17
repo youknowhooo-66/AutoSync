@@ -19,7 +19,6 @@ export class PrismaVehicleRepository implements IVehicleRepository {
         model: data.model,
         year: data.year,
         plate: data.plate,
-        color: data.color,
         clientId: data.clientId,
         chassis: data.chassis,
         mileage: data.mileage,
@@ -117,7 +116,6 @@ export class PrismaVehicleRepository implements IVehicleRepository {
         model: data.model,
         year: data.year,
         plate: data.plate,
-        color: data.color,
         clientId: data.clientId,
       },
       include: {

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { CreateServiceOrderUseCase } from '../useCases/CreateServiceOrderUseCase';
 import { StartServiceOrderUseCase } from '../useCases/StartServiceOrderUseCase';
-import { CompleteServiceOrderUseCase } from '../useCases/CompleteServiceOrderUseCase';
 import { CancelServiceOrderUseCase } from '../useCases/CancelServiceOrderUseCase';
 import { ListServiceOrdersUseCase } from '../useCases/ListServiceOrdersUseCase';
 import { ShowServiceOrderUseCase } from '../useCases/ShowServiceOrderUseCase';
@@ -45,13 +44,6 @@ export class ServiceOrderController {
     return res.json({ success: true, data: result });
   }
 
-  async complete(req: Request, res: Response) {
-    const { id } = req.params;
-    const { companyId, id: userId } = req.user;
-    const useCase = new CompleteServiceOrderUseCase();
-    const result = await useCase.execute({ serviceOrderId: id, companyId, userId } as any);
-    return res.json({ success: true, data: result });
-  }
 
   async index(req: Request, res: Response) {
     const { companyId } = req.user;

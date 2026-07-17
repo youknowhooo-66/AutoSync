@@ -11,6 +11,14 @@ export async function verifyExecutionPreconditions(tx: any, serviceOrderId: stri
     throw new AppError('Ordem de Serviço não encontrada', 404);
   }
 
+  if (os.status === 'FINISHED') {
+    throw new AppError('A Ordem de Serviço já foi concluída e não permite mais alterações.', 400);
+  }
+
+  if (os.status === 'CANCELLED') {
+    throw new AppError('A Ordem de Serviço foi cancelada e não permite mais alterações.', 400);
+  }
+
   // 2. Fetch the service item
   const svc = await tx.oSService.findFirst({
     where: { id: serviceId, serviceOrderId }
