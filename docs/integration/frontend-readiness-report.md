@@ -864,7 +864,69 @@ pnpm run build
 - Monorepo Build: **SUCCESS (9/9 packages)**.
 
 ### Remaining blockers for Service Order Completion
-- **Nenhum** (pronto para avançar para a conclusão e finalização da OS em P4.7).
+- **Nenhum** (fluxo concluído e certificado).
+
+---
+
+## P4.7 — Service Order Technical Completion
+
+### Architecture decision
+A conclusão operacional e técnica da Ordem de Serviço foi implementada como uma transição de status condicional explícita protegida por regras centralizadas na política única `ServiceOrderCompletionPolicy.ts`.
+
+### Completion Gates & Policy Rules
+- **Status da OS:** O status da OS deve estar em andamento (`IN_PROGRESS`).
+- **Orçamento vigente:** A última versão do orçamento na tabela `ServiceOrderApproval` deve estar com status `APPROVED`.
+- **Diagnóstico Técnico obrigatório:** As observações (`ServiceOrder.notes`) devem conter o marcador `[DIAGNÓSTICO TÉCNICO]` seguido de parecer técnico não vazio.
+- **Serviços concluídos:** Todos os serviços orçados no snapshot devem estar com `executionStatus === 'COMPLETED'` e valores íntegros. Itens adicionais não orçados bloqueiam a transição.
+- **Peças consumidas:** Todas as peças do snapshot devem estar totalmente consumidas/baixadas (`consumedQuantity === quantity`).
+- **Estoque Reconciliado:** O estoque total consumido deve ser idêntico ao saldo acumulado das movimentações físicas de estoque `OUT` criadas.
+
+### Use case and database atomicity
+O use case `CompleteServiceOrderUseCase.ts` orquestra a validação física e a transição `IN_PROGRESS` $\rightarrow$ `FINISHED` em uma transação Prisma única, integrando a gravação do log de auditoria obrigatório. Falhas no log revertem a conclusão da OS.
+
+### Frontend Section
+Criado o componente `ServiceOrderCompletionSection.tsx` integrado à tela de detalhes de OS, exibindo o status de validação dos blockers em tempo real e formulário de parecer para usuários com privilégios.
+
+---
+
+## P4.8 — Service Order Financial Integration
+
+### Domain model & DB Schema
+- **FinancialRecord:** Vinculado diretamente à Ordem de Serviço (`serviceOrderId`) e ao orçamento aprovado (`serviceOrderApprovalId`) que motivou o faturamento, com restrição de exclusão `onDelete: Restrict`.
+- **Restrição de Unicidade:** Adicionado índice de unicidade composta `@@unique([serviceOrderId, serviceOrderApprovalId])` para evitar duplicações em geração concorrente.
+
+### Business Rules & Flow
+- **Elegibilidade:**
+  - OS não concluída $\rightarrow$ Estado `NOT_ELIGIBLE` (`SERVICE_ORDER_NOT_FINISHED`).
+  - Orçamento com valor zero $\rightarrow$ Estado `NOT_REQUIRED` (`ZERO_VALUE`). Geração de recebível retorna `409 Conflict` com o código de erro `FINANCIAL_OBLIGATION_NOT_REQUIRED`.
+  - OS concluída com saldo positivo e sem recebível $\rightarrow$ Estado `NOT_GENERATED`.
+  - Recebível criado $\rightarrow$ Estado `GENERATED`.
+- **Due Date:** Data de vencimento civil no formato `YYYY-MM-DD` com normalização de fuso para 12:00:00 UTC, validada para ser `>=` data de encerramento da OS.
+- **Idempotency & Concurrency:** Tratamento do erro `P2002` do Prisma capturado *fora* do callback da transação (para evitar estados abortados do PostgreSQL) retornando a entidade criada concorrentemente com HTTP `200` e flag `created: false`.
+
+### Frontend Section
+Criado o componente `ServiceOrderFinanceSection.tsx` integrado ao painel lateral, exibindo formulários de data de vencimento restritos por RBAC (ADMIN, MANAGER, FINANCIAL) e painel informativo detalhado pós-geração.
+
+### Commands executed
+```bash
+# Executar migrations
+pnpm --filter back exec prisma migrate dev --schema=prisma/schema.prisma --name add_service_order_financial_links
+
+# Executar testes backend
+pnpm --filter back run test tests/integration/serviceOrderCompletion.test.ts tests/integration/serviceOrderFinance.test.ts tests/integration/serviceOrderStockConsumption.test.ts
+
+# Executar testes frontend
+pnpm --filter front run test
+
+# Executar build monorepo
+pnpm run build
+```
+
+### Results
+- Backend Tests: **118 passed**.
+- Frontend Tests: **42 passed**.
+- Monorepo Build: **SUCCESS (9/9 packages)**.
+
 
 
 

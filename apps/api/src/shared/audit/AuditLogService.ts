@@ -39,11 +39,14 @@ export class AuditLogService {
         },
       });
     } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Failed to create audit log:', error);
-    } else {
-      logger.error({ err: error }, "An unknown error occurred");
+      if (error instanceof Error) {
+        console.error('Failed to create audit log:', error);
+      } else {
+        logger.error({ err: error }, "An unknown error occurred");
+      }
+      if (tx) {
+        throw error;
+      }
     }
-  }
   }
 }

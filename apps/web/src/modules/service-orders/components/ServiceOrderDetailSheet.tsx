@@ -22,6 +22,7 @@ import { ServiceOrderApprovalSection } from './ServiceOrderApprovalSection'
 import { ServiceOrderExecutionSection } from './ServiceOrderExecutionSection'
 import { ServiceOrderStockConsumptionSection } from './ServiceOrderStockConsumptionSection'
 import { ServiceOrderCompletionSection } from './ServiceOrderCompletionSection'
+import { ServiceOrderFinanceSection } from './ServiceOrderFinanceSection'
 
 interface Props {
   os: ServiceOrder | null
@@ -215,6 +216,12 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
                 finishedAt={osDetail.finishedAt}
                 finishedBy={osDetail.finishedBy}
                 completionNotes={osDetail.completionNotes}
+              />
+
+              <ServiceOrderFinanceSection
+                serviceOrderId={osDetail.id}
+                status={osDetail.status}
+                finishedAt={osDetail.finishedAt}
               />
 
               {/* Total Summary */}

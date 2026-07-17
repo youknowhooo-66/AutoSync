@@ -243,6 +243,7 @@ model ServiceOrder {
   services           OSService[]
   approvals          ServiceOrderApproval[]
   inventoryMovements InventoryMovement[]
+  financialRecords   FinancialRecord[]
 
   @@unique([id, companyId])
   @@index([finishedById])
@@ -383,7 +384,15 @@ model FinancialRecord {
   company Company @relation(fields: [companyId], references: [id])
   branch  Branch  @relation(fields: [branchId], references: [id])
 
+  serviceOrderId         String?
+  serviceOrderApprovalId String?
+
+  serviceOrder         ServiceOrder?         @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict)
+  serviceOrderApproval ServiceOrderApproval? @relation(fields: [serviceOrderApprovalId], references: [id], onDelete: Restrict)
+
   @@unique([id, companyId])
+  @@unique([serviceOrderId, serviceOrderApprovalId])
+  @@index([serviceOrderApprovalId])
 }
 
 model AuditLog {
@@ -460,6 +469,8 @@ model ServiceOrderApproval {
   approvedBy    User?        @relation("ApprovalApprovedBy", fields: [approvedById], references: [id])
   rejectedBy    User?        @relation("ApprovalRejectedBy", fields: [rejectedById], references: [id])
   invalidatedBy User?        @relation("ApprovalInvalidatedBy", fields: [invalidatedById], references: [id])
+
+  financialRecords FinancialRecord[]
 
   @@unique([serviceOrderId, version])
   @@index([companyId, branchId])

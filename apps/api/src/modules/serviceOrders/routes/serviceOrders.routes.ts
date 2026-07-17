@@ -4,6 +4,7 @@ import { ServiceOrderApprovalController } from '../controllers/ServiceOrderAppro
 import { ServiceOrderExecutionController } from '../controllers/ServiceOrderExecutionController';
 import { ServiceOrderStockConsumptionController } from '../controllers/ServiceOrderStockConsumptionController';
 import { ServiceOrderCompletionController } from '../controllers/ServiceOrderCompletionController';
+import { ServiceOrderFinanceController } from '../controllers/ServiceOrderFinanceController';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 
@@ -13,6 +14,7 @@ const approvalController = new ServiceOrderApprovalController();
 const executionController = new ServiceOrderExecutionController();
 const stockConsumptionController = new ServiceOrderStockConsumptionController();
 const completionController = new ServiceOrderCompletionController();
+const financeController = new ServiceOrderFinanceController();
 
 serviceOrderRouter.get('/', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), controller.index);
 serviceOrderRouter.post('/', rbacMiddleware(Permission.SERVICE_ORDER_CREATE), controller.create);
@@ -37,6 +39,10 @@ serviceOrderRouter.post('/:id/approval/invalidate', rbacMiddleware(Permission.SE
 serviceOrderRouter.get('/:serviceOrderId/completion/readiness', rbacMiddleware(Permission.SERVICE_ORDER_VIEW), (req, res) => completionController.readiness(req, res));
 serviceOrderRouter.post('/:serviceOrderId/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), (req, res) => completionController.complete(req, res));
 serviceOrderRouter.patch('/:serviceOrderId/complete', rbacMiddleware(Permission.SERVICE_ORDER_COMPLETE), (req, res) => completionController.complete(req, res)); // Deprecated alias
+
+// Finance Integration Routes (P4.8)
+serviceOrderRouter.get('/:serviceOrderId/finance', rbacMiddleware(Permission.SERVICE_ORDER_FINANCE_VIEW), (req, res) => financeController.getState(req, res));
+serviceOrderRouter.post('/:serviceOrderId/finance/receivable', rbacMiddleware(Permission.SERVICE_ORDER_FINANCE_GENERATE), (req, res) => financeController.generate(req, res));
 
 // Technical Execution Routes
 serviceOrderRouter.get('/:serviceOrderId/execution', rbacMiddleware(Permission.SERVICE_ORDER_EXECUTION_VIEW), executionController.index);

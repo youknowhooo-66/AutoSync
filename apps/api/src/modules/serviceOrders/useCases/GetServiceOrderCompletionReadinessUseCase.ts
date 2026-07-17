@@ -32,7 +32,7 @@ export class GetServiceOrderCompletionReadinessUseCase {
     // 4. Run policy (pure function — no side effects)
     const blockers = evaluateCompletionBlockers(os, latestApproval, movements);
 
-    const isCompleted = os.status === 'FINISHED' || os.status === 'COMPLETED';
+    const isCompleted = os.status === 'FINISHED';
 
     return {
       ready: blockers.length === 0,
