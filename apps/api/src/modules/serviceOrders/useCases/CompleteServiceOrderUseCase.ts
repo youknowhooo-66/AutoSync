@@ -55,6 +55,7 @@ export class CompleteServiceOrderUseCase {
         throw new AppError(
           `Não é possível concluir a OS. Blockers: ${blockers.map((b) => b.message).join(' | ')}`,
           409,
+          'SERVICE_ORDER_COMPLETION_BLOCKED',
           blockers,
         );
       }

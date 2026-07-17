@@ -11,6 +11,8 @@ declare global {
       };
       companyId: string;
       branchId?: string | null;
+      /** Correlation ID propagated via x-correlation-id header. Always present after correlationIdMiddleware. */
+      correlationId: string;
     }
   }
 }

@@ -1,41 +1,65 @@
+/**
+ * Health Routes — liveness and readiness probes.
+ *
+ * GET /health/live   — shallow liveness: confirms the Node process responds.
+ *                      Must NOT query any external dependency.
+ * GET /health/ready  — deep readiness: validates PostgreSQL and Redis.
+ *                      Returns 503 if database is unavailable.
+ * GET /health        — deprecated alias for /health/live (backwards compat).
+ */
 import { Router } from 'express';
-import { prismaClient } from '../../database/prismaClient';
-import { QueueProvider } from '../../queue/QueueProvider';
-import { logger } from '../../logger';
+import { applicationState } from '../../health/ApplicationState';
+import { healthService } from '../../health/HealthService';
 
 const healthRouter = Router();
 
-healthRouter.get('/health', async (req, res) => {
-  const status = {
-    uptime: process.uptime(),
-    timestamp: Date.now(),
-    database: 'down',
-    redis: 'down',
-    api: 'up'
-  };
+const APP_VERSION = process.env.APP_VERSION ?? process.env.GIT_SHA ?? 'unknown';
+const SERVICE_NAME = 'autosync-api';
 
-  try {
-    // 1. Check Database
-    await prismaClient.$queryRaw`SELECT 1`;
-    status.database = 'up';
+// ── Liveness ────────────────────────────────────────────────────────────────
+// Must answer even during graceful shutdown so the orchestrator can observe
+// the process is still responding. Never checks external dependencies.
+healthRouter.get('/live', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: SERVICE_NAME,
+    version: APP_VERSION,
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
+  });
+});
 
-    // 2. Check Redis
-    const redisQueue = QueueProvider.getQueue('health_check');
-      const redis = (await redisQueue.client) as any;
-      await redis.ping();
-    status.redis = 'up';
+// ── Readiness ───────────────────────────────────────────────────────────────
+// Returns 503 while the application is starting or shutting down, or when
+// a mandatory dependency (database) is unreachable.
+healthRouter.get('/ready', async (_req, res) => {
+  const state = applicationState.getState();
 
-    const isHealthy = status.database === 'up' && status.redis === 'up';
+  if (state === 'starting' || state === 'shutting_down') {
+    return res.status(503).json({
+      status: 'not_ready',
+      reason: state,
+      checks: { database: 'unknown', redis: 'unknown' },
+      timestamp: new Date().toISOString(),
+    });
+  }
 
-    return res.status(isHealthy ? 200 : 503).json(status);
-  } catch (error: unknown) {
-  if (error instanceof Error) {
-    logger.error({ err: (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)) }, '[HealthCheck] Status check failed');
-    return res.status(503).json(status);
-  } else {
-    logger.error({ err: error }, "An unknown error occurred");
-      return res.status(500).json({ message: 'An unknown error occurred' });  }
-}
+  const result = await healthService.getReadiness();
+  const httpStatus = result.status === 'ready' ? 200 : 503;
+  return res.status(httpStatus).json(result);
+});
+
+// ── Deprecated alias ────────────────────────────────────────────────────────
+// Kept for Docker healthchecks and legacy callers. Behaves identically to
+// /health/live. Will be removed once all callers are updated.
+healthRouter.get('/', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: SERVICE_NAME,
+    version: APP_VERSION,
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
+  });
 });
 
 export { healthRouter };

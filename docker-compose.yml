@@ -49,11 +49,28 @@ services:
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-autosync}?schema=public
       REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       NODE_ENV: production
       PORT: 3000
-      JWT_SECRET: ${JWT_SECRET:-supersecret}
+      # JWT_SECRET must be set via .env or provider secrets — no insecure default.
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      APP_VERSION: ${GIT_SHA:-local}
+      GIT_SHA: ${GIT_SHA:-local}
     ports:
       - "3000:3000"
+    healthcheck:
+      # Node 18+ has global fetch — avoids requiring curl/wget in the image.
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:3000/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     networks:
       - autosync_network
 

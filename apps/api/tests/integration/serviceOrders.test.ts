@@ -253,7 +253,7 @@ describe('ServiceOrders Basic Creation & Security Integration Tests', () => {
         .set(generateAuthHeaders(admin))
         .send({ description: 'No' });
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Validation error');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should correctly parse and replace diagnosis string without duplicating markers or losing opening notes', async () => {

@@ -74,6 +74,7 @@ export class GenerateServiceOrderReceivableUseCase {
       throw new AppError(
         'A ordem de serviço não possui valor a receber.',
         409,
+        'FINANCIAL_OBLIGATION_NOT_REQUIRED',
         [{ code: 'FINANCIAL_OBLIGATION_NOT_REQUIRED', message: 'A ordem de serviço não possui valor a receber.' }]
       );
     }
@@ -132,6 +133,7 @@ export class GenerateServiceOrderReceivableUseCase {
           throw new AppError(
             'A ordem de serviço não possui valor a receber.',
             409,
+            'FINANCIAL_OBLIGATION_NOT_REQUIRED',
             [{ code: 'FINANCIAL_OBLIGATION_NOT_REQUIRED', message: 'A ordem de serviço não possui valor a receber.' }]
           );
         }
