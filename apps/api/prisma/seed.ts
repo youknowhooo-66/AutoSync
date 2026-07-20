@@ -44,13 +44,13 @@ async function main() {
   await prisma.user.create({ data: { companyId: company.id, branchId: branchMatriz.id, name: 'João Silva (Gerente)', email: 'joao.gerente@autosync.com', password: hashedPassword, role: Role.ADMIN } });
   
   const users = [
-    { name: 'Carlos Mecânico Chefe', email: 'carlos@autosync.com', role: Role.USER, branchId: branchMatriz.id },
-    { name: 'Ana Silva (Financeiro)', email: 'ana@autosync.com', role: Role.USER, branchId: branchMatriz.id },
-    { name: 'Marcos Gerente', email: 'marcos@autosync.com', role: Role.ADMIN, branchId: branchSul.id },
-    { name: 'Julio Mecânico', email: 'julio@autosync.com', role: Role.USER, branchId: branchSul.id },
-    { name: 'Roberto Mecânico', email: 'roberto@autosync.com', role: Role.USER, branchId: branchRio.id },
-    { name: 'Fernanda Estoque', email: 'fernanda@autosync.com', role: Role.USER, branchId: branchNorte.id },
-    { name: 'Pedro Mecânico', email: 'pedro@autosync.com', role: Role.USER, branchId: branchNorte.id },
+    { name: 'Carlos Mecânico Chefe', email: 'carlos@autosync.com', role: Role.MECHANIC, branchId: branchMatriz.id },
+    { name: 'Ana Silva (Financeiro)', email: 'ana@autosync.com', role: Role.FINANCIAL, branchId: branchMatriz.id },
+    { name: 'Marcos Gerente', email: 'marcos@autosync.com', role: Role.MANAGER, branchId: branchSul.id },
+    { name: 'Julio Mecânico', email: 'julio@autosync.com', role: Role.MECHANIC, branchId: branchSul.id },
+    { name: 'Roberto Mecânico', email: 'roberto@autosync.com', role: Role.MECHANIC, branchId: branchRio.id },
+    { name: 'Fernanda Estoque', email: 'fernanda@autosync.com', role: Role.STOCKIST, branchId: branchNorte.id },
+    { name: 'Pedro Mecânico', email: 'pedro@autosync.com', role: Role.MECHANIC, branchId: branchNorte.id },
   ];
 
   const createdUsers = [];
@@ -221,7 +221,7 @@ async function main() {
             serviceOrderId: os.id,
             partId: randomPart.id,
             quantity: qty,
-            unitPrice: randomPart.salePrice
+            unitPrice: randomPart.salePrice ?? 0
           }
         });
         
