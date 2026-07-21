@@ -65,9 +65,8 @@ export function FormField({
   return (
     <div className={cn('flex flex-col gap-1.5 w-full', className)} {...props}>
       {label && (
-        <Label htmlFor={htmlFor} className="text-xs font-medium text-foreground flex items-center gap-1">
-          {label}
-          {required && <span className="text-danger">*</span>}
+        <Label htmlFor={htmlFor} className="text-xs font-medium text-foreground">
+          {label}{required ? ' *' : ''}
         </Label>
       )}
       {children}
