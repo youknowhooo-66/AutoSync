@@ -1,94 +1,157 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, AreaChart, Area
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from 'recharts';
-import { Printer, TrendingUp, Wrench, Package, DollarSign } from 'lucide-react';
+import { Printer, TrendingUp, Wrench, Package, DollarSign, RefreshCw, Download, AlertCircle, FileText } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { Page, PageHeader, PageGrid, MetricCard, ChartCard } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
+import { useBranch } from '../contexts/BranchContext';
+import { formatCurrencyBRL } from '@/utils/formatters';
+import { extractErrorMessage } from '@/utils/errorHandler';
 import { PageSkeleton } from '@/components/feedback/PageSkeleton';
+import { EmptyState } from '@/components/feedback/EmptyState';
 
-const COLORS = ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#fb7185', '#fb923c', '#fbbf24'];
+const CHART_COLORS = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'];
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Rascunho',
+  DIAGNOSIS: 'Em Diagnóstico',
+  WAITING_APPROVAL: 'Aguardando Aprovação',
+  APPROVED: 'Aprovado',
+  IN_EXECUTION: 'Em Execução',
+  FINISHED: 'Concluído',
+  CANCELLED: 'Cancelado',
+};
+
+export interface ReportData {
+  stats: {
+    kpis: {
+      totalRevenue: number;
+      avgCompletionTimeHours: number;
+      conversionRate: number;
+      cancellationRate: number;
+      stockMovements: number;
+    };
+    funnel: {
+      created: number;
+      completed: number;
+      invoiced: number;
+      paid: number;
+    };
+  };
+  osStatusDistribution: { name: string; value: number }[];
+  financialTypeDistribution: { name: string; value: number }[];
+  totalOSCount: number;
+}
 
 const Reports: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [branchId, setBranchId] = useState('');
-  const [branches, setBranches] = useState<any[]>([]);
+  const { activeBranch } = useBranch();
 
-  useEffect(() => {
-    fetchBranches();
-    fetchReportData();
-  }, [branchId]);
+  // Query: Consolidate Report Data from Real Endpoints
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<ReportData>({
+    queryKey: ['reports', activeBranch?.id],
+    queryFn: async () => {
+      const branchParam = activeBranch?.id ? `?branchId=${activeBranch.id}` : '';
+      
+      const [dashRes, osRes, finRes] = await Promise.all([
+        api.get(`/dashboard${branchParam}`),
+        api.get(`/service-orders${branchParam}`),
+        api.get(`/financial${branchParam}`),
+      ]);
 
-  const fetchBranches = async () => {
-    try {
-      const res = await api.get('/branches');
-      setBranches(res.data);
-    } catch {}
-  };
+      const serviceOrders: any[] = osRes.data || [];
+      const financialRecords: any[] = finRes.data || [];
 
-  const fetchReportData = async () => {
-    setLoading(true);
-    try {
-      const dashboardRes = await api.get(`/dashboard${branchId ? `?branchId=${branchId}` : ''}`);
-      const partsRes = await api.get('/inventory/top-parts');
-      const servicesRes = await api.get('/os/top-services');
-      const osRes = await api.get(`/os${branchId ? `?branchId=${branchId}` : ''}`);
-
-      const osByStatus = osRes.data.reduce((acc: any, os: any) => {
-        acc[os.status] = (acc[os.status] || 0) + 1;
-        return acc;
-      }, {});
-
-      const osStatusData = Object.entries(osByStatus).map(([name, value]) => ({ name, value }));
-
-      setData({
-        revenue: dashboardRes.data.chartData || [],
-        topParts: partsRes.data || [],
-        topServices: servicesRes.data || [],
-        osStatus: osStatusData || [],
-        summary: {
-          totalRevenue: dashboardRes.data.monthlyRevenue || 0,
-          totalOS: osRes.data.length || 0,
-          avgTicket: osRes.data.length > 0 ? (dashboardRes.data.monthlyRevenue || 0) / osRes.data.length : 0,
-          conversionRate: dashboardRes.data.conversionRate || 0,
-        },
+      // Calculate OS Status Distribution from real OS data
+      const osCounts: Record<string, number> = {};
+      serviceOrders.forEach((os) => {
+        const label = STATUS_LABELS[os.status] || os.status || 'Outro';
+        osCounts[label] = (osCounts[label] || 0) + 1;
       });
-    } catch {
-      toast.error('Erro ao carregar relatórios.');
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      const osStatusDistribution = Object.entries(osCounts).map(([name, value]) => ({
+        name,
+        value,
+      }));
+
+      // Calculate Financial Type Distribution from real financial data
+      const finCounts: Record<string, number> = {
+        'A Receber': 0,
+        'A Pagar': 0,
+      };
+      financialRecords.forEach((f) => {
+        if (f.type === 'RECEIVABLE') finCounts['A Receber'] += Number(f.amount || 0);
+        if (f.type === 'PAYABLE') finCounts['A Pagar'] += Number(f.amount || 0);
+      });
+
+      const financialTypeDistribution = [
+        { name: 'Entradas (A Receber)', value: finCounts['A Receber'] },
+        { name: 'Saídas (A Pagar)', value: finCounts['A Pagar'] },
+      ].filter((item) => item.value > 0);
+
+      return {
+        stats: dashRes.data,
+        osStatusDistribution,
+        financialTypeDistribution,
+        totalOSCount: serviceOrders.length,
+      };
+    },
+  });
 
   const handlePrint = () => {
     window.print();
   };
 
-  if (loading && !data) return <PageSkeleton />;
+  const handleExport = () => {
+    toast.info('Exportação oficial de relatórios em CSV/PDF requer ativação do endpoint de exportação no backend.', {
+      duration: 4000,
+    });
+  };
+
+  if (isLoading) return <PageSkeleton />;
+
+  const kpis = data?.stats?.kpis || {
+    totalRevenue: 0,
+    avgCompletionTimeHours: 0,
+    conversionRate: 0,
+    cancellationRate: 0,
+    stockMovements: 0,
+  };
+
+  const funnel = data?.stats?.funnel || { created: 0, completed: 0, invoiced: 0, paid: 0 };
 
   return (
-    <Page className="reports-container">
+    <Page data-testid="reports-page" className="reports-container">
       <PageHeader
-        title="Relatórios & Business Intelligence"
-        description="Análise detalhada de faturamento, métricas operacionais, peças e serviços mais demandados."
+        title="Relatórios Executivos & Inteligência Operacional"
+        description="Métricas consolidadas de faturamento, eficiência operacional e distribuição de Ordens de Serviço."
         actions={
           <div className="flex items-center gap-2 no-print">
-            <select
-              value={branchId}
-              onChange={(e) => setBranchId(e.target.value)}
-              className="h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium focus:ring-1 focus:ring-primary outline-none min-w-[180px]"
-            >
-              <option value="">Todas as Filiais</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="text-xs" title="Atualizar dados">
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Atualizar
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport} className="text-xs">
+              <Download className="h-3.5 w-3.5 mr-1.5" /> Exportar Dados
+            </Button>
             <Button size="sm" onClick={handlePrint} className="text-xs font-semibold">
               <Printer className="h-4 w-4 mr-1.5" /> Imprimir Relatório
             </Button>
@@ -96,131 +159,165 @@ const Reports: React.FC = () => {
         }
       />
 
-      {/* Summary Metrics */}
+      {isError && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 flex items-center gap-3 mb-4">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span className="text-xs font-semibold">{extractErrorMessage(error)}</span>
+        </div>
+      )}
+
+      {/* Metric Cards */}
       <PageGrid cols={4}>
         <MetricCard
-          title="Faturamento Mensal"
-          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.summary.totalRevenue || 0)}
+          title="Faturamento Consolidado"
+          value={formatCurrencyBRL(kpis.totalRevenue)}
           variant="success"
           icon={<DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
         />
         <MetricCard
-          title="Ordens de Serviço"
-          value={data?.summary.totalOS || 0}
+          title="Total de Ordens de Serviço"
+          value={data?.totalOSCount || 0}
           variant="primary"
           icon={<Wrench className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
         />
         <MetricCard
-          title="Ticket Médio"
-          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.summary.avgTicket || 0)}
+          title="Taxa de Conversão OS -> Pago"
+          value={`${kpis.conversionRate.toFixed(1)}%`}
           variant="warning"
           icon={<TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
         />
         <MetricCard
-          title="Taxa de Conversão"
-          value={`${(data?.summary.conversionRate || 0).toFixed(1)}%`}
+          title="Movimentações de Estoque"
+          value={kpis.stockMovements}
           icon={<Package className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
         />
       </PageGrid>
 
       {/* Charts Section */}
       <PageGrid cols={2}>
-        <ChartCard title="Tendência de Faturamento" description="Evolução financeira nos últimos 7 dias">
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={data?.revenue}>
-              <defs>
-                <linearGradient id="colorRevRep" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
-              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={11} />
-              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff', fontSize: '12px' }} />
-              <Area type="monotone" dataKey="revenue" stroke="#0284c7" strokeWidth={2} fillOpacity={1} fill="url(#colorRevRep)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* OS Status Distribution Chart */}
+        <ChartCard
+          title="Distribuição por Status de OS"
+          description={`Fonte: GET /api/service-orders | Filial: ${activeBranch?.name || 'Global'}`}
+        >
+          {data?.osStatusDistribution && data.osStatusDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={data.osStatusDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={4}
+                  dataKey="value"
+                >
+                  {data.osStatusDistribution.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    border: '1px solid #1e293b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState
+              icon={<FileText className="h-8 w-8 text-muted-foreground/60" />}
+              title="Sem dados de OS"
+              description="Nenhuma Ordem de Serviço encontrada para o escopo desta filial."
+            />
+          )}
         </ChartCard>
 
-        <ChartCard title="Status das Ordens de Serviço" description="Distribuição por fase operacional">
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={data?.osStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={90}
-                paddingAngle={4}
-                dataKey="value"
+        {/* Funnel Bar Chart */}
+        <ChartCard
+          title="Funil Operacional & Financeiro"
+          description={`Fonte: GET /api/dashboard | Filial: ${activeBranch?.name || 'Global'}`}
+        >
+          {funnel.created > 0 || funnel.completed > 0 || funnel.paid > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={[
+                  { etapa: 'Criadas', qtd: funnel.created },
+                  { etapa: 'Concluídas', qtd: funnel.completed },
+                  { etapa: 'Faturadas', qtd: funnel.invoiced },
+                  { etapa: 'Pagas', qtd: funnel.paid },
+                ]}
               >
-                {data?.osStatus?.map((_: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff', fontSize: '12px' }} />
-              <Legend wrapperStyle={{ fontSize: '11px' }} />
-            </PieChart>
-          </ResponsiveContainer>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
+                <XAxis dataKey="etapa" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    border: '1px solid #1e293b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="qtd" fill="#0284c7" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState
+              icon={<FileText className="h-8 w-8 text-muted-foreground/60" />}
+              title="Sem histórico no funil"
+              description="Cadastre Ordens de Serviço e lançamentos financeiros para visualizar o funil."
+            />
+          )}
         </ChartCard>
       </PageGrid>
 
-      {/* Top Parts and Top Services Tables */}
-      <PageGrid cols={2}>
-        <ChartCard title="Peças Mais Utilizadas" description="Ranking por volume de saída e receita">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-surface-muted text-muted-foreground uppercase font-semibold border-b border-border">
-                <tr>
-                  <th className="p-3">Peça</th>
-                  <th className="p-3 text-center">Qtd.</th>
-                  <th className="p-3 text-right">Total Gerado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {data?.topParts?.map((item: any) => (
-                  <tr key={item.partId} className="hover:bg-surface-muted/40 transition-colors">
-                    <td className="p-3 font-medium text-foreground">
-                      <div>{item.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono">{item.internalCode}</div>
-                    </td>
-                    <td className="p-3 text-center font-mono font-semibold">{item.totalOut}</td>
-                    <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue || 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Financial Volume Chart */}
+      <ChartCard
+        title="Volume Financeiro por Natureza (Entradas vs Saídas)"
+        description={`Fonte: GET /api/financial | Filial: ${activeBranch?.name || 'Global'}`}
+      >
+        {data?.financialTypeDistribution && data.financialTypeDistribution.length > 0 ? (
+          <div className="flex flex-col md:flex-row items-center justify-around gap-4 p-4">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={data.financialTypeDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${formatCurrencyBRL(value)}`}
+                >
+                  <Cell fill="#10b981" />
+                  <Cell fill="#f43f5e" />
+                </Pie>
+                <Tooltip
+                  formatter={(val: any) => formatCurrencyBRL(Number(val))}
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    border: '1px solid #1e293b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        </ChartCard>
-
-        <ChartCard title="Serviços Mais Realizados" description="Frequência e receita por tipo de serviço">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-surface-muted text-muted-foreground uppercase font-semibold border-b border-border">
-                <tr>
-                  <th className="p-3">Serviço</th>
-                  <th className="p-3 text-center">Qtd.</th>
-                  <th className="p-3 text-right">Faturamento</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {data?.topServices?.map((item: any, i: number) => (
-                  <tr key={i} className="hover:bg-surface-muted/40 transition-colors">
-                    <td className="p-3 font-medium text-foreground">{item.name}</td>
-                    <td className="p-3 text-center font-mono font-semibold">{item.count}</td>
-                    <td className="p-3 text-right font-semibold text-primary">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue || 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ChartCard>
-      </PageGrid>
+        ) : (
+          <EmptyState
+            icon={<DollarSign className="h-8 w-8 text-muted-foreground/60" />}
+            title="Sem dados financeiros"
+            description="Nenhum lançamento financeiro registrado nesta unidade."
+          />
+        )}
+      </ChartCard>
     </Page>
   );
 };
