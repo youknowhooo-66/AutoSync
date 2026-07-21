@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Package, Plus, Upload, Save, X, RefreshCw } from 'lucide-react';
+import { Plus, Upload, Save, RefreshCw } from 'lucide-react';
 import api from '@/services/api';
 import { InventoryTable } from '../components/InventoryTable';
 import { StockAlertBanner } from '../components/StockAlertBanner';
 import { Button } from '@/components/ui/button';
+import { FormField, Page, PageHeader } from '@/components/primitives';
 import Modal from '@/components/Modal';
 import type { InventoryItem } from '../types/inventory.types';
+import { Input } from '@/components/ui/input';
 
 export default function Inventory() {
   const queryClient = useQueryClient();
@@ -19,13 +21,23 @@ export default function Inventory() {
 
   // Form State
   const [formData, setFormData] = useState({
-    name: '', internalCode: '', category: '', brand: '',
-    purchasePrice: '', salePrice: '', minStock: '0', initialStock: '0',
-    branchId: '', supplierId: ''
+    name: '',
+    internalCode: '',
+    category: '',
+    brand: '',
+    purchasePrice: '',
+    salePrice: '',
+    minStock: '0',
+    initialStock: '0',
+    branchId: '',
+    supplierId: '',
   });
 
   const [transferForm, setTransferForm] = useState({
-    fromBranchId: '', toBranchId: '', quantity: '1', reason: ''
+    fromBranchId: '',
+    toBranchId: '',
+    quantity: '1',
+    reason: '',
   });
 
   // Queries
@@ -34,24 +46,24 @@ export default function Inventory() {
     queryFn: async () => {
       const { data } = await api.get('/inventory/parts');
       return data.map((item: any) => {
-        const totalQuantity = item.stocks.reduce((acc: number, s: any) => acc + s.quantity, 0);
+        const totalQuantity = item.stocks ? item.stocks.reduce((acc: number, s: any) => acc + s.quantity, 0) : 0;
         let status = 'OK';
         if (totalQuantity === 0) status = 'OUT_OF_STOCK';
         else if (totalQuantity <= item.minStock / 2) status = 'CRITICAL';
         else if (totalQuantity <= item.minStock) status = 'LOW';
         return { ...item, totalQuantity, status };
       });
-    }
+    },
   });
 
   const { data: branches = [] } = useQuery({
     queryKey: ['branches'],
-    queryFn: async () => (await api.get('/branches')).data
+    queryFn: async () => (await api.get('/branches')).data,
   });
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers'],
-    queryFn: async () => (await api.get('/suppliers')).data
+    queryFn: async () => (await api.get('/suppliers')).data,
   });
 
   // Mutations
@@ -61,9 +73,20 @@ export default function Inventory() {
       toast.success('Peça cadastrada com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       setShowCreateModal(false);
-      setFormData({ name: '', internalCode: '', category: '', brand: '', purchasePrice: '', salePrice: '', minStock: '0', initialStock: '0', branchId: '', supplierId: '' });
+      setFormData({
+        name: '',
+        internalCode: '',
+        category: '',
+        brand: '',
+        purchasePrice: '',
+        salePrice: '',
+        minStock: '0',
+        initialStock: '0',
+        branchId: '',
+        supplierId: '',
+      });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao cadastrar peça.')
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao cadastrar peça.'),
   });
 
   const transferMutation = useMutation({
@@ -74,7 +97,7 @@ export default function Inventory() {
       setShowTransferModal(false);
       setTransferItem(null);
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao transferir estoque.')
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao transferir estoque.'),
   });
 
   const handleCreateSubmit = (e: React.FormEvent) => {
@@ -84,7 +107,7 @@ export default function Inventory() {
       purchasePrice: Number(formData.purchasePrice),
       salePrice: Number(formData.salePrice),
       minStock: Number(formData.minStock),
-      initialStock: Number(formData.initialStock)
+      initialStock: Number(formData.initialStock),
     });
   };
 
@@ -94,7 +117,7 @@ export default function Inventory() {
     transferMutation.mutate({
       partId: transferItem.id,
       ...transferForm,
-      quantity: Number(transferForm.quantity)
+      quantity: Number(transferForm.quantity),
     });
   };
 
@@ -115,34 +138,31 @@ export default function Inventory() {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full max-h-screen">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Package className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Estoque</h1>
-              <p className="text-muted-foreground mt-1">Controle de SKUs, movimentações e níveis de alerta.</p>
-            </div>
+    <Page>
+      <PageHeader
+        title="Estoque de Peças & Materiais"
+        description="Controle de SKUs, movimentações, transferências entre filiais e níveis de alerta."
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)} className="text-xs">
+              <Upload className="w-4 h-4 mr-1.5" /> Importar
+            </Button>
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              size="lg"
+              className="shadow-xs font-semibold text-xs uppercase tracking-wider"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Nova Peça
+            </Button>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportModal(true)}>
-            <Upload className="w-4 h-4 mr-2" /> Importar
-          </Button>
-          <Button onClick={() => setShowCreateModal(true)} size="lg" className="shadow-sm">
-            <Plus className="mr-2 h-5 w-5" /> Nova Peça
-          </Button>
-        </div>
-      </header>
+        }
+      />
 
       <StockAlertBanner items={parts} />
 
-      <div className="flex-1 min-h-[500px]">
-        <InventoryTable 
-          data={parts} 
+      <div className="w-full flex-1 min-h-[500px]">
+        <InventoryTable
+          data={parts}
           isLoading={isLoading}
           onTransfer={(item) => {
             setTransferItem(item);
@@ -153,57 +173,124 @@ export default function Inventory() {
 
       {/* Modal Nova Peça */}
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Cadastrar Nova Peça" width="800px">
-        <form onSubmit={handleCreateSubmit} className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Nome da Peça *</label>
-            <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Código Interno *</label>
-            <input required value={formData.internalCode} onChange={e => setFormData({...formData, internalCode: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Categoria</label>
-            <input value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Marca</label>
-            <input value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Fornecedor</label>
-            <select value={formData.supplierId} onChange={e => setFormData({...formData, supplierId: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+        <form onSubmit={handleCreateSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Nome da Peça" htmlFor="part-name" required>
+            <Input
+              id="part-name"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Código Interno" htmlFor="part-code" required>
+            <Input
+              id="part-code"
+              required
+              value={formData.internalCode}
+              onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Categoria" htmlFor="part-category">
+            <Input
+              id="part-category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Marca" htmlFor="part-brand">
+            <Input
+              id="part-brand"
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Fornecedor" htmlFor="part-supplier">
+            <select
+              id="part-supplier"
+              value={formData.supplierId}
+              onChange={(e) => setFormData({ ...formData, supplierId: e.target.value })}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
+            >
               <option value="">Selecione...</option>
-              {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {suppliers.map((s: any) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
             </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Filial (Estoque Inicial)</label>
-            <select value={formData.branchId} onChange={e => setFormData({...formData, branchId: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+          </FormField>
+
+          <FormField label="Filial (Estoque Inicial)" htmlFor="part-branch">
+            <select
+              id="part-branch"
+              value={formData.branchId}
+              onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
+            >
               <option value="">Selecione...</option>
-              {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              {branches.map((b: any) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
             </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Preço de Compra</label>
-            <input type="number" step="0.01" value={formData.purchasePrice} onChange={e => setFormData({...formData, purchasePrice: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Preço de Venda</label>
-            <input type="number" step="0.01" value={formData.salePrice} onChange={e => setFormData({...formData, salePrice: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Estoque Mínimo</label>
-            <input type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Estoque Inicial</label>
-            <input type="number" value={formData.initialStock} onChange={e => setFormData({...formData, initialStock: e.target.value})} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          
-          <div className="col-span-2 flex justify-end gap-3 mt-4">
-            <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+          </FormField>
+
+          <FormField label="Preço de Compra" htmlFor="part-buy-price">
+            <Input
+              id="part-buy-price"
+              type="number"
+              step="0.01"
+              value={formData.purchasePrice}
+              onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Preço de Venda" htmlFor="part-sell-price">
+            <Input
+              id="part-sell-price"
+              type="number"
+              step="0.01"
+              value={formData.salePrice}
+              onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Estoque Mínimo" htmlFor="part-min-stock">
+            <Input
+              id="part-min-stock"
+              type="number"
+              value={formData.minStock}
+              onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <FormField label="Estoque Inicial" htmlFor="part-initial-stock">
+            <Input
+              id="part-initial-stock"
+              type="number"
+              value={formData.initialStock}
+              onChange={(e) => setFormData({ ...formData, initialStock: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <div className="col-span-1 md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-border/60">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" disabled={createMutation.isPending} className="font-semibold text-xs">
               <Save className="w-4 h-4 mr-2" />
               {createMutation.isPending ? 'Salvando...' : 'Salvar Peça'}
             </Button>
@@ -214,27 +301,57 @@ export default function Inventory() {
       {/* Modal de Transferência */}
       <Modal isOpen={showTransferModal} onClose={() => setShowTransferModal(false)} title={`Transferir: ${transferItem?.name}`} width="500px">
         <form onSubmit={handleTransferSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Origem (Filial) *</label>
-            <select required value={transferForm.fromBranchId} onChange={e => setTransferForm({ ...transferForm, fromBranchId: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+          <FormField label="Origem (Filial)" htmlFor="transfer-origin" required>
+            <select
+              id="transfer-origin"
+              required
+              value={transferForm.fromBranchId}
+              onChange={(e) => setTransferForm({ ...transferForm, fromBranchId: e.target.value })}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
+            >
               <option value="">Selecione...</option>
-              {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              {branches.map((b: any) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
             </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Destino (Filial) *</label>
-            <select required value={transferForm.toBranchId} onChange={e => setTransferForm({ ...transferForm, toBranchId: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary">
+          </FormField>
+
+          <FormField label="Destino (Filial)" htmlFor="transfer-target" required>
+            <select
+              id="transfer-target"
+              required
+              value={transferForm.toBranchId}
+              onChange={(e) => setTransferForm({ ...transferForm, toBranchId: e.target.value })}
+              className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
+            >
               <option value="">Selecione...</option>
-              {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              {branches.map((b: any) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
             </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Quantidade *</label>
-            <input type="number" min="1" required value={transferForm.quantity} onChange={e => setTransferForm({ ...transferForm, quantity: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary" />
-          </div>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button type="button" variant="outline" onClick={() => setShowTransferModal(false)}>Cancelar</Button>
-            <Button type="submit" disabled={transferMutation.isPending}>
+          </FormField>
+
+          <FormField label="Quantidade" htmlFor="transfer-qty" required>
+            <Input
+              id="transfer-qty"
+              type="number"
+              min="1"
+              required
+              value={transferForm.quantity}
+              onChange={(e) => setTransferForm({ ...transferForm, quantity: e.target.value })}
+              className="h-10 text-xs"
+            />
+          </FormField>
+
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/60">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowTransferModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" disabled={transferMutation.isPending} className="font-semibold text-xs">
               <RefreshCw className="w-4 h-4 mr-2" />
               {transferMutation.isPending ? 'Transferindo...' : 'Transferir'}
             </Button>
@@ -245,19 +362,27 @@ export default function Inventory() {
       {/* Modal de Importação */}
       <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="Importar XLSX/CSV" width="500px">
         <form onSubmit={handleImportSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Arquivo</label>
-            <input type="file" accept=".xlsx, .csv" onChange={e => setImportFile(e.target.files?.[0] || null)} className="border border-input rounded-md p-2" />
-          </div>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button type="button" variant="outline" onClick={() => setShowImportModal(false)}>Cancelar</Button>
-            <Button type="submit" disabled={!importFile}>
+          <FormField label="Selecione o Arquivo" htmlFor="import-file">
+            <Input
+              id="import-file"
+              type="file"
+              accept=".xlsx, .csv"
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+              className="h-11 text-xs pt-2"
+            />
+          </FormField>
+
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/60">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowImportModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" disabled={!importFile} className="font-semibold text-xs">
               <Upload className="w-4 h-4 mr-2" />
               Importar
             </Button>
           </div>
         </form>
       </Modal>
-    </div>
+    </Page>
   );
 }
