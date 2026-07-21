@@ -27,9 +27,12 @@ export default function ServiceOrders() {
   // Fetch OS List via standard hook
   const { data: osList = [], isLoading } = useServiceOrders();
 
-  // Re-use official clients & vehicles query hooks
-  const { data: clients = [] } = useClients(1, 100);
-  const { data: vehicles = [] } = useVehicles(1, 100);
+  // Re-use official clients & vehicles query hooks with array safety
+  const { data: rawClients } = useClients(1, 100);
+  const { data: rawVehicles } = useVehicles(1, 100);
+
+  const clients = Array.isArray(rawClients) ? rawClients : (rawClients as any)?.items || [];
+  const vehicles = Array.isArray(rawVehicles) ? rawVehicles : (rawVehicles as any)?.items || [];
 
   // Fetch branches and mechanics
   const { data: branches = [] } = useQuery({
@@ -101,7 +104,7 @@ export default function ServiceOrders() {
   const filteredVehicles = vehicles.filter((v: any) => v.clientId === clientId);
 
   return (
-    <Page>
+    <Page data-testid="service-orders-page">
       <PageHeader
         title="Ordens de Serviço"
         description="Gerencie fluxos, status, serviços, diagnósticos e integrações operacionais em tempo real."
