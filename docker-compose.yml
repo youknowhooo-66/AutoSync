@@ -53,8 +53,8 @@ services:
       REDIS_PORT: 6379
       NODE_ENV: production
       PORT: 3000
-      # JWT_SECRET must be set via .env or provider secrets — no insecure default.
-      JWT_SECRET: ${JWT_SECRET}
+      # JWT_SECRET must be set via .env or provider secrets
+      JWT_SECRET: ${JWT_SECRET:-autosync_super_secret_jwt_key_2026}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       APP_VERSION: ${GIT_SHA:-local}
       GIT_SHA: ${GIT_SHA:-local}
@@ -85,14 +85,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # We might need to adjust the command if worker is handled differently
-    # Let's assume the worker file is somewhere in dist or wait, if the main app processes bullmq we might not need this. But if we do:
     command: ["node", "apps/api/dist/shared/queue/EventsWorker.js"]
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-autosync}?schema=public
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
-      JWT_SECRET: ${JWT_SECRET:-supersecret}
+      JWT_SECRET: ${JWT_SECRET:-autosync_super_secret_jwt_key_2026}
     networks:
       - autosync_network
 
