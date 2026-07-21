@@ -18,7 +18,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background overflow-hidden selection:bg-primary/20">
           <AppSidebar />
-          
+
           <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
             <WorkspaceHeader onOpenCommandPalette={() => setCommandPaletteOpen(true)} />
 
