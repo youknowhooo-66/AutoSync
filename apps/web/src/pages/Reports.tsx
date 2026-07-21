@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area
+  PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
-import { MdFilterList, MdPrint, MdTrendingUp, MdBuild, MdInventory } from 'react-icons/md';
+import { Printer, TrendingUp, Wrench, Package, DollarSign } from 'lucide-react';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
+import { Page, PageHeader, PageGrid, MetricCard, ChartCard } from '@/components/primitives';
+import { Button } from '@/components/ui/button';
+import { PageSkeleton } from '@/components/feedback/PageSkeleton';
 
 const COLORS = ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#fb7185', '#fb923c', '#fbbf24'];
 
@@ -34,7 +37,7 @@ const Reports: React.FC = () => {
       const partsRes = await api.get('/inventory/top-parts');
       const servicesRes = await api.get('/os/top-services');
       const osRes = await api.get(`/os${branchId ? `?branchId=${branchId}` : ''}`);
-      
+
       const osByStatus = osRes.data.reduce((acc: any, os: any) => {
         acc[os.status] = (acc[os.status] || 0) + 1;
         return acc;
@@ -43,16 +46,16 @@ const Reports: React.FC = () => {
       const osStatusData = Object.entries(osByStatus).map(([name, value]) => ({ name, value }));
 
       setData({
-        revenue: dashboardRes.data.chartData,
-        topParts: partsRes.data,
-        topServices: servicesRes.data,
-        osStatus: osStatusData,
+        revenue: dashboardRes.data.chartData || [],
+        topParts: partsRes.data || [],
+        topServices: servicesRes.data || [],
+        osStatus: osStatusData || [],
         summary: {
-          totalRevenue: dashboardRes.data.monthlyRevenue,
-          totalOS: osRes.data.length,
-          avgTicket: osRes.data.length > 0 ? dashboardRes.data.monthlyRevenue / osRes.data.length : 0,
-          conversionRate: dashboardRes.data.conversionRate
-        }
+          totalRevenue: dashboardRes.data.monthlyRevenue || 0,
+          totalOS: osRes.data.length || 0,
+          avgTicket: osRes.data.length > 0 ? (dashboardRes.data.monthlyRevenue || 0) / osRes.data.length : 0,
+          conversionRate: dashboardRes.data.conversionRate || 0,
+        },
       });
     } catch {
       toast.error('Erro ao carregar relatórios.');
@@ -65,186 +68,160 @@ const Reports: React.FC = () => {
     window.print();
   };
 
-  if (loading && !data) return <div className="fade-in">Carregando relatórios avançados...</div>;
+  if (loading && !data) return <PageSkeleton />;
 
   return (
-    <div className="fade-in reports-container" style={{ paddingBottom: '4rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }} className="no-print">
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Relatórios Avançados</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Análise detalhada de faturamento, peças e serviços.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <select 
-            value={branchId} 
-            onChange={e => setBranchId(e.target.value)}
-            style={{ minWidth: '200px' }}
-          >
-            <option value="">Todas as Filiais</option>
-            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-          <button className="btn-primary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdPrint size={20} /> Imprimir Relatório
-          </button>
-        </div>
-      </header>
-
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="card" style={{ borderLeft: '4px solid var(--success)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>Faturamento Mensal</p>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', marginTop: '0.5rem' }}>
-            R$ {data?.summary.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </h2>
-        </div>
-        <div className="card" style={{ borderLeft: '4px solid var(--accent)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>Ordens de Serviço</p>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
-            {data?.summary.totalOS}
-          </h2>
-        </div>
-        <div className="card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>Ticket Médio</p>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
-            R$ {data?.summary.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </h2>
-        </div>
-        <div className="card" style={{ borderLeft: '4px solid #8b5cf6' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>Taxa de Conversão</p>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
-            {data?.summary.conversionRate}%
-          </h2>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-        <div className="card" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdTrendingUp color="var(--accent)" /> Tendência de Faturamento (7 dias)
-          </h3>
-          <div style={{ flex: 1 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.revenue}>
-                <defs>
-                  <linearGradient id="colorRevRep" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} />
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} />
-                <Area type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorRevRep)" />
-              </AreaChart>
-            </ResponsiveContainer>
+    <Page className="reports-container">
+      <PageHeader
+        title="Relatórios & Business Intelligence"
+        description="Análise detalhada de faturamento, métricas operacionais, peças e serviços mais demandados."
+        actions={
+          <div className="flex items-center gap-2 no-print">
+            <select
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              className="h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium focus:ring-1 focus:ring-primary outline-none min-w-[180px]"
+            >
+              <option value="">Todas as Filiais</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" onClick={handlePrint} className="text-xs font-semibold">
+              <Printer className="h-4 w-4 mr-1.5" /> Imprimir Relatório
+            </Button>
           </div>
-        </div>
-
-        <div className="card" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdBuild color="#818cf8" /> Status das Ordens de Serviço
-          </h3>
-          <div style={{ flex: 1 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data?.osStatus}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {data?.osStatus.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        {/* Top Parts Table */}
-        <div className="card">
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdInventory color="#10b981" /> Peças Mais Utilizadas
-          </h3>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  <th style={{ padding: '0.75rem' }}>Peça</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center' }}>Qtd.</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right' }}>Total Gerado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.topParts.map((item: any) => (
-                  <tr key={item.partId} style={{ borderBottom: '1px solid var(--border)', fontSize: '0.875rem' }}>
-                    <td style={{ padding: '0.75rem' }}>
-                      <div style={{ fontWeight: 600 }}>{item.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.internalCode}</div>
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>{item.totalOut}</td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, color: 'var(--success)' }}>
-                      R$ {item.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Top Services Table */}
-        <div className="card">
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdBuild color="#f59e0b" /> Serviços Mais Realizados
-          </h3>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  <th style={{ padding: '0.75rem' }}>Serviço</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center' }}>Frequência</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right' }}>Faturamento</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.topServices.map((item: any, i: number) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', fontSize: '0.875rem' }}>
-                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>{item.name}</td>
-                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>{item.count}</td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, color: 'var(--accent)' }}>
-                      R$ {item.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        @media print {
-          .no-print, .sidebar, nav, header { display: none !important; }
-          main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
-          .card { border: 1px solid #eee !important; box-shadow: none !important; color: black !important; background: white !important; break-inside: avoid; }
-          body { background: white !important; color: black !important; }
-          h1, h2, h3, p, span, td, th { color: black !important; }
-          .recharts-responsive-container { page-break-inside: avoid; height: 300px !important; }
-          .reports-container { padding: 0 !important; }
-          table { font-size: 10pt; }
         }
-      `}</style>
-    </div>
+      />
+
+      {/* Summary Metrics */}
+      <PageGrid cols={4}>
+        <MetricCard
+          title="Faturamento Mensal"
+          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.summary.totalRevenue || 0)}
+          variant="success"
+          icon={<DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
+        />
+        <MetricCard
+          title="Ordens de Serviço"
+          value={data?.summary.totalOS || 0}
+          variant="primary"
+          icon={<Wrench className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
+        />
+        <MetricCard
+          title="Ticket Médio"
+          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.summary.avgTicket || 0)}
+          variant="warning"
+          icon={<TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+        />
+        <MetricCard
+          title="Taxa de Conversão"
+          value={`${(data?.summary.conversionRate || 0).toFixed(1)}%`}
+          icon={<Package className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
+        />
+      </PageGrid>
+
+      {/* Charts Section */}
+      <PageGrid cols={2}>
+        <ChartCard title="Tendência de Faturamento" description="Evolução financeira nos últimos 7 dias">
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={data?.revenue}>
+              <defs>
+                <linearGradient id="colorRevRep" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+              <YAxis stroke="#94a3b8" fontSize={11} />
+              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff', fontSize: '12px' }} />
+              <Area type="monotone" dataKey="revenue" stroke="#0284c7" strokeWidth={2} fillOpacity={1} fill="url(#colorRevRep)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Status das Ordens de Serviço" description="Distribuição por fase operacional">
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie
+                data={data?.osStatus}
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={90}
+                paddingAngle={4}
+                dataKey="value"
+              >
+                {data?.osStatus?.map((_: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px', color: '#fff', fontSize: '12px' }} />
+              <Legend wrapperStyle={{ fontSize: '11px' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </PageGrid>
+
+      {/* Top Parts and Top Services Tables */}
+      <PageGrid cols={2}>
+        <ChartCard title="Peças Mais Utilizadas" description="Ranking por volume de saída e receita">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-surface-muted text-muted-foreground uppercase font-semibold border-b border-border">
+                <tr>
+                  <th className="p-3">Peça</th>
+                  <th className="p-3 text-center">Qtd.</th>
+                  <th className="p-3 text-right">Total Gerado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {data?.topParts?.map((item: any) => (
+                  <tr key={item.partId} className="hover:bg-surface-muted/40 transition-colors">
+                    <td className="p-3 font-medium text-foreground">
+                      <div>{item.name}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">{item.internalCode}</div>
+                    </td>
+                    <td className="p-3 text-center font-mono font-semibold">{item.totalOut}</td>
+                    <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue || 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Serviços Mais Realizados" description="Frequência e receita por tipo de serviço">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-surface-muted text-muted-foreground uppercase font-semibold border-b border-border">
+                <tr>
+                  <th className="p-3">Serviço</th>
+                  <th className="p-3 text-center">Qtd.</th>
+                  <th className="p-3 text-right">Faturamento</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {data?.topServices?.map((item: any, i: number) => (
+                  <tr key={i} className="hover:bg-surface-muted/40 transition-colors">
+                    <td className="p-3 font-medium text-foreground">{item.name}</td>
+                    <td className="p-3 text-center font-mono font-semibold">{item.count}</td>
+                    <td className="p-3 text-right font-semibold text-primary">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue || 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartCard>
+      </PageGrid>
+    </Page>
   );
 };
 

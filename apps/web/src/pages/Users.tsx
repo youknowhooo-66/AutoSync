@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import Modal from '../components/Modal';
-import { MdAdd, MdSearch, MdEdit, MdPersonAdd, MdToggleOn, MdToggleOff, MdAdminPanelSettings } from 'react-icons/md';
+import { Plus, Search, Pencil, ToggleLeft, ToggleRight, UserPlus, ShieldAlert } from 'lucide-react';
+import { Page, PageHeader, FormField, FormGrid } from '@/components/primitives';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DataTable } from '@/components/DataTable';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
 
 interface User {
   id: string;
@@ -18,13 +24,13 @@ interface Branch {
   name: string;
 }
 
-const ROLE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  ADMIN: { label: 'Administrador', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-  MANAGER: { label: 'Gerente', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
-  STOCKIST: { label: 'Estoquista', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-  MECHANIC: { label: 'Mecânico', color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
-  FINANCIAL: { label: 'Financeiro', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-  ATTENDANT: { label: 'Atendente', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' },
+const ROLE_LABELS: Record<string, { label: string; className: string }> = {
+  ADMIN: { label: 'Administrador', className: 'bg-rose-500/10 text-rose-600 border-rose-500/20' },
+  MANAGER: { label: 'Gerente', className: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
+  STOCKIST: { label: 'Estoquista', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  MECHANIC: { label: 'Mecânico', className: 'bg-sky-500/10 text-sky-600 border-sky-500/20' },
+  FINANCIAL: { label: 'Financeiro', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  ATTENDANT: { label: 'Atendente', className: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
 };
 
 const Users: React.FC = () => {
@@ -51,8 +57,11 @@ const Users: React.FC = () => {
     try {
       const res = await api.get('/users');
       setUsers(res.data);
-    } catch { toast.error('Erro ao buscar usuários.'); }
-    finally { setLoading(false); }
+    } catch {
+      toast.error('Erro ao buscar usuários.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchBranches = async () => {
@@ -81,8 +90,12 @@ const Users: React.FC = () => {
   };
 
   const handleEdit = (u: User) => {
-    setEditingId(u.id); setName(u.name); setEmail(u.email);
-    setRole(u.role); setBranchId(u.branch?.id || ''); setPassword('');
+    setEditingId(u.id);
+    setName(u.name);
+    setEmail(u.email);
+    setRole(u.role);
+    setBranchId(u.branch?.id || '');
+    setPassword('');
     setShowModal(true);
   };
 
@@ -91,163 +104,146 @@ const Users: React.FC = () => {
       await api.put(`/users/${u.id}`, { active: !u.active });
       toast.success(u.active ? 'Usuário desativado.' : 'Usuário ativado.');
       fetchUsers();
-    } catch { toast.error('Erro ao atualizar usuário.'); }
+    } catch {
+      toast.error('Erro ao atualizar usuário.');
+    }
   };
 
   const resetForm = () => {
-    setEditingId(null); setName(''); setEmail(''); setPassword(''); setRole('ATTENDANT'); setBranchId('');
+    setEditingId(null);
+    setName('');
+    setEmail('');
+    setPassword('');
+    setRole('ATTENDANT');
+    setBranchId('');
   };
 
-  const filtered = users.filter(u =>
-    (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (u.email || '').toLowerCase().includes(search.toLowerCase())
+  const filtered = users.filter(
+    (u) =>
+      (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (u.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Usuário',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs shrink-0">
+            {row.original.name ? row.original.name.substring(0, 2).toUpperCase() : 'US'}
+          </div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground">{row.original.name || 'Sem Nome'}</span>
+            <span className="text-xs text-muted-foreground">{row.original.email || '—'}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'role',
+      header: 'Cargo / Papel',
+      cell: ({ row }) => {
+        const roleInfo = ROLE_LABELS[row.original.role] || ROLE_LABELS.ATTENDANT;
+        return (
+          <Badge variant="outline" className={`font-semibold text-xs ${roleInfo.className}`}>
+            {roleInfo.label}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'branch',
+      header: 'Filial Designada',
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.branch?.name || '—'}</span>,
+    },
+    {
+      accessorKey: 'active',
+      header: 'Status',
+      cell: ({ row }) => (
+        <Badge
+          variant="outline"
+          className={`text-[10px] font-semibold ${
+            row.original.active
+              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+          }`}
+        >
+          {row.original.active ? 'Ativo' : 'Inativo'}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(row.original)} className="text-xs">
+            <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleToggle(row.original)}
+            className={`text-xs font-semibold ${
+              row.original.active ? 'text-danger hover:bg-danger/10' : 'text-emerald-600 hover:bg-emerald-500/10'
+            }`}
+          >
+            {row.original.active ? 'Desativar' : 'Ativar'}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="fade-in">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Usuários</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Gerencie os usuários e permissões do sistema.</p>
-        </div>
-        <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <MdPersonAdd size={18} /> Novo Usuário
-        </button>
-      </header>
+    <Page>
+      <PageHeader
+        title="Usuários & Permissões (RBAC)"
+        description="Gerencie os membros da sua equipe, cargos e escopos de acesso corporativo."
+        actions={
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+            }}
+            size="lg"
+            className="shadow-xs font-semibold text-xs uppercase tracking-wider"
+          >
+            <UserPlus className="mr-2 h-4 w-4" /> Novo Usuário
+          </Button>
+        }
+      />
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <div style={{ position: 'relative' }}>
-          <MdSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input className="input-base pl-12" placeholder="Pesquisar por nome ou e-mail..." value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="bg-card p-4 rounded-xl border border-border shadow-xs flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Pesquisar por nome ou e-mail..."
+            className="pl-9 h-10 text-xs"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border)' }}>
-              <th style={{ textAlign: 'left', padding: '1rem' }}>Usuário</th>
-              <th style={{ textAlign: 'left', padding: '1rem' }}>Cargo</th>
-              <th style={{ textAlign: 'left', padding: '1rem' }}>Filial</th>
-              <th style={{ textAlign: 'center', padding: '1rem' }}>Status</th>
-              <th style={{ textAlign: 'right', padding: '1rem' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((user) => {
-              const roleInfo = ROLE_LABELS[user.role] || ROLE_LABELS.ATTENDANT;
-              return (
-                <tr key={user.id} style={{ borderBottom: '1px solid var(--border)', opacity: user.active ? 1 : 0.5 }}>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{
-                        width: '40px', height: '40px', borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${roleInfo.bg}, rgba(56,189,248,0.1))`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: roleInfo.color, fontWeight: 700, fontSize: '0.875rem'
-                      }}>
-                        {(user.name || 'U').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{user.name || 'Sem Nome'}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.email || '—'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600,
-                      backgroundColor: roleInfo.bg, color: roleInfo.color
-                    }}>
-                      {roleInfo.label}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>
-                    {user.branch?.name || '—'}
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600,
-                      backgroundColor: user.active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                      color: user.active ? '#10b981' : '#ef4444'
-                    }}>
-                      {user.active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                      <button 
-                        onClick={() => handleEdit(user)} 
-                        style={{ 
-                          background: 'var(--muted)', 
-                          border: 'none', 
-                          color: 'var(--foreground)', 
-                          cursor: 'pointer', 
-                          padding: '8px 12px', 
-                          borderRadius: '8px', 
-                          fontWeight: 600, 
-                          fontSize: '0.75rem', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          gap: '6px',
-                          transition: 'all 0.2s'
-                        }}
-                        className="hover:bg-accent"
-                      >
-                        <MdEdit size={14} /> Editar
-                      </button>
-                      <button 
-                        onClick={() => handleToggle(user)} 
-                        style={{ 
-                          background: 'transparent', 
-                          border: '1px solid var(--border)', 
-                          color: user.active ? '#ef4444' : '#10b981', 
-                          cursor: 'pointer', 
-                          padding: '8px 12px', 
-                          borderRadius: '8px', 
-                          fontWeight: 600, 
-                          fontSize: '0.75rem', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          gap: '6px',
-                          transition: 'all 0.2s'
-                        }}
-                        className="hover:bg-accent/10"
-                      >
-                        {user.active ? <MdToggleOff size={16} /> : <MdToggleOn size={16} />}
-                        {user.active ? 'Desativar' : 'Ativar'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} data={filtered} loading={loading} />
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingId ? 'Editar Usuário' : 'Novo Usuário'}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nome Completo *</span>
-            <input className="input-base" placeholder="João da Silva" value={name} onChange={e => setName(e.target.value)} required />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>E-mail *</span>
-            <input className="input-base" type="email" placeholder="joao@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
-          </label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <FormField label="Nome Completo" htmlFor="user-name" required>
+            <Input id="user-name" placeholder="João da Silva" value={name} onChange={(e) => setName(e.target.value)} required className="h-10 text-xs" />
+          </FormField>
+          <FormField label="E-mail" htmlFor="user-email" required>
+            <Input id="user-email" type="email" placeholder="joao@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-10 text-xs" />
+          </FormField>
           {!editingId && (
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Senha *</span>
-              <input className="input-base" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
-            </label>
+            <FormField label="Senha Inicial" htmlFor="user-pass" required>
+              <Input id="user-pass" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-10 text-xs" />
+            </FormField>
           )}
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Cargo *</span>
-              <select className="input-base" value={role} onChange={e => setRole(e.target.value)} required>
+          <FormGrid cols={2}>
+            <FormField label="Cargo / Papel (RBAC)" htmlFor="user-role" required>
+              <select id="user-role" className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none" value={role} onChange={(e) => setRole(e.target.value)} required>
                 <option value="ADMIN">Administrador</option>
                 <option value="MANAGER">Gerente</option>
                 <option value="STOCKIST">Estoquista</option>
@@ -255,24 +251,30 @@ const Users: React.FC = () => {
                 <option value="FINANCIAL">Financeiro</option>
                 <option value="ATTENDANT">Atendente</option>
               </select>
-            </label>
-            <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Filial</span>
-              <select className="input-base" value={branchId} onChange={e => setBranchId(e.target.value)}>
-                <option value="">Sem filial</option>
-                {branches.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
+            </FormField>
+            <FormField label="Filial Alocada" htmlFor="user-branch">
+              <select id="user-branch" className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+                <option value="">Sem filial restrita</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
                 ))}
               </select>
-            </label>
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button type="button" className="btn-primary" style={{ flex: 1, backgroundColor: 'transparent', border: '1px solid var(--border)', boxShadow: 'none' }} onClick={() => setShowModal(false)}>Cancelar</button>
-            <button type="submit" className="btn-primary" style={{ flex: 1 }}>Salvar</button>
+            </FormField>
+          </FormGrid>
+
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/60">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" className="font-semibold text-xs">
+              Salvar
+            </Button>
           </div>
         </form>
       </Modal>
-    </div>
+    </Page>
   );
 };
 
