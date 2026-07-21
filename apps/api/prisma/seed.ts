@@ -221,7 +221,7 @@ async function main() {
             serviceOrderId: os.id,
             partId: randomPart.id,
             quantity: qty,
-            unitPrice: randomPart.salePrice ?? 0
+            unitPrice: randomPart.salePrice ? Number(randomPart.salePrice) : 0
           }
         });
         

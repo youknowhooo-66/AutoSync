@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Wrench, Plus, Save } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import api from '@/services/api';
 import { ServiceOrderTable } from '../components/ServiceOrderTable';
 import { ServiceOrderDetailSheet } from '../components/ServiceOrderDetailSheet';
 import { Button } from '@/components/ui/button';
+import { FormField, Page, PageHeader } from '@/components/primitives';
 import Modal from '@/components/Modal';
 import type { ServiceOrder } from '../types/serviceOrder.types';
 import { useServiceOrders, useCreateServiceOrder } from '../hooks/useServiceOrders';
@@ -15,7 +16,7 @@ import { useVehicles } from '../../vehicles/hooks/useVehicles';
 export default function ServiceOrders() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedOS, setSelectedOS] = useState<ServiceOrder | null>(null);
-  
+
   // Create Form State
   const [clientId, setClientId] = useState('');
   const [vehicleId, setVehicleId] = useState('');
@@ -31,9 +32,9 @@ export default function ServiceOrders() {
   const { data: vehicles = [] } = useVehicles(1, 100);
 
   // Fetch branches and mechanics
-  const { data: branches = [] } = useQuery({ 
-    queryKey: ['branches'], 
-    queryFn: async () => (await api.get('/branches')).data 
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => (await api.get('/branches')).data,
   });
 
   const { data: mechanics = [] } = useQuery({
@@ -71,22 +72,25 @@ export default function ServiceOrders() {
       return;
     }
 
-    createMutation.mutate({
-      clientId,
-      vehicleId,
-      branchId,
-      mechanicId: mechanicId || null,
-      notes,
-    }, {
-      onSuccess: () => {
-        toast.success('Ordem de Serviço criada com sucesso!');
-        setShowCreateModal(false);
-        resetForm();
+    createMutation.mutate(
+      {
+        clientId,
+        vehicleId,
+        branchId,
+        mechanicId: mechanicId || null,
+        notes,
       },
-      onError: (err: any) => {
-        toast.error(err.response?.data?.message || 'Erro ao criar OS.');
+      {
+        onSuccess: () => {
+          toast.success('Ordem de Serviço criada com sucesso!');
+          setShowCreateModal(false);
+          resetForm();
+        },
+        onError: (err: any) => {
+          toast.error(err.response?.data?.message || 'Erro ao criar OS.');
+        },
       }
-    });
+    );
   };
 
   const handleClientChange = (val: string) => {
@@ -97,117 +101,129 @@ export default function ServiceOrders() {
   const filteredVehicles = vehicles.filter((v: any) => v.clientId === clientId);
 
   return (
-    <div className="flex flex-col gap-6 h-full max-h-screen">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Wrench className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Ordens de Serviço</h1>
-              <p className="text-muted-foreground mt-1">Gerencie fluxos, status, serviços e integrações de estoque.</p>
-            </div>
-          </div>
-        </div>
-        <Button onClick={() => { resetForm(); setShowCreateModal(true); }} size="lg" className="shadow-sm">
-          <Plus className="mr-2 h-5 w-5" /> Nova OS
-        </Button>
-      </header>
+    <Page>
+      <PageHeader
+        title="Ordens de Serviço"
+        description="Gerencie fluxos, status, serviços, diagnósticos e integrações operacionais em tempo real."
+        actions={
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowCreateModal(true);
+            }}
+            size="lg"
+            className="shadow-xs font-semibold text-xs uppercase tracking-wider"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Nova OS
+          </Button>
+        }
+      />
 
-      <div className="flex-1 min-h-[500px]">
-        <ServiceOrderTable 
-          data={osList} 
-          isLoading={isLoading} 
+      <div className="w-full flex-1 min-h-[500px]">
+        <ServiceOrderTable
+          data={osList}
+          isLoading={isLoading}
           onRowClick={(os) => setSelectedOS(os)}
           onEdit={(os) => setSelectedOS(os)}
         />
       </div>
 
-      <ServiceOrderDetailSheet 
-        os={selectedOS} 
-        onClose={() => setSelectedOS(null)} 
-      />
+      <ServiceOrderDetailSheet os={selectedOS} onClose={() => setSelectedOS(null)} />
 
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Nova Ordem de Serviço" width="600px">
         <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="client-select" className="text-sm font-medium">Cliente *</label>
-            <select 
+          <FormField label="Cliente" htmlFor="client-select" required>
+            <select
               id="client-select"
-              required 
-              value={clientId} 
-              onChange={e => handleClientChange(e.target.value)} 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+              required
+              value={clientId}
+              onChange={(e) => handleClientChange(e.target.value)}
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
             >
               <option value="">Selecione um cliente...</option>
-              {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {clients.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
             </select>
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="vehicle-select" className="text-sm font-medium">Veículo *</label>
-            <select 
-              id="vehicle-select"
-              required 
-              value={vehicleId} 
-              onChange={e => setVehicleId(e.target.value)} 
-              disabled={!clientId} 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
-            >
-              <option value="">{clientId ? 'Selecione um veículo...' : 'Selecione o cliente primeiro'}</option>
-              {filteredVehicles.map((v: any) => <option key={v.id} value={v.id}>{v.model} — {v.plate}</option>)}
-            </select>
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="branch-select" className="text-sm font-medium">Filial *</label>
-            <select 
+          <FormField label="Veículo" htmlFor="vehicle-select" required>
+            <select
+              id="vehicle-select"
+              required
+              value={vehicleId}
+              onChange={(e) => setVehicleId(e.target.value)}
+              disabled={!clientId}
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none disabled:opacity-50"
+            >
+              <option value="">
+                {clientId ? 'Selecione um veículo...' : 'Selecione o cliente primeiro'}
+              </option>
+              {filteredVehicles.map((v: any) => (
+                <option key={v.id} value={v.id}>
+                  {v.model} — {v.plate}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Filial" htmlFor="branch-select" required>
+            <select
               id="branch-select"
-              required 
-              value={branchId} 
-              onChange={e => setBranchId(e.target.value)} 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+              required
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
             >
               <option value="">Selecione a filial...</option>
-              {branches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              {branches.map((b: any) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
             </select>
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="mechanic-select" className="text-sm font-medium">Mecânico Responsável</label>
-            <select 
+          <FormField label="Mecânico Responsável" htmlFor="mechanic-select">
+            <select
               id="mechanic-select"
-              value={mechanicId} 
-              onChange={e => setMechanicId(e.target.value)} 
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+              value={mechanicId}
+              onChange={(e) => setMechanicId(e.target.value)}
+              className="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
             >
               <option value="">Sem mecânico designado</option>
-              {mechanics.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              {mechanics.map((m: any) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
             </select>
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="notes-textarea" className="text-sm font-medium">Observações / Problema</label>
-            <textarea 
+          <FormField label="Observações / Problema" htmlFor="notes-textarea">
+            <textarea
               id="notes-textarea"
-              value={notes} 
-              onChange={e => setNotes(e.target.value)} 
-              placeholder="Relato do cliente, sintomas..." 
-              rows={3} 
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary resize-none"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Relato do cliente, sintomas relatados..."
+              rows={3}
+              className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none resize-none"
             />
-          </div>
+          </FormField>
 
-          <div className="flex justify-end gap-3 mt-4">
-            <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/60">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" disabled={createMutation.isPending} className="font-semibold text-xs">
               <Save className="w-4 h-4 mr-2" />
               {createMutation.isPending ? 'Salvando...' : 'Abrir OS'}
             </Button>
           </div>
         </form>
       </Modal>
-    </div>
+    </Page>
   );
 }
