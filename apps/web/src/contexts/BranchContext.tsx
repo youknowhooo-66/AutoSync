@@ -4,6 +4,10 @@ interface Branch {
   id: string;
   name: string;
   companyId: string;
+  cnpj?: string;
+  address?: string;
+  phone?: string;
+  active?: boolean;
 }
 
 interface BranchContextData {
@@ -25,8 +29,11 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const storagedBranch = localStorage.getItem('@AutoSync:activeBranch');
     if (storagedBranch) {
-      setActiveBranchState(JSON.parse(storagedBranch));
-      setIsSelectingBranch(false);
+      try {
+        const parsed = JSON.parse(storagedBranch);
+        setActiveBranchState(parsed);
+        setIsSelectingBranch(false);
+      } catch {}
     }
   }, []);
 
@@ -35,17 +42,22 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('@AutoSync:activeBranch', JSON.stringify(branch));
     localStorage.setItem('@AutoSync:branchId', branch.id);
     setIsSelectingBranch(false);
+
+    // Notify listeners & trigger custom window event for multi-branch sync
+    window.dispatchEvent(new CustomEvent('autosync:branch-changed', { detail: branch }));
   };
 
   return (
-    <BranchContext.Provider value={{ 
-      activeBranch, 
-      setActiveBranch, 
-      availableBranches, 
-      setAvailableBranches,
-      isSelectingBranch,
-      setIsSelectingBranch
-    }}>
+    <BranchContext.Provider
+      value={{
+        activeBranch,
+        setActiveBranch,
+        availableBranches,
+        setAvailableBranches,
+        isSelectingBranch,
+        setIsSelectingBranch,
+      }}
+    >
       {children}
     </BranchContext.Provider>
   );
