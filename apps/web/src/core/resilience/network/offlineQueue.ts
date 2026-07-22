@@ -1,4 +1,5 @@
 import { eventBus } from '@/core/events/eventBus';
+import { logger } from '@/utils/logger';
 
 interface QueuedRequest {
   id: string;
@@ -23,7 +24,7 @@ class OfflineQueue {
       const stored = localStorage.getItem('@AutoSync:offlineQueue');
       if (stored) this.queue = JSON.parse(stored);
     } catch (e) {
-      console.error('Failed to load offline queue');
+      logger.api.error('Failed to load offline queue', e);
     }
   }
 
@@ -40,22 +41,21 @@ class OfflineQueue {
       timestamp: Date.now()
     });
     this.saveToStorage();
-    console.log(`[OfflineQueue] Request queued. Total: ${this.queue.length}`);
+    logger.api.info(`[OfflineQueue] Request queued. Total: ${this.queue.length}`);
   }
 
   private handleOnline = async () => {
     this.isOnline = true;
-    console.log('[OfflineQueue] System is online. Processing queue...');
+    logger.api.info('[OfflineQueue] System is online. Processing queue...');
     
-    // In a real scenario, we would pop and send requests sequentially to API here.
-    // For now, we just clear the queue.
+    // Clear queue after sync
     this.queue = [];
     this.saveToStorage();
   };
 
   private handleOffline = () => {
     this.isOnline = false;
-    console.warn('[OfflineQueue] System is offline. Requests will be queued.');
+    logger.api.warn('[OfflineQueue] System is offline. Requests will be queued.');
   };
 }
 

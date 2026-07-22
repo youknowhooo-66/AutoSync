@@ -3,6 +3,7 @@ import type { DomainEvent, EventType } from '../events/eventTypes';
 import { mapEventToMetrics } from './eventToMetrics';
 import { useMetricsStore } from './metricsStore';
 import { calculateKPIs } from './kpiCalculator';
+import { logger } from '@/utils/logger';
 
 class MetricsEngine {
   start() {
@@ -20,7 +21,7 @@ class MetricsEngine {
       });
     });
 
-    console.log('[Metrics Engine] Started and listening to Domain Events.');
+    logger.performance.info('Started and listening to Domain Events.');
   }
 
   // Exposed method for Dashboard UI to fetch metrics and KPIs
