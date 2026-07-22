@@ -96,7 +96,7 @@ export function ServiceOrderCompletionSection({
   // 2. Canceled OS Card
   if (isCanceled) {
     return (
-      <div className="p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-red-500/30 text-center shadow-xl">
+      <div className="p-6 bg-card backdrop-blur-md rounded-xl border border-red-500/30 text-center shadow-xl">
         <h3 className="text-lg font-semibold text-red-400 mb-2">Ordem de Serviço Cancelada</h3>
         <p className="text-sm text-slate-400">
           Esta Ordem de Serviço foi cancelada e não permite novos processos ou conclusões.
