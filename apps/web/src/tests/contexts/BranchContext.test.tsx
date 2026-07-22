@@ -83,4 +83,19 @@ describe('BranchContext', () => {
 
     expect(screen.getByTestId('is-selecting')).toHaveTextContent('yes');
   });
+
+  it('4. REGRESSION TEST: should safely provide fallback no-op functions if useBranch is rendered without throwing TypeError: is not a function', () => {
+    const UnwrappedComponent = () => {
+      const { setAvailableBranches, setActiveBranch } = useBranch();
+      return (
+        <div>
+          <button onClick={() => setAvailableBranches([])}>Safe Call</button>
+          <button onClick={() => setActiveBranch({ id: 'x', name: 'X', companyId: 'c' })}>Safe Select</button>
+        </div>
+      );
+    };
+
+    expect(() => render(<UnwrappedComponent />)).not.toThrow();
+    expect(() => screen.getByText('Safe Call').click()).not.toThrow();
+  });
 });

@@ -64,7 +64,7 @@ const Branches: React.FC = () => {
 
   // Sync available branches with context
   useEffect(() => {
-    if (branches && branches.length > 0) {
+    if (branches && branches.length > 0 && typeof setAvailableBranches === 'function') {
       setAvailableBranches(branches);
     }
   }, [branches, setAvailableBranches]);
