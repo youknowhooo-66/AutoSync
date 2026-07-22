@@ -15,12 +15,12 @@ import { truncateDatabase } from './helpers/db';
 beforeAll(async () => {
   // Clean up database before starting the test suite
   await truncateDatabase();
-});
+}, 30000);
 
 afterEach(async () => {
   // Truncate tables to guarantee test isolation
   await truncateDatabase();
-});
+}, 30000);
 
 afterAll(async () => {
   // Gracefully close active prisma and redis connections
@@ -30,4 +30,4 @@ afterAll(async () => {
   } catch (err) {
     // Avoid crashing if redis wasn't connected
   }
-});
+}, 30000);
