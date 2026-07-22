@@ -12,16 +12,16 @@ export interface CreateServiceOrderDTO {
 export const serviceOrderService = {
   async list() {
     const { data } = await api.get<ServiceOrder[]>('/os');
-    return data;
+    return Array.isArray(data) ? data : (data as any)?.items || [];
   },
 
   async getById(id: string) {
-    const { data } = await api.get<ServiceOrder>(`/os/${id}`);
-    return data;
+    const { data } = await api.get<any>(`/os/${id}`);
+    return data?.data || data;
   },
 
   async create(payload: CreateServiceOrderDTO) {
-    const { data } = await api.post<{ success: true; data: ServiceOrder }>('/os', payload);
-    return data.data;
+    const { data } = await api.post<any>('/os', payload);
+    return data?.data || data;
   },
 };

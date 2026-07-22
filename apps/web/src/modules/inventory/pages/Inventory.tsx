@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Upload, Save, RefreshCw } from 'lucide-react';
+import { Plus, Upload, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import api from '@/services/api';
 import { InventoryTable } from '../components/InventoryTable';
 import { StockAlertBanner } from '../components/StockAlertBanner';
@@ -10,6 +10,7 @@ import { FormField, Page, PageHeader } from '@/components/primitives';
 import Modal from '@/components/Modal';
 import type { InventoryItem } from '../types/inventory.types';
 import { Input } from '@/components/ui/input';
+import { extractErrorMessage } from '@/utils/errorHandler';
 
 export default function Inventory() {
   const queryClient = useQueryClient();
@@ -86,7 +87,7 @@ export default function Inventory() {
         supplierId: '',
       });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao cadastrar peça.'),
+    onError: (err: any) => toast.error(extractErrorMessage(err, 'Erro ao cadastrar peça.')),
   });
 
   const transferMutation = useMutation({
@@ -96,8 +97,9 @@ export default function Inventory() {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       setShowTransferModal(false);
       setTransferItem(null);
+      setTransferForm({ fromBranchId: '', toBranchId: '', quantity: '1', reason: '' });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Erro ao transferir estoque.'),
+    onError: (err: any) => toast.error(extractErrorMessage(err, 'Erro ao transferir estoque.')),
   });
 
   const handleCreateSubmit = (e: React.FormEvent) => {
@@ -114,10 +116,26 @@ export default function Inventory() {
   const handleTransferSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!transferItem) return;
+    if (!transferForm.fromBranchId || !transferForm.toBranchId) {
+      toast.error('Selecione a filial de origem e destino.');
+      return;
+    }
+    if (transferForm.fromBranchId === transferForm.toBranchId) {
+      toast.error('A filial de origem e destino não podem ser as mesmas.');
+      return;
+    }
+    const qty = Number(transferForm.quantity);
+    if (isNaN(qty) || qty <= 0) {
+      toast.error('Informe uma quantidade válida maior que zero.');
+      return;
+    }
+
     transferMutation.mutate({
       partId: transferItem.id,
-      ...transferForm,
-      quantity: Number(transferForm.quantity),
+      fromBranchId: transferForm.fromBranchId,
+      toBranchId: transferForm.toBranchId,
+      quantity: qty,
+      reason: transferForm.reason || 'Transferência entre filiais',
     });
   };
 
@@ -133,12 +151,12 @@ export default function Inventory() {
       setImportFile(null);
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Erro na importação.');
+      toast.error(extractErrorMessage(err, 'Erro na importação.'));
     }
   };
 
   return (
-    <Page>
+    <Page data-testid="inventory-page">
       <PageHeader
         title="Estoque de Peças & Materiais"
         description="Controle de SKUs, movimentações, transferências entre filiais e níveis de alerta."
@@ -190,7 +208,7 @@ export default function Inventory() {
               required
               value={formData.internalCode}
               onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
-              className="h-10 text-xs"
+              className="h-10 text-xs font-mono"
             />
           </FormField>
 
@@ -251,7 +269,7 @@ export default function Inventory() {
               step="0.01"
               value={formData.purchasePrice}
               onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-              className="h-10 text-xs"
+              className="h-10 text-xs font-mono"
             />
           </FormField>
 
@@ -262,7 +280,7 @@ export default function Inventory() {
               step="0.01"
               value={formData.salePrice}
               onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-              className="h-10 text-xs"
+              className="h-10 text-xs font-mono"
             />
           </FormField>
 
@@ -272,7 +290,7 @@ export default function Inventory() {
               type="number"
               value={formData.minStock}
               onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
-              className="h-10 text-xs"
+              className="h-10 text-xs font-mono"
             />
           </FormField>
 
@@ -282,7 +300,7 @@ export default function Inventory() {
               type="number"
               value={formData.initialStock}
               onChange={(e) => setFormData({ ...formData, initialStock: e.target.value })}
-              className="h-10 text-xs"
+              className="h-10 text-xs font-mono"
             />
           </FormField>
 
@@ -299,9 +317,14 @@ export default function Inventory() {
       </Modal>
 
       {/* Modal de Transferência */}
-      <Modal isOpen={showTransferModal} onClose={() => setShowTransferModal(false)} title={`Transferir: ${transferItem?.name}`} width="500px">
+      <Modal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        title={`Transferir Estoque: ${transferItem?.name || ''}`}
+        width="500px"
+      >
         <form onSubmit={handleTransferSubmit} className="flex flex-col gap-4">
-          <FormField label="Origem (Filial)" htmlFor="transfer-origin" required>
+          <FormField label="Filial de Origem *" htmlFor="transfer-origin" required>
             <select
               id="transfer-origin"
               required
@@ -309,7 +332,7 @@ export default function Inventory() {
               onChange={(e) => setTransferForm({ ...transferForm, fromBranchId: e.target.value })}
               className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
             >
-              <option value="">Selecione...</option>
+              <option value="">Selecione a filial de origem...</option>
               {branches.map((b: any) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -318,7 +341,7 @@ export default function Inventory() {
             </select>
           </FormField>
 
-          <FormField label="Destino (Filial)" htmlFor="transfer-target" required>
+          <FormField label="Filial de Destino *" htmlFor="transfer-target" required>
             <select
               id="transfer-target"
               required
@@ -326,7 +349,7 @@ export default function Inventory() {
               onChange={(e) => setTransferForm({ ...transferForm, toBranchId: e.target.value })}
               className="h-10 rounded-lg border border-input bg-background px-3 text-xs focus:ring-1 focus:ring-primary outline-none"
             >
-              <option value="">Selecione...</option>
+              <option value="">Selecione a filial de destino...</option>
               {branches.map((b: any) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -335,7 +358,7 @@ export default function Inventory() {
             </select>
           </FormField>
 
-          <FormField label="Quantidade" htmlFor="transfer-qty" required>
+          <FormField label="Quantidade a Transferir *" htmlFor="transfer-qty" required>
             <Input
               id="transfer-qty"
               type="number"
@@ -343,6 +366,16 @@ export default function Inventory() {
               required
               value={transferForm.quantity}
               onChange={(e) => setTransferForm({ ...transferForm, quantity: e.target.value })}
+              className="h-10 text-xs font-mono"
+            />
+          </FormField>
+
+          <FormField label="Motivo / Justificativa" htmlFor="transfer-reason">
+            <Input
+              id="transfer-reason"
+              placeholder="Ex: Remanejamento para atendimento de OS prioritária"
+              value={transferForm.reason}
+              onChange={(e) => setTransferForm({ ...transferForm, reason: e.target.value })}
               className="h-10 text-xs"
             />
           </FormField>
@@ -353,16 +386,16 @@ export default function Inventory() {
             </Button>
             <Button type="submit" size="sm" disabled={transferMutation.isPending} className="font-semibold text-xs">
               <RefreshCw className="w-4 h-4 mr-2" />
-              {transferMutation.isPending ? 'Transferindo...' : 'Transferir'}
+              {transferMutation.isPending ? 'Transferindo...' : 'Confirmar Transferência'}
             </Button>
           </div>
         </form>
       </Modal>
 
       {/* Modal de Importação */}
-      <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="Importar XLSX/CSV" width="500px">
+      <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="Importar Peças (XLSX / CSV)" width="500px">
         <form onSubmit={handleImportSubmit} className="flex flex-col gap-4">
-          <FormField label="Selecione o Arquivo" htmlFor="import-file">
+          <FormField label="Selecione o Arquivo (.xlsx ou .csv)" htmlFor="import-file">
             <Input
               id="import-file"
               type="file"
@@ -378,7 +411,7 @@ export default function Inventory() {
             </Button>
             <Button type="submit" size="sm" disabled={!importFile} className="font-semibold text-xs">
               <Upload className="w-4 h-4 mr-2" />
-              Importar
+              Enviar & Importar
             </Button>
           </div>
         </form>

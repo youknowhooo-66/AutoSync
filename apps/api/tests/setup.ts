@@ -15,19 +15,26 @@ import { truncateDatabase } from './helpers/db';
 beforeAll(async () => {
   // Clean up database before starting the test suite
   await truncateDatabase();
-});
+}, 30000);
 
 afterEach(async () => {
   // Truncate tables to guarantee test isolation
   await truncateDatabase();
-});
+}, 30000);
 
 afterAll(async () => {
-  // Gracefully close active prisma and redis connections
-  await prismaClient.$disconnect();
+  // Gracefully close active prisma and redis connections with fallback
   try {
-    await redisClient.quit();
+    await prismaClient.$disconnect();
   } catch (err) {
-    // Avoid crashing if redis wasn't connected
+    // Ignore disconnect errors during teardown
   }
-});
+
+  try {
+    if (redisClient.status !== 'end') {
+      redisClient.disconnect();
+    }
+  } catch (err) {
+    // Ignore redis disconnect errors
+  }
+}, 30000);

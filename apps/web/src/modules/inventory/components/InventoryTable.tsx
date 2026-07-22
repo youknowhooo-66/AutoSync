@@ -1,11 +1,12 @@
 import React, { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Package, Hash, Tag, AlertTriangle } from "lucide-react"
+import { Package, Tag, AlertTriangle, ArrowRightLeft } from "lucide-react"
 
 import { DataTableCore } from "@/components/data-table/core/DataTableCore"
 import { DataTableColumnHeader } from "@/components/data-table/parts/DataTableHeader"
 import { DataTableRowActions } from "@/components/data-table/parts/DataTableRowActions"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import type { InventoryItem } from "../types/inventory.types"
 
 interface InventoryTableProps {
@@ -99,14 +100,22 @@ export function InventoryTable({ data, isLoading, onRowClick, onEdit, onDelete, 
       {
         id: "actions",
         cell: ({ row }) => (
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            {onTransfer && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onTransfer(row.original)}
+                className="h-7 text-xs px-2.5 font-medium"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5 mr-1 text-primary" />
+                Transferir
+              </Button>
+            )}
             <DataTableRowActions 
               row={row} 
               onEdit={onEdit} 
               onDelete={onDelete} 
-              extraActions={[
-                { label: "Transferir Filial", onClick: () => onTransfer?.(row.original) }
-              ]} 
             />
           </div>
         ),
