@@ -26,6 +26,8 @@ import {
   ChevronRight,
   User as UserIcon,
   Check,
+  AlertCircle,
+  FileCheck,
 } from 'lucide-react';
 
 interface WorkspaceHeaderProps {
@@ -134,28 +136,39 @@ export function WorkspaceHeader({ onOpenCommandPalette }: WorkspaceHeaderProps) 
           </DropdownMenu>
         )}
 
-        {/* Notification Bell */}
+        {/* Notifications & Fiscal Explicit Unavailable State Popover */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className="relative text-muted-foreground hover:text-foreground"
-              aria-label="Central de notificações"
+              aria-label="Central de notificações e fiscal"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-4">
             <div className="flex items-center justify-between pb-2 border-b border-border mb-3">
-              <h4 className="text-sm font-semibold text-foreground">Notificações</h4>
-              <Badge variant="secondary" className="text-[10px]">ERP Operacional</Badge>
+              <h4 className="text-sm font-semibold text-foreground">Central de Notificações & Fiscal</h4>
+              <Badge variant="outline" className="text-[10px]">ERP Status</Badge>
             </div>
-            <div className="flex flex-col gap-2 text-xs text-muted-foreground">
-              <div className="p-2.5 rounded-lg bg-surface-muted/60 border border-border/40">
-                <span className="font-semibold text-foreground block">Sistema Operacional Online</span>
-                <span className="text-[11px]">Todas as integrações da filial estão operando normalmente.</span>
+            <div className="flex flex-col gap-2.5 text-xs text-muted-foreground">
+              <div className="p-2.5 rounded-lg bg-surface-muted/60 border border-border/40 flex items-start gap-2.5">
+                <FileCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="font-semibold text-foreground block">Operação Local Ativa</span>
+                  <span className="text-[11px]">Sistema ERP operando com sincronização em tempo real na filial selecionada.</span>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="font-semibold block">Módulo Fiscal (NF-e / NFC-e)</span>
+                  <span className="text-[11px]">Serviço SEFAZ indisponível. Requer ativação do módulo de emissão fiscal no backend real.</span>
+                </div>
               </div>
             </div>
           </PopoverContent>
