@@ -5,24 +5,20 @@ import {
 } from 'recharts';
 import { MdTrendingUp, MdBuild, MdPeople, MdAttachMoney } from 'react-icons/md';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const StatCard = ({ title, value, icon, color }: any) => (
-  <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
+  <div className="p-5 rounded-xl border border-border bg-card flex items-center gap-4 flex-1 shadow-sm">
     <div style={{ 
       backgroundColor: `rgba(${color}, 0.1)`, 
-      padding: '1rem', 
       borderRadius: '12px',
       color: `rgb(${color})`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
+    }} className="h-12 w-12 flex items-center justify-center shrink-0">
       {icon}
     </div>
-    <div>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>{title}</p>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem' }}>{value}</h2>
+    <div className="flex flex-col min-w-0">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+      <h2 className="text-2xl font-bold tracking-tight text-foreground mt-0.5 truncate">{value}</h2>
     </div>
   </div>
 );
@@ -38,108 +34,102 @@ const Dashboard: React.FC = () => {
   const fetchStats = async () => {
     try {
       const response = await api.get('/dashboard');
-      console.log('Dashboard stats received:', response.data);
       setStats(response.data);
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
       toast.error('Erro ao carregar dados do dashboard.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div className="fade-in" style={{ padding: '2rem' }}>Carregando dashboard...</div>;
-  if (!stats) return <div className="fade-in" style={{ padding: '2rem' }}>Nenhum dado disponível.</div>;
+  if (loading) return <div className="p-6 text-sm text-muted-foreground">Carregando dashboard...</div>;
+  if (!stats) return <div className="p-6 text-sm text-muted-foreground">Nenhum dado disponível.</div>;
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <header>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Resumo Operacional</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Acompanhe o desempenho da sua oficina em tempo real.</p>
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      <header className="pb-4 border-b border-border/60">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Resumo Operacional</h1>
+        <p className="text-sm text-muted-foreground mt-1">Acompanhe o desempenho da sua oficina em tempo real.</p>
       </header>
 
       {/* Stats Grid */}
-      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
           title="Faturamento Mensal" 
           value={`R$ ${(stats?.monthlyRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={<MdAttachMoney size={28} />} 
+          icon={<MdAttachMoney size={24} />} 
           color="16, 185, 129" 
         />
         <StatCard 
           title="Ordens de Serviço" 
           value={stats?.monthlyOS || 0} 
-          icon={<MdBuild size={28} />} 
+          icon={<MdBuild size={24} />} 
           color="56, 189, 248" 
         />
         <StatCard 
           title="Novos Clientes" 
           value={stats?.newClients || 0} 
-          icon={<MdPeople size={28} />} 
+          icon={<MdPeople size={24} />} 
           color="245, 158, 11" 
         />
         <StatCard 
           title="Taxa de Conversão" 
-          value={`${stats?.conversionRate || 0}%`} 
-          icon={<MdTrendingUp size={28} />} 
+          value={`${(stats?.conversionRate || 0).toFixed(1)}%`} 
+          icon={<MdTrendingUp size={24} />} 
           color="139, 92, 246" 
         />
       </div>
 
       {/* Charts Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1.5rem' }}>
-        <div className="card" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Faturamento Diário</h3>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats?.chartData || []}>
-                  <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} tickFormatter={(val) => `R$ ${val}`} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                    itemStyle={{ color: '#38bdf8' }}
-                    formatter={(val: any) => [`R$ ${(val || 0).toLocaleString('pt-BR')}`, 'Faturamento']}
-                  />
-                  <Area type="monotone" dataKey="revenue" stroke="#38bdf8" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 p-5 rounded-xl border border-border bg-card flex flex-col min-h-[400px]">
+          <h3 className="text-sm font-semibold tracking-tight text-foreground mb-4">Faturamento Diário</h3>
+          <div className="flex-1 w-full min-h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats?.chartData || []}>
+                <defs>
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={12} tickFormatter={(val) => `R$ ${val}`} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                  itemStyle={{ color: 'var(--primary)' }}
+                  formatter={(val: any) => [`R$ ${(val || 0).toLocaleString('pt-BR')}`, 'Faturamento']}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#0284c7" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRev)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="card" style={{ minHeight: '450px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Status das OS</h3>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, position: 'relative' }}>
-               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats?.statusDistribution || []} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="status" type="category" stroke="#64748b" fontSize={11} width={80} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                      formatter={(val: any) => [val, 'Quantidade']}
-                    />
-                    <Bar dataKey="_count.id" fill="#818cf8" radius={[0, 4, 4, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+        <div className="p-5 rounded-xl border border-border bg-card flex flex-col min-h-[400px]">
+          <h3 className="text-sm font-semibold tracking-tight text-foreground mb-4">Status das OS</h3>
+          <div className="flex-1 w-full flex flex-col">
+            <div className="flex-1 min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats?.statusDistribution || []} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="status" type="category" stroke="var(--muted-foreground)" fontSize={11} width={80} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                    formatter={(val: any) => [val, 'Quantidade']}
+                  />
+                  <Bar dataKey="_count.id" fill="#0284c7" radius={[0, 4, 4, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div className="pt-3 mt-3 border-t border-border/60 grid grid-cols-2 gap-2 text-xs">
               {(stats?.statusDistribution || []).map((item: any) => (
-                <div key={item?.status || Math.random()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#818cf8' }} />
-                  <span style={{ color: 'var(--text-secondary)' }}>{(item?.status || 'N/A')}:</span>
-                  <span style={{ fontWeight: 600 }}>{item?._count?.id || 0}</span>
+                <div key={item?.status || Math.random()} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                  <span className="text-muted-foreground truncate">{item?.status || 'N/A'}:</span>
+                  <span className="font-semibold text-foreground">{item?._count?.id || 0}</span>
                 </div>
               ))}
             </div>
@@ -147,56 +137,45 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '1.5rem' }}>
-        <div className="card" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
-           <h3 style={{ marginBottom: '1.5rem' }}>Volume de OS</h3>
-           <div style={{ flex: 1, position: 'relative' }}>
-             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-               <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={stats?.chartData || []}>
-                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                   <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                   <YAxis stroke="#64748b" fontSize={12} />
-                   <Tooltip 
-                     contentStyle={{ backgroundColor: '#1e293b', borderColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-                     formatter={(val: any) => [val, 'Ordens de Serviço']}
-                   />
-                   <Bar dataKey="os" fill="#818cf8" radius={[4, 4, 0, 0]} />
-                 </BarChart>
-               </ResponsiveContainer>
-             </div>
-           </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="p-5 rounded-xl border border-border bg-card flex flex-col min-h-[350px]">
+          <h3 className="text-sm font-semibold tracking-tight text-foreground mb-4">Volume de OS</h3>
+          <div className="flex-1 w-full min-h-[240px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats?.chartData || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                  formatter={(val: any) => [val, 'Ordens de Serviço']}
+                />
+                <Bar dataKey="os" fill="#0284c7" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="card" style={{ height: '350px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginBottom: '1rem' }}>Últimas Ordens de Serviço</h3>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div className="lg:col-span-2 p-5 rounded-xl border border-border bg-card flex flex-col min-h-[350px]">
+          <h3 className="text-sm font-semibold tracking-tight text-foreground mb-4">Últimas Ordens de Serviço</h3>
+          <div className="flex-1 overflow-y-auto flex flex-col divide-y divide-border/60">
             {stats?.recentOS?.length > 0 ? stats.recentOS.map((os: any) => (
-              <div key={os?.id || Math.random()} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                padding: '0.875rem 1rem', 
-                borderBottom: '1px solid var(--border)',
-                alignItems: 'center'
-              }}>
-                <div>
-                  <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>OS #{os?.number || '---'} - {os?.vehicle?.model || 'Desconhecido'}</p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{os?.client?.name || 'Cliente não identificado'}</p>
+              <div key={os?.id || Math.random()} className="flex items-center justify-between py-3 px-1 text-xs">
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-semibold text-foreground">OS #{os?.number || '---'} - {os?.vehicle?.model || 'Desconhecido'}</p>
+                  <p className="text-muted-foreground">{os?.client?.name || 'Cliente não identificado'}</p>
                 </div>
-                <span style={{ 
-                  padding: '4px 10px', 
-                  borderRadius: '20px', 
-                  fontSize: '0.7rem', 
-                  fontWeight: 600,
-                  backgroundColor: os?.status === 'FINISHED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(56, 189, 248, 0.1)', 
-                  color: os?.status === 'FINISHED' ? '#10b981' : '#38bdf8' 
-                }}>
+                <span className={`px-2.5 py-1 rounded-full font-semibold ${
+                  os?.status === 'FINISHED' 
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-primary/10 text-primary'
+                }`}>
                   {os?.status === 'FINISHED' ? 'Finalizada' : (os?.status || 'Aberta')}
                 </span>
               </div>
             )) : (
-              <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>Nenhuma OS encontrada.</p>
+              <p className="text-muted-foreground text-center py-8">Nenhuma OS encontrada.</p>
             )}
           </div>
         </div>

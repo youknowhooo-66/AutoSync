@@ -39,7 +39,7 @@ export function MetricCard({
   return (
     <Card
       className={cn(
-        'p-5 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-md border',
+        'p-5 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-sm border',
         onClick && 'cursor-pointer hover:border-primary/50',
         variantStyles[variant],
         className
@@ -49,7 +49,7 @@ export function MetricCard({
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</span>
         {icon && (
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-surface-muted text-foreground shrink-0">
+          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-secondary text-foreground shrink-0">
             {icon}
           </div>
         )}
@@ -115,14 +115,14 @@ export function ActionCard({ title, description, icon, onClick, className }: Act
     <Card
       onClick={onClick}
       className={cn(
-        'p-4 flex items-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group border border-border bg-card',
+        'p-4 flex items-center gap-4 cursor-pointer border border-border bg-card hover:border-primary/50 hover:bg-secondary/40 transition-all group',
         className
       )}
     >
       <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
         {icon}
       </div>
-      <div className="flex flex-col gap-0.5 min-w-0">
+      <div className="flex flex-col justify-center gap-0.5 min-w-0 flex-1">
         <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
           {title}
         </h4>

@@ -67,32 +67,32 @@
 
 @layer base {
   :root {
-    /* Automotive ERP Modern Light Theme */
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    /* AutoSync ERP Neutral Light Theme (Linear / Notion / Stripe inspired) */
+    --background: #fcfcfc;
+    --foreground: #09090b;
 
     --surface: #ffffff;
     --surface-elevated: #ffffff;
-    --surface-muted: #f1f5f9;
+    --surface-muted: #f4f4f5;
 
     --card: #ffffff;
-    --card-foreground: #0f172a;
+    --card-foreground: #09090b;
 
     --popover: #ffffff;
-    --popover-foreground: #0f172a;
+    --popover-foreground: #09090b;
 
-    --primary: #0284c7;        /* Sky 600 - Automotive Precision Blue */
+    --primary: #0284c7;        /* Sky 600 - Precision Accent Blue */
     --primary-hover: #0369a1;  /* Sky 700 */
     --primary-foreground: #ffffff;
 
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #18181b;
 
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
 
-    --accent: #f1f5f9;
-    --accent-foreground: #0f172a;
+    --accent: #f4f4f5;
+    --accent-foreground: #18181b;
 
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
@@ -106,79 +106,79 @@
     --info: #3b82f6;
     --info-foreground: #ffffff;
 
-    --border: #e2e8f0;
-    --border-strong: #cbd5e1;
-    --input: #e2e8f0;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --input: #e4e4e7;
     --ring: #0284c7;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: #0f172a; /* Slate 900 ERP Sidebar */
-    --sidebar-foreground: #f8fafc;
-    --sidebar-primary: #38bdf8;
-    --sidebar-primary-foreground: #0f172a;
-    --sidebar-accent: #1e293b;
-    --sidebar-accent-foreground: #f8fafc;
-    --sidebar-border: #1e293b;
-    --sidebar-ring: #38bdf8;
+    --sidebar-background: #fafafa;
+    --sidebar-foreground: #18181b;
+    --sidebar-primary: #0284c7;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f4f4f5;
+    --sidebar-accent-foreground: #09090b;
+    --sidebar-border: #e4e4e7;
+    --sidebar-ring: #0284c7;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
   }
 
   .dark {
-    /* Automotive ERP Modern Dark Theme */
-    --background: #090d16;
-    --foreground: #f8fafc;
+    /* AutoSync ERP Neutral Dark Theme (Graphite / Charcoal - Raycast / Linear inspired) */
+    --background: #09090b;     /* Zinc 950 - Neutral Charcoal */
+    --foreground: #f4f4f5;
 
-    --surface: #0f172a;
-    --surface-elevated: #1e293b;
-    --surface-muted: #1e293b;
+    --surface: #18181b;        /* Zinc 900 */
+    --surface-elevated: #27272a;/* Zinc 800 */
+    --surface-muted: #27272a;
 
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
+    --card: #18181b;
+    --card-foreground: #f4f4f5;
 
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
+    --popover: #18181b;
+    --popover-foreground: #f4f4f5;
 
-    --primary: #38bdf8;        /* Sky 400 */
+    --primary: #38bdf8;        /* Sky 400 - Accent Blue Only */
     --primary-hover: #0284c7;  /* Sky 600 */
-    --primary-foreground: #090d16;
+    --primary-foreground: #09090b;
 
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
+    --secondary: #27272a;
+    --secondary-foreground: #f4f4f5;
 
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
 
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
+    --accent: #27272a;
+    --accent-foreground: #f4f4f5;
 
     --destructive: #f87171;
     --destructive-foreground: #ffffff;
 
     --success: #34d399;
-    --success-foreground: #090d16;
+    --success-foreground: #09090b;
     --warning: #fbbf24;
-    --warning-foreground: #090d16;
+    --warning-foreground: #09090b;
     --danger: #f87171;
     --danger-foreground: #ffffff;
     --info: #60a5fa;
-    --info-foreground: #090d16;
+    --info-foreground: #09090b;
 
-    --border: #1e293b;
-    --border-strong: #334155;
-    --input: #1e293b;
+    --border: #27272a;
+    --border-strong: #3f3f46;
+    --input: #27272a;
     --ring: #38bdf8;
 
-    --sidebar-background: #090d16;
-    --sidebar-foreground: #f8fafc;
+    --sidebar-background: #09090b; /* Pure Neutral Graphite Dark */
+    --sidebar-foreground: #f4f4f5;
     --sidebar-primary: #38bdf8;
-    --sidebar-primary-foreground: #090d16;
-    --sidebar-accent: #1e293b;
-    --sidebar-accent-foreground: #f8fafc;
-    --sidebar-border: #1e293b;
+    --sidebar-primary-foreground: #09090b;
+    --sidebar-accent: #27272a;
+    --sidebar-accent-foreground: #f4f4f5;
+    --sidebar-border: #27272a;
     --sidebar-ring: #38bdf8;
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
@@ -206,23 +206,23 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(113, 113, 122, 0.2);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(113, 113, 122, 0.4);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
+  background: rgba(161, 161, 170, 0.2);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+  background: rgba(161, 161, 170, 0.4);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -233,7 +233,7 @@
   }
 
   .glass {
-    @apply bg-card/90 backdrop-blur-md border-border/50;
+    @apply bg-card border-border;
   }
 
   .btn-primary {
