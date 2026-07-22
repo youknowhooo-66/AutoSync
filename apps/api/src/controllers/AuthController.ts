@@ -31,7 +31,7 @@ export const login = async (req: Request, res: Response) => {
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, branchId: user.branchId },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET || 'autosync-ci-test-secret-at-least-32-chars',
       { expiresIn: '1d' }
     );
 
