@@ -129,17 +129,25 @@ export function AppSidebar() {
                 <SidebarMenu className="group-data-[collapsible=icon]:items-center">
                   {group.items.map((item) => (
                     <SidebarMenuItem key={item.path} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-                      <SidebarMenuButton asChild tooltip={item.name}>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.name}
+                        className="h-10 w-full justify-start gap-2.5 px-3 group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                      >
                         <NavLink
                           to={item.path}
                           className={({ isActive }) =>
-                            isActive
-                              ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium rounded-lg border-l-2 border-primary group-data-[collapsible=icon]:border-l-0'
-                              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground rounded-lg'
+                            `flex items-center gap-2.5 rounded-lg w-full transition-all ${
+                              isActive
+                                ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+                                : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
+                            }`
                           }
                         >
-                          <item.icon className="size-5 shrink-0" />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-md">
+                            <item.icon className="size-5 shrink-0" />
+                          </span>
+                          <span className="group-data-[collapsible=icon]:hidden truncate">{item.name}</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -169,11 +177,13 @@ export function AppSidebar() {
           <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <SidebarMenuButton
               onClick={logout}
-              className="text-sidebar-foreground hover:bg-danger/10 hover:text-danger text-xs font-medium rounded-lg"
+              className="h-10 w-full justify-start gap-2.5 px-3 group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 text-sidebar-foreground hover:bg-danger/10 hover:text-danger rounded-lg"
               tooltip="Sair do sistema"
             >
-              <LogOut className="size-5 shrink-0" />
-              <span className="group-data-[collapsible=icon]:hidden">Sair do sistema</span>
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-md">
+                <LogOut className="size-5 shrink-0 text-danger" />
+              </span>
+              <span className="group-data-[collapsible=icon]:hidden font-medium text-xs">Sair do sistema</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
