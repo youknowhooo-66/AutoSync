@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarHeader,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -87,26 +88,26 @@ export function AppSidebar() {
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       {/* Header: Logo & Active Workspace Info */}
-      <SidebarHeader className="p-4 flex flex-col gap-3 border-b border-sidebar-border/60">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-sm shrink-0">
-            <Car className="h-5 w-5" />
+      <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center flex flex-col gap-3 border-b border-sidebar-border">
+        <div className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs shrink-0">
+            <Car className="size-5" />
           </div>
-          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-bold text-base tracking-tight text-sidebar-foreground">{APP_INFO.name}</span>
-            <span className="text-[11px] text-sidebar-foreground/60">{APP_INFO.tagline}</span>
+          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden truncate">
+            <span className="font-bold text-sm tracking-tight text-sidebar-foreground truncate">{APP_INFO.name}</span>
+            <span className="text-[10px] text-muted-foreground truncate">{APP_INFO.tagline}</span>
           </div>
         </div>
 
         {/* Company & Active Branch Indicator */}
-        <div className="flex flex-col gap-1 p-2 rounded-lg bg-sidebar-accent/50 border border-sidebar-border/40 group-data-[collapsible=icon]:hidden text-xs">
+        <div className="flex flex-col gap-1 p-2 rounded-lg bg-surface-muted/60 border border-border/40 group-data-[collapsible=icon]:hidden text-xs w-full">
           <div className="flex items-center gap-1.5 font-medium text-sidebar-foreground truncate">
-            <Building2 className="h-3.5 w-3.5 text-sidebar-primary shrink-0" />
+            <Building2 className="size-3.5 text-primary shrink-0" />
             <span className="truncate">{user?.tenant?.name || 'AutoSync Enterprise'}</span>
           </div>
           {activeBranch && (
-            <div className="flex items-center gap-1.5 text-[11px] text-sidebar-foreground/70 truncate pl-5">
-              <Store className="h-3 w-3 shrink-0" />
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate pl-5">
+              <Store className="size-3 shrink-0" />
               <span className="truncate">{activeBranch.name}</span>
             </div>
           )}
@@ -114,65 +115,70 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* Navigation Menu Grouped by Domains */}
-      <SidebarContent className="px-2 py-3">
-        {menuGroups.map((group) => (
-          <SidebarGroup key={group.label} className="py-1.5">
-            <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50 px-2">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild tooltip={item.name}>
-                      <NavLink
-                        to={item.path}
-                        className={({ isActive }) =>
-                          isActive
-                            ? 'bg-sidebar-accent text-sidebar-primary font-semibold border-l-2 border-sidebar-primary'
-                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                        }
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        <span>{item.name}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+      <SidebarContent className="px-2 py-2 group-data-[collapsible=icon]:px-1">
+        {menuGroups.map((group, index) => (
+          <React.Fragment key={group.label}>
+            {index > 0 && (
+              <SidebarSeparator className="my-1.5 mx-auto w-6 bg-sidebar-border group-data-[collapsible=icon]:block hidden sm:block" />
+            )}
+            <SidebarGroup className="py-1 px-1 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:items-center">
+              <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 px-2 group-data-[collapsible=icon]:hidden">
+                {group.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.path} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                      <SidebarMenuButton asChild tooltip={item.name}>
+                        <NavLink
+                          to={item.path}
+                          className={({ isActive }) =>
+                            isActive
+                              ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium rounded-lg border-l-2 border-primary group-data-[collapsible=icon]:border-l-0'
+                              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground rounded-lg'
+                          }
+                        >
+                          <item.icon className="size-5 shrink-0" />
+                          <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </React.Fragment>
         ))}
       </SidebarContent>
 
       {/* Footer: User & App Version */}
-      <SidebarFooter className="border-t border-sidebar-border p-3 group-data-[collapsible=icon]:p-2">
-        <div className="flex items-center justify-between gap-2 overflow-hidden group-data-[collapsible=icon]:hidden mb-2 px-1">
+      <SidebarFooter className="border-t border-sidebar-border p-2 group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:items-center">
+        <div className="flex items-center justify-between gap-2 overflow-hidden group-data-[collapsible=icon]:hidden mb-1 px-1">
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground font-semibold text-xs border border-sidebar-border">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground font-semibold text-xs border border-sidebar-border">
               {user?.name ? user.name.substring(0, 2).toUpperCase() : 'US'}
             </div>
             <div className="flex flex-col overflow-hidden">
               <span className="truncate text-xs font-semibold text-sidebar-foreground">{user?.name}</span>
-              <span className="truncate text-[10px] text-sidebar-foreground/60">{user?.role}</span>
+              <span className="truncate text-[10px] text-muted-foreground">{user?.role}</span>
             </div>
           </div>
         </div>
 
-        <SidebarMenu>
-          <SidebarMenuItem>
+        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <SidebarMenuButton
               onClick={logout}
-              className="text-danger hover:bg-danger/10 hover:text-danger text-xs font-medium"
+              className="text-sidebar-foreground hover:bg-danger/10 hover:text-danger text-xs font-medium rounded-lg"
               tooltip="Sair do sistema"
             >
-              <LogOut className="h-4 w-4" />
-              <span>Sair do sistema</span>
+              <LogOut className="size-5 shrink-0" />
+              <span className="group-data-[collapsible=icon]:hidden">Sair do sistema</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
 
-        <div className="text-[10px] text-sidebar-foreground/40 text-center pt-2 group-data-[collapsible=icon]:hidden">
+        <div className="text-[10px] text-muted-foreground/50 text-center pt-1 group-data-[collapsible=icon]:hidden">
           v{APP_INFO.version}
         </div>
       </SidebarFooter>
