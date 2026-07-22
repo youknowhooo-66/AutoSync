@@ -198,7 +198,7 @@ const Reports: React.FC = () => {
         {/* OS Status Distribution Chart */}
         <ChartCard
           title="Distribuição por Status de OS"
-          description={`Fonte: GET /api/service-orders | Filial: ${activeBranch?.name || 'Global'}`}
+          description={`Fonte: GET /service-orders | Filial: ${activeBranch?.name || 'Global'}`}
         >
           {data?.osStatusDistribution && data.osStatusDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -240,7 +240,7 @@ const Reports: React.FC = () => {
         {/* Funnel Bar Chart */}
         <ChartCard
           title="Funil Operacional & Financeiro"
-          description={`Fonte: GET /api/dashboard | Filial: ${activeBranch?.name || 'Global'}`}
+          description={`Fonte: GET /dashboard | Filial: ${activeBranch?.name || 'Global'}`}
         >
           {funnel.created > 0 || funnel.completed > 0 || funnel.paid > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -280,7 +280,7 @@ const Reports: React.FC = () => {
       {/* Financial Volume Chart */}
       <ChartCard
         title="Volume Financeiro por Natureza (Entradas vs Saídas)"
-        description={`Fonte: GET /api/financial | Filial: ${activeBranch?.name || 'Global'}`}
+        description={`Fonte: GET /financial | Filial: ${activeBranch?.name || 'Global'}`}
       >
         {data?.financialTypeDistribution && data.financialTypeDistribution.length > 0 ? (
           <div className="flex flex-col md:flex-row items-center justify-around gap-4 p-4">

@@ -4,13 +4,13 @@ import type { AddServiceOrderItemPayload, RemoveServiceOrderItemPayload } from '
 export const serviceOrderItemService = {
   async addItems(payload: AddServiceOrderItemPayload) {
     const { serviceOrderId, parts, services } = payload;
-    const response = await api.post(`/api/service-orders/${serviceOrderId}/items`, { parts, services });
+    const response = await api.post(`/os/${serviceOrderId}/items`, { parts, services });
     return response.data;
   },
   
   async removeItem(payload: RemoveServiceOrderItemPayload) {
     const { serviceOrderId, itemId, type } = payload;
-    const response = await api.delete(`/api/service-orders/${serviceOrderId}/items/${itemId}?type=${type}`);
+    const response = await api.delete(`/os/${serviceOrderId}/items/${itemId}?type=${type}`);
     return response.data;
   }
 };

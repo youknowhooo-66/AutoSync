@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../modules/auth/state/auth.store';
+import { logger } from '@/utils/logger';
 
 const getBaseURL = () => {
   const envUrl = import.meta.env.VITE_API_URL;
@@ -21,7 +22,7 @@ const api = axios.create({
   timeout: 30000, // 30 seconds timeout
 });
 
-// Auto-inject headers (auth token, tenant/company, branch)
+// Auto-inject headers (auth token, tenant/company, branch, correlationId)
 api.interceptors.request.use((config) => {
   const state = useAuthStore.getState();
   const token = state.token;
@@ -43,16 +44,24 @@ api.interceptors.request.use((config) => {
     config.headers['x-branch-id'] = branchId;
   }
 
+  logger.api.debug(`[Request] ${config.method?.toUpperCase()} ${config.url}`);
+
   return config;
 });
 
 // Handle unauthorized responses globally
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    logger.api.debug(`[Response] ${response.status} ${response.config.url}`);
+    return response;
+  },
   (error) => {
+    logger.api.warn(`[Error Response] ${error.response?.status} ${error.config?.url}`, error.response?.data);
+
     // 401 Unauthorized: Clear session and redirect to login (preventing loops)
     if (error.response?.status === 401) {
       if (window.location.pathname !== '/login') {
+        logger.auth.warn('Session expired or unauthorized. Redirecting to login.');
         useAuthStore.getState().clearSession();
         window.location.href = '/login';
       }
