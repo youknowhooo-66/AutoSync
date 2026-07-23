@@ -129,18 +129,18 @@ async function main() {
   }
 
   const clientsData = [
-    { name: 'João Silva', doc: '111.222.333-44', vehicle: { model: 'Civic', brand: 'Honda', plate: 'ABC1D23', year: 2022 } },
-    { name: 'Maria Souza', doc: '555.666.777-88', vehicle: { model: 'Corolla', brand: 'Toyota', plate: 'XYZ9A87', year: 2021 } },
-    { name: 'Pedro Santos', doc: '999.000.111-22', vehicle: { model: 'Onix', brand: 'Chevrolet', plate: 'KJH5G43', year: 2020 } },
-    { name: 'Fernanda Lima', doc: '333.444.555-66', vehicle: { model: 'Golf', brand: 'Volkswagen', plate: 'MNO2B11', year: 2019 } },
-    { name: 'Roberto J.', doc: '777.888.999-00', vehicle: { model: 'Hilux', brand: 'Toyota', plate: 'PRT3F22', year: 2023 } },
-    { name: 'Aline P.', doc: '222.333.444-55', vehicle: { model: 'HB20', brand: 'Hyundai', plate: 'HGB6E44', year: 2022 } },
-    { name: 'Transportes Rápidos Ltda', doc: '10.200.300/0001-44', vehicle: { model: 'Daily', brand: 'Iveco', plate: 'LOG1A00', year: 2021 } },
-    { name: 'Carlos Eduardo', doc: '123.456.789-00', vehicle: { model: 'Compass', brand: 'Jeep', plate: 'JEE3P00', year: 2022 } },
-    { name: 'Beatriz Almeida', doc: '987.654.321-11', vehicle: { model: 'Renegade', brand: 'Jeep', plate: 'REN4G99', year: 2021 } },
-    { name: 'Marcos Costa', doc: '456.123.789-22', vehicle: { model: 'Creta', brand: 'Hyundai', plate: 'CRE5T88', year: 2023 } },
-    { name: 'Luciana Mendes', doc: '321.654.987-33', vehicle: { model: 'Nivus', brand: 'Volkswagen', plate: 'NIV6V77', year: 2022 } },
-    { name: 'Locadora Viagem', doc: '20.300.400/0001-55', vehicle: { model: 'Argo', brand: 'Fiat', plate: 'LOC7A66', year: 2023 } }
+    { name: 'João Silva', doc: '111.222.333-44', email: 'joao.silva@example.com', vehicle: { model: 'Civic', brand: 'Honda', plate: 'ABC1D23', year: 2022 } },
+    { name: 'Maria Souza', doc: '555.666.777-88', email: 'maria.souza@example.com', vehicle: { model: 'Corolla', brand: 'Toyota', plate: 'XYZ9A87', year: 2021 } },
+    { name: 'Pedro Santos', doc: '999.000.111-22', email: 'pedro.santos@example.com', vehicle: { model: 'Onix', brand: 'Chevrolet', plate: 'KJH5G43', year: 2020 } },
+    { name: 'Fernanda Lima', doc: '333.444.555-66', email: 'fernanda.lima@example.com', vehicle: { model: 'Golf', brand: 'Volkswagen', plate: 'MNO2B11', year: 2019 } },
+    { name: 'Roberto J.', doc: '777.888.999-00', email: 'roberto.j@example.com', vehicle: { model: 'Hilux', brand: 'Toyota', plate: 'PRT3F22', year: 2023 } },
+    { name: 'Aline P.', doc: '222.333.444-55', email: 'aline.p@example.com', vehicle: { model: 'HB20', brand: 'Hyundai', plate: 'HGB6E44', year: 2022 } },
+    { name: 'Transportes Rápidos Ltda', doc: '10.200.300/0001-44', email: 'contato@transportesrapidos.com.br', vehicle: { model: 'Daily', brand: 'Iveco', plate: 'LOG1A00', year: 2021 } },
+    { name: 'Carlos Eduardo', doc: '123.456.789-00', email: 'carlos.eduardo@example.com', vehicle: { model: 'Compass', brand: 'Jeep', plate: 'JEE3P00', year: 2022 } },
+    { name: 'Beatriz Almeida', doc: '987.654.321-11', email: 'beatriz.almeida@example.com', vehicle: { model: 'Renegade', brand: 'Jeep', plate: 'REN4G99', year: 2021 } },
+    { name: 'Marcos Costa', doc: '456.123.789-22', email: 'marcos.costa@example.com', vehicle: { model: 'Creta', brand: 'Hyundai', plate: 'CRE5T88', year: 2023 } },
+    { name: 'Luciana Mendes', doc: '321.654.987-33', email: 'luciana.mendes@example.com', vehicle: { model: 'Nivus', brand: 'Volkswagen', plate: 'NIV6V77', year: 2022 } },
+    { name: 'Locadora Viagem', doc: '20.300.400/0001-55', email: 'contato@locadoraviagem.com.br', vehicle: { model: 'Argo', brand: 'Fiat', plate: 'LOC7A66', year: 2023 } }
   ];
 
   for (let i = 0; i < clientsData.length; i++) {
@@ -150,6 +150,7 @@ async function main() {
         companyId: company.id,
         name: c.name,
         document: c.doc,
+        email: c.email,
         phone: `(11) 98888-${7000 + i}`,
         vehicles: {
           create: { companyId: company.id, ...c.vehicle }

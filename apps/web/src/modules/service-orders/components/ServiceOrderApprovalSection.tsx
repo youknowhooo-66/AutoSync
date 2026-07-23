@@ -25,6 +25,34 @@ interface Props {
   };
 }
 
+function toNumber(value: unknown): number {
+  if (value === null || value === undefined) return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCurrency(value: unknown): string {
+  return toNumber(value).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+}
+
+function formatDate(value: unknown): string {
+  if (!value) return 'Não informado';
+
+  const date = new Date(String(value));
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Não informado';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date);
+}
+
 export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
   const { can } = usePermissions();
   const { data: approval, isLoading } = useServiceOrderApproval(serviceOrder.id);
@@ -39,7 +67,7 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
   const [showInvalidateForm, setShowInvalidateForm] = useState(false);
 
   if (isLoading) {
-    return <div className="p-4 text-center">Carregando aprovações...</div>;
+    return <div className="p-4 text-center text-sm text-muted-foreground">Carregando aprovações...</div>;
   }
 
   if (!can('os.approval_view')) {
@@ -95,19 +123,15 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
     INVALIDATED: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
   };
 
-  const statusIcons: Record<string, any> = {
-    PENDING: AlertTriangle,
-    APPROVED: CheckCircle,
-    REJECTED: XCircle,
-    INVALIDATED: Ban
-  };
-
-  const Icon = approval ? statusIcons[approval.status] || AlertTriangle : null;
+  const partsVal = toNumber(approval?.totalParts);
+  const servicesVal = toNumber(approval?.totalServices);
+  const finalVal = toNumber(approval?.finalValue);
+  const hasValidSnapshot = approval ? (finalVal > 0 && Number.isFinite(partsVal) && Number.isFinite(servicesVal)) : false;
 
   return (
-    <Card className="border border-border/40 bg-card/60 backdrop-blur-sm shadow-md mt-6">
+    <Card className="border border-border/40 bg-card/60 backdrop-blur-xs shadow-md mt-6">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
           <FileText className="w-5 h-5 text-primary" />
           Aprovação do Orçamento
         </CardTitle>
@@ -129,13 +153,13 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
             <div className="text-sm space-y-1 bg-muted/40 p-3 rounded-lg border border-border/20">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Solicitado em:</span>
-                <span>{new Date(approval.requestedAt).toLocaleString()}</span>
+                <span className="text-foreground">{formatDate(approval.requestedAt)}</span>
               </div>
 
               {approval.status === 'APPROVED' && approval.approvedAt && (
                 <div className="flex justify-between text-green-500 font-medium">
                   <span>Aprovado em:</span>
-                  <span>{new Date(approval.approvedAt).toLocaleString()}</span>
+                  <span>{formatDate(approval.approvedAt)}</span>
                 </div>
               )}
 
@@ -143,7 +167,7 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
                 <div className="space-y-1">
                   <div className="flex justify-between text-red-500 font-medium">
                     <span>Rejeitado em:</span>
-                    <span>{new Date(approval.rejectedAt).toLocaleString()}</span>
+                    <span>{formatDate(approval.rejectedAt)}</span>
                   </div>
                   {approval.rejectionReason && (
                     <div className="bg-red-500/10 text-red-500 p-2 rounded mt-1 border border-red-500/20">
@@ -157,7 +181,7 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
                 <div className="space-y-1">
                   <div className="flex justify-between text-muted-foreground font-medium">
                     <span>Invalidado em:</span>
-                    <span>{new Date(approval.invalidatedAt).toLocaleString()}</span>
+                    <span>{formatDate(approval.invalidatedAt)}</span>
                   </div>
                   {approval.invalidationReason && (
                     <div className="bg-muted text-muted-foreground p-2 rounded mt-1 border border-border/30">
@@ -170,30 +194,37 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
 
             {/* Snapshot imutável */}
             <div className="border border-border/30 rounded-lg overflow-hidden bg-card/40">
-              <div className="bg-muted/60 p-2 text-xs font-semibold uppercase tracking-wider border-b border-border/30">
+              <div className="bg-muted/60 p-2 text-xs font-semibold uppercase tracking-wider border-b border-border/30 text-foreground">
                 Resumo do Snapshot Aprovado/Pendente
               </div>
-              <div className="p-3 space-y-2 text-sm">
+              <div className="p-3 space-y-2 text-sm text-foreground">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Peças:</span>
-                  <span className="font-mono">R$ {Number(approval.totalParts).toFixed(2)}</span>
+                  <span className="font-mono">{formatCurrency(approval.totalParts)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Serviços:</span>
-                  <span className="font-mono">R$ {Number(approval.totalServices).toFixed(2)}</span>
+                  <span className="font-mono">{formatCurrency(approval.totalServices)}</span>
                 </div>
-                {Number(approval.discount) > 0 && (
+                {toNumber(approval.discount) > 0 && (
                   <div className="flex justify-between text-red-500">
                     <span>Desconto:</span>
-                    <span className="font-mono">- R$ {Number(approval.discount).toFixed(2)}</span>
+                    <span className="font-mono">- {formatCurrency(approval.discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold border-t border-border/20 pt-2 text-base">
                   <span>Total Final:</span>
-                  <span className="font-mono text-primary">R$ {Number(approval.finalValue).toFixed(2)}</span>
+                  <span className="font-mono text-primary">{formatCurrency(approval.finalValue)}</span>
                 </div>
               </div>
             </div>
+
+            {/* Warning when snapshot is invalid */}
+            {!hasValidSnapshot && (
+              <div className="bg-red-500/10 text-red-500 p-3 rounded-lg border border-red-500/20 text-xs font-semibold">
+                Atenção: Os valores do orçamento são inválidos. A aprovação foi desabilitada.
+              </div>
+            )}
 
             {/* Actions for PENDING */}
             {approval.status === 'PENDING' && (
@@ -202,14 +233,15 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
                   <div className="flex gap-2">
                     <Button
                       onClick={handleApprove}
-                      disabled={approveMutation.isPending}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium"
+                      disabled={approveMutation.isPending || !hasValidSnapshot}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium disabled:opacity-50"
                     >
                       Aprovar Orçamento
                     </Button>
                     <Button
                       onClick={() => setShowRejectForm(true)}
                       variant="destructive"
+                      disabled={!hasValidSnapshot}
                       className="flex-1"
                     >
                       Rejeitar Orçamento

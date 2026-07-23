@@ -166,4 +166,93 @@ describe('ServiceOrderApprovalSection Component', () => {
       reason: 'Reason is too high cost'
     }, expect.any(Object));
   });
+
+  it('should render Decimal values returned as string formatted as currency', () => {
+    mockGetApproval.mockReturnValue({
+      ...mockApproval,
+      totalParts: '250.75',
+      totalServices: '300.50',
+      finalValue: '551.25'
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceOrderApprovalSection serviceOrder={serviceOrderMock} />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText(/250,75/)).toBeInTheDocument();
+    expect(screen.getByText(/300,50/)).toBeInTheDocument();
+    expect(screen.getByText(/551,25/)).toBeInTheDocument();
+  });
+
+  it('should display valid dates formatted in pt-BR format', () => {
+    mockGetApproval.mockReturnValue({
+      ...mockApproval,
+      requestedAt: '2026-07-23T14:30:00.000Z'
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceOrderApprovalSection serviceOrder={serviceOrderMock} />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText(/23\/07\/2026/)).toBeInTheDocument();
+  });
+
+  it('should display fallback "Não informado" when date is missing or invalid', () => {
+    mockGetApproval.mockReturnValue({
+      ...mockApproval,
+      requestedAt: null
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceOrderApprovalSection serviceOrder={serviceOrderMock} />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText('Não informado')).toBeInTheDocument();
+  });
+
+  it('should not display status as version number', () => {
+    mockGetApproval.mockReturnValue({
+      ...mockApproval,
+      version: 3,
+      status: 'PENDING'
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceOrderApprovalSection serviceOrder={serviceOrderMock} />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText('Versão 3')).toBeInTheDocument();
+    expect(screen.getByText('PENDING')).toBeInTheDocument();
+  });
+
+  it('should disable approval and reject buttons and show error when snapshot is invalid', () => {
+    mockGetApproval.mockReturnValue({
+      ...mockApproval,
+      totalParts: '0',
+      totalServices: '0',
+      finalValue: '0'
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceOrderApprovalSection serviceOrder={serviceOrderMock} />
+      </QueryClientProvider>
+    );
+
+    const approveButton = screen.getByText('Aprovar Orçamento');
+    expect(approveButton).toBeDisabled();
+
+    const rejectButton = screen.getByText('Rejeitar Orçamento');
+    expect(rejectButton).toBeDisabled();
+
+    expect(screen.getByText(/valores do orçamento são inválidos/)).toBeInTheDocument();
+  });
 });

@@ -195,6 +195,16 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+
+  /* Autofill rules for Chrome and Webkit browsers to respect color themes */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground) !important;
+    caret-color: var(--foreground) !important;
+    box-shadow: 0 0 0 1000px var(--background) inset !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
 }
 
 /* Custom Scrollbar */
