@@ -1,5 +1,6 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
+import { normalizeInternalCode } from '../../../shared/utils/normalizeInternalCode';
 
 interface IRequest {
   companyId: string;
@@ -21,14 +22,16 @@ export class CreatePartUseCase {
     }
 
     return await prismaClient.$transaction(async (tx) => {
-      // 1. Check if part with same code already exists in company
-      const partAlreadyExists = await tx.part.findFirst({
-        where: {
-          companyId: data.companyId,
-          internalCode: data.internalCode,
-          
-        }
-      });
+      // 1. Check if part with same normalized code already exists in company
+      const normalizedCode = normalizeInternalCode(data.internalCode);
+      const partAlreadyExists = normalizedCode
+        ? await tx.part.findFirst({
+            where: {
+              companyId: data.companyId,
+              normalizedInternalCode: normalizedCode,
+            }
+          })
+        : null;
 
       if (partAlreadyExists) {
         throw new AppError('Part with this internal code already exists.', 400);
@@ -40,6 +43,7 @@ export class CreatePartUseCase {
           companyId: data.companyId,
           name: data.name,
           internalCode: data.internalCode,
+          normalizedInternalCode: normalizeInternalCode(data.internalCode),
           description: data.description,
           salePrice: data.salePrice || 0,
           purchasePrice: data.purchasePrice || 0,

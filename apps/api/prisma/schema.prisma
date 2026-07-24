@@ -40,6 +40,7 @@ model Company {
   financialRecords      FinancialRecord[]
   stocks                Stock[]
   serviceOrderApprovals ServiceOrderApproval[]
+  purchaseRequests      PurchaseRequest[]
 }
 
 model Branch {
@@ -67,6 +68,7 @@ model Branch {
   sourceTransfers       InventoryMovement[]    @relation("SourceBranch")
   targetTransfers       InventoryMovement[]    @relation("TargetBranch")
   serviceOrderApprovals ServiceOrderApproval[]
+  purchaseRequests      PurchaseRequest[]
 }
 
 model User {
@@ -147,41 +149,51 @@ model Vehicle {
 }
 
 model Part {
-  id               String   @id @default(uuid())
-  companyId        String
-  internalCode     String?  @unique
-  manufacturerCode String?
-  name             String
-  description      String?
-  category         String?
-  brand            String?
-  supplierId       String?
-  purchasePrice    Decimal? @db.Decimal(10, 2)
-  salePrice        Decimal? @db.Decimal(10, 2)
-  price            Decimal? @db.Decimal(10, 2) // alias for salePrice for compat
-  minStock         Int      @default(0)
-  location         String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                     String              @id @default(uuid())
+  companyId              String
+  internalCode           String?
+  normalizedInternalCode String?
+  manufacturerCode       String?
+  barcode                String?
+  name                   String
+  description            String?
+  category               String?
+  brand                  String?
+  active                 Boolean             @default(true)
+  supplierId             String?
+  purchasePrice          Decimal?            @db.Decimal(10, 2)
+  salePrice              Decimal?            @db.Decimal(10, 2)
+  price                  Decimal?            @db.Decimal(10, 2) // alias for salePrice for compat
+  minStock               Int                 @default(0)
+  location               String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 
   company            Company             @relation(fields: [companyId], references: [id])
   supplier           Supplier?           @relation(fields: [supplierId], references: [id])
   stocks             Stock[]
   osParts            OSPart[]
   inventoryMovements InventoryMovement[]
+  purchaseRequests   PurchaseRequest[]
+
+  @@unique([companyId, normalizedInternalCode])
 }
 
 model Stock {
-  id        String   @id @default(uuid())
-  companyId String
-  partId    String
-  branchId  String
-  quantity  Int      @default(0)
-  updatedAt DateTime @updatedAt
+  id               String             @id @default(uuid())
+  companyId        String
+  partId           String
+  branchId         String
+  quantity         Decimal            @default(0) @db.Decimal(12, 3)
+  reservedQuantity Decimal            @default(0) @db.Decimal(12, 3)
+  location         String?
+  averageCost      Decimal?           @db.Decimal(10, 2)
+  updatedAt        DateTime           @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id])
-  part    Part    @relation(fields: [partId], references: [id])
-  branch  Branch  @relation(fields: [branchId], references: [id])
+  company      Company            @relation(fields: [companyId], references: [id])
+  part         Part               @relation(fields: [partId], references: [id])
+  branch       Branch             @relation(fields: [branchId], references: [id])
+  reservations StockReservation[]
 
   @@unique([partId, branchId])
 }
@@ -200,8 +212,9 @@ model Supplier {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id])
-  parts   Part[]
+  company          Company           @relation(fields: [companyId], references: [id])
+  parts            Part[]
+  purchaseRequests PurchaseRequest[]
 }
 
 enum OSStatus {
@@ -244,6 +257,8 @@ model ServiceOrder {
   approvals          ServiceOrderApproval[]
   inventoryMovements InventoryMovement[]
   financialRecords   FinancialRecord[]
+  purchaseRequests   PurchaseRequest[]
+  reservations       StockReservation[]
 
   @@unique([id, companyId])
   @@index([finishedById])
@@ -251,16 +266,20 @@ model ServiceOrder {
 }
 
 model OSPart {
-  id               String  @id @default(uuid())
+  id               String              @id @default(uuid())
   serviceOrderId   String
-  partId           String
-  quantity         Int
-  consumedQuantity Int     @default(0)
-  unitPrice        Decimal @db.Decimal(10, 2)
+  partId           String?
+  description      String?
+  quantity         Decimal             @db.Decimal(12, 3)
+  consumedQuantity Decimal             @default(0) @db.Decimal(12, 3)
+  unitPrice        Decimal             @db.Decimal(10, 2)
+  supplySource     PartSupplySource    @default(STOCK)
 
-  serviceOrder ServiceOrder        @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
-  part         Part                @relation(fields: [partId], references: [id])
-  movements    InventoryMovement[]
+  serviceOrder     ServiceOrder        @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  part             Part?               @relation(fields: [partId], references: [id])
+  purchaseRequest  PurchaseRequest?
+  reservations     StockReservation[]
+  movements        InventoryMovement[]
 
   @@index([serviceOrderId])
   @@index([partId])
@@ -331,7 +350,7 @@ model InventoryMovement {
   branchId       String
   userId         String
   type           MovementType
-  quantity       Int
+  quantity       Decimal       @db.Decimal(12, 3)
   reason         String?
   sourceBranchId String?
   targetBranchId String?
@@ -471,9 +490,111 @@ model ServiceOrderApproval {
   invalidatedBy User?        @relation("ApprovalInvalidatedBy", fields: [invalidatedById], references: [id])
 
   financialRecords FinancialRecord[]
+  reservations     StockReservation[]
 
   @@unique([serviceOrderId, version])
   @@index([companyId, branchId])
   @@index([serviceOrderId, status])
   @@index([requestedAt])
+}
+
+enum PartSupplySource {
+  STOCK
+  PURCHASE
+  TRANSFER
+}
+
+enum StockReservationStatus {
+  ACTIVE
+  PARTIALLY_CONSUMED
+  CONSUMED
+  RELEASED
+  PARTIALLY_CONSUMED_RELEASED
+  CANCELLED
+}
+
+enum PurchaseRequestStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model StockReservation {
+  id             String                 @id @default(uuid())
+  companyId      String
+  branchId       String
+  stockId        String
+  serviceOrderId String
+  osPartId       String
+  approvalId     String
+  quantity       Decimal                @db.Decimal(12, 3)
+  consumedQty    Decimal                @default(0) @db.Decimal(12, 3)
+  releasedQty    Decimal                @default(0) @db.Decimal(12, 3)
+  cancelledQty   Decimal                @default(0) @db.Decimal(12, 3)
+  status         StockReservationStatus @default(ACTIVE)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  releasedAt     DateTime?
+  consumedAt     DateTime?
+
+  stock        Stock                @relation(fields: [stockId], references: [id], onDelete: Restrict)
+  serviceOrder ServiceOrder         @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict)
+  osPart       OSPart               @relation(fields: [osPartId], references: [id], onDelete: Restrict)
+  approval     ServiceOrderApproval @relation(fields: [approvalId], references: [id], onDelete: Restrict)
+
+  @@unique([osPartId, approvalId, stockId])
+  @@index([companyId, branchId])
+  @@index([serviceOrderId, status])
+  @@index([stockId, status])
+  @@index([approvalId, status])
+}
+
+model PurchaseRequest {
+  id                String                @id @default(uuid())
+  osPartId          String                @unique
+  serviceOrderId    String
+  companyId         String
+  branchId          String
+  supplierId        String?
+  partId            String?
+  description       String?
+  quantity          Decimal               @db.Decimal(12, 3)
+  estimatedUnitCost Decimal?              @db.Decimal(10, 2)
+  estimatedDate     DateTime?
+  status            PurchaseRequestStatus @default(DRAFT)
+  createdBy         String
+  approvedBy        String?
+  orderedAt         DateTime?
+  fullyReceivedAt   DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch       Branch            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  osPart       OSPart            @relation(fields: [osPartId], references: [id], onDelete: Restrict)
+  serviceOrder ServiceOrder      @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict)
+  supplier     Supplier?         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  part         Part?             @relation(fields: [partId], references: [id], onDelete: Restrict)
+  receipts     PurchaseReceipt[]
+}
+
+model PurchaseReceipt {
+  id                String   @id @default(uuid())
+  purchaseRequestId String
+  idempotencyKey    String
+  quantity          Decimal  @db.Decimal(12, 3)
+  unitCost          Decimal  @db.Decimal(12, 2)
+  invoiceAccessKey  String?
+  notes             String?
+  receivedById      String
+  receivedAt        DateTime @default(now())
+
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Restrict)
+
+  @@unique([purchaseRequestId, idempotencyKey])
+  @@index([purchaseRequestId, receivedAt])
 }
