@@ -56,7 +56,25 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    logger.api.warn(`[Error Response] ${error.response?.status} ${error.config?.url}`, error.response?.data);
+    const responseData = error.response?.data;
+    const requestPayload = error.config?.data;
+    let parsedPayload = null;
+    try {
+      if (requestPayload) {
+        parsedPayload = typeof requestPayload === 'string' ? JSON.parse(requestPayload) : requestPayload;
+      }
+    } catch (_) {}
+
+    logger.api.warn(
+      `[Error Response] ${error.response?.status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
+      {
+        status: error.response?.status,
+        url: error.config?.url,
+        method: error.config?.method,
+        requestData: parsedPayload,
+        responseData: responseData,
+      }
+    );
 
     // 401 Unauthorized: Clear session and redirect to login (preventing loops)
     if (error.response?.status === 401) {

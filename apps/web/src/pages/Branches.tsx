@@ -271,25 +271,22 @@ const Branches: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 pt-3 border-t border-border/40">
-                {!isSelected && branch.active !== false && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActiveBranch(branch)}
-                    className="flex-1 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10"
-                  >
-                    Selecionar Unidade
-                  </Button>
-                )}
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/40">
+                <Button
+                  variant={isSelected ? "secondary" : "outline"}
+                  size="sm"
+                  disabled={isSelected || branch.active === false}
+                  onClick={() => setActiveBranch(branch)}
+                  className="text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 disabled:opacity-50 w-full"
+                >
+                  {isSelected ? 'Ativa' : 'Selecionar'}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleEditClick(branch)}
                   disabled={!canManage}
-                  className={`text-xs font-semibold ${!isSelected ? 'flex-1' : 'w-full'} ${
-                    !canManage ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className="text-xs font-semibold w-full"
                 >
                   <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
                 </Button>
@@ -298,7 +295,7 @@ const Branches: React.FC = () => {
                   size="sm"
                   onClick={() => setTogglingBranch(branch)}
                   disabled={!canManage || isSelected}
-                  className={`text-xs font-semibold ${
+                  className={`text-xs font-semibold w-full ${
                     branch.active !== false ? 'text-danger hover:bg-danger/10' : 'text-emerald-600 hover:bg-emerald-500/10'
                   } ${!canManage || isSelected ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title={isSelected ? 'Não é possível desativar a filial ativa no seu contexto' : ''}

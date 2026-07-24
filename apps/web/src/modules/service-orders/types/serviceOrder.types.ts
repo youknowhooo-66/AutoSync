@@ -1,4 +1,4 @@
-export type ServiceOrderStatus = 'OPEN' | 'DIAGNOSIS' | 'WAITING_PARTS' | 'IN_PROGRESS' | 'COMPLETED' | 'FINISHED' | 'BILLED' | 'CANCELED' | 'CANCELLED'
+export type ServiceOrderStatus = 'OPEN' | 'DIAGNOSIS' | 'WAITING_PARTS' | 'AWAITING_PARTS' | 'IN_PROGRESS' | 'COMPLETED' | 'FINISHED' | 'BILLED' | 'CANCELED' | 'CANCELLED'
 
 export interface ServiceOrder {
   id: string

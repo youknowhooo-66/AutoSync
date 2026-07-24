@@ -15,6 +15,7 @@ import type { ServiceOrder, ServiceOrderStatus } from '../types/serviceOrder.typ
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { toast } from 'sonner'
+import { useServiceOrder, serviceOrderKeys } from '../hooks/useServiceOrders'
 import { RoleGuard } from '@/modules/auth/components/RoleGuard'
 import { DiagnosisSection } from './DiagnosisSection'
 import { ServiceOrderItemsSection } from './ServiceOrderItemsSection'
@@ -28,6 +29,14 @@ interface Props {
   os: ServiceOrder | null
   onClose: () => void
 }
+
+const CANONICAL_FLOW_STATUSES: ServiceOrderStatus[] = [
+  'OPEN',
+  'IN_PROGRESS',
+  'AWAITING_PARTS',
+  'FINISHED',
+  'CANCELLED'
+];
 
 export function ServiceOrderDetailSheet({ os, onClose }: Props) {
   const queryClient = useQueryClient()
@@ -43,11 +52,7 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
   const [svcName, setSvcName] = useState('')
   const [svcPrice, setSvcPrice] = useState('')
 
-  const { data: osDetail, isLoading } = useQuery({
-    queryKey: ['os-detail', os?.id],
-    queryFn: async () => (await api.get(`/os/${os?.id}`)).data,
-    enabled: !!os?.id,
-  })
+  const { data: osDetail, isLoading } = useServiceOrder(os?.id || '')
 
   const { data: parts = [] } = useQuery({
     queryKey: ['parts'],
@@ -60,18 +65,18 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
     mutationFn: async ({ id, status }: { id: string; status: ServiceOrderStatus }) => api.patch(`/os/${id}/status`, { status }),
     onSuccess: (_, variables) => {
       toast.success(`Status atualizado para ${STATUS_CONFIG[variables.status]?.label}`)
-      queryClient.invalidateQueries({ queryKey: ['os-list'] })
-      queryClient.invalidateQueries({ queryKey: ['os-detail', variables.id] })
+      queryClient.invalidateQueries({ queryKey: serviceOrderKeys.all })
     },
-    onError: () => toast.error('Erro ao atualizar status.'),
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erro ao atualizar status.')
+    },
   })
 
   const addItemMutation = useMutation({
     mutationFn: async (payload: any) => api.post(`/os/${os?.id}/items`, payload),
     onSuccess: () => {
       toast.success('Item adicionado com sucesso!')
-      queryClient.invalidateQueries({ queryKey: ['os-list'] })
-      queryClient.invalidateQueries({ queryKey: ['os-detail', os?.id] })
+      queryClient.invalidateQueries({ queryKey: serviceOrderKeys.all })
       setShowAddPart(false)
       setShowAddService(false)
       setItemPartId(''); setItemQty('1'); setItemPrice(''); setSvcName(''); setSvcPrice('')
@@ -143,9 +148,9 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            {(Object.keys(STATUS_CONFIG) as ServiceOrderStatus[]).map((key) => {
+            {CANONICAL_FLOW_STATUSES.map((key) => {
               const config = STATUS_CONFIG[key]
-              const isActive = os.status === key
+              const isActive = osDetail?.status === key || (key === 'FINISHED' && osDetail?.status === 'COMPLETED') || (key === 'CANCELLED' && osDetail?.status === 'CANCELED')
               return (
                 <RoleGuard key={key} action="os.change_status" fallback={isActive ? (
                   <Button
@@ -161,8 +166,8 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
                   <Button
                     variant={isActive ? "default" : "outline"}
                     size="sm"
-                    disabled={isActive || updateStatusMutation.isPending}
-                    onClick={() => updateStatusMutation.mutate({ id: os.id, status: key })}
+                    disabled={isActive || updateStatusMutation.isPending || key === 'FINISHED' || !osDetail?.id}
+                    onClick={() => osDetail?.id && updateStatusMutation.mutate({ id: osDetail.id, status: key })}
                     className={`h-7 px-3 text-xs rounded-full transition-all duration-200 ${
                       isActive ? config.className.replace('hover:', '') : 'hover:bg-muted opacity-60 hover:opacity-100'
                     }`}

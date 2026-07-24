@@ -59,6 +59,8 @@ export const logger = {
   query: new NamespacedLogger('query'),
   audit: new NamespacedLogger('audit'),
   ui: new NamespacedLogger('ui'),
+  performance: new NamespacedLogger('performance'),
+  security: new NamespacedLogger('security'),
 };
 
 export default logger;

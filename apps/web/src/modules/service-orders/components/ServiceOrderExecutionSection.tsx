@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useServiceOrderExecution } from '../hooks/useServiceOrderExecution';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { approvalService } from '../services/approvalService';
+import { useServiceOrderApproval } from '../hooks/useServiceOrderApproval';
 import { useQuery } from '@tanstack/react-query';
 import type { ServiceExecutionStatus, OSServiceExecution } from '../types/execution.types';
 
@@ -13,20 +13,16 @@ interface ServiceOrderExecutionSectionProps {
 export function ServiceOrderExecutionSection({ serviceOrderId }: ServiceOrderExecutionSectionProps) {
   const { user } = useAuth();
   const {
-    execution,
-    isLoading: isLoadingExecution,
     assign,
     start,
     pause,
     resume,
-    complete
+    complete,
+    execution,
+    isLoading: isLoadingExecution
   } = useServiceOrderExecution(serviceOrderId);
 
-  const { data: latestApproval, isLoading: isLoadingApproval } = useQuery({
-    queryKey: ['latest-approval', serviceOrderId],
-    queryFn: () => approvalService.getByServiceOrder(serviceOrderId),
-    enabled: !!serviceOrderId
-  });
+  const { data: latestApproval, isLoading: isLoadingApproval } = useServiceOrderApproval(serviceOrderId);
 
   const isBudgetApproved = latestApproval?.status === 'APPROVED';
   const isLoading = isLoadingExecution || isLoadingApproval;
