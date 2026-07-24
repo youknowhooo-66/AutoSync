@@ -109,10 +109,10 @@ export const generateOSPDF = async (req: AuthRequest, res: Response) => {
 
       os.parts.forEach(p => {
         const currentY = doc.y;
-        doc.text(p.part.name, 50, currentY, { width: 240 });
+        doc.text(p.part?.name || p.description || '', 50, currentY, { width: 240 });
         doc.text(p.quantity.toString(), 300, currentY);
         doc.text(`R$ ${Number(p.unitPrice).toFixed(2)}`, 380, currentY);
-        doc.text(`R$ ${(p.quantity * Number(p.unitPrice)).toFixed(2)}`, 450, currentY, { align: 'right', width: 100 });
+        doc.text(`R$ ${(Number(p.quantity) * Number(p.unitPrice)).toFixed(2)}`, 450, currentY, { align: 'right', width: 100 });
         doc.moveDown();
       });
       doc.moveDown();

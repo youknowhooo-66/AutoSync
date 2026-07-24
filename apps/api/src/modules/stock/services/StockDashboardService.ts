@@ -1,5 +1,6 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { logger } from '../../../shared/logger';
+import { Prisma } from '@prisma/client';
 
 export class StockDashboardService {
   async getStockAnalytics(companyId: string, branchId?: string) {
@@ -13,9 +14,13 @@ export class StockDashboardService {
       include: { part: true }
     });
 
-    const totalValue = stocks.reduce((acc, s) => {
-      return acc + (s.quantity * Number(s.part.purchasePrice));
-    }, 0);
+    let totalVal = new Prisma.Decimal(0);
+    for (const s of stocks) {
+      const qty = new Prisma.Decimal(s.quantity);
+      const price = new Prisma.Decimal(s.part.purchasePrice || 0);
+      totalVal = totalVal.add(qty.mul(price));
+    }
+    const totalValue = totalVal.toFixed(2);
 
     // 2. Top Used Items (based on movements)
     const topItems = await prismaClient.inventoryMovement.groupBy({
@@ -30,14 +35,14 @@ export class StockDashboardService {
       const part = await prismaClient.part.findUnique({ where: { id: item.partId } });
       return {
         name: part?.name,
-        quantity: item._sum.quantity
+        quantity: item._sum.quantity ? new Prisma.Decimal(item._sum.quantity).toString() : '0.000'
       };
     }));
 
     // 3. Critical Items (below minStock)
-    const criticalItems = stocks.filter(s => s.quantity < 5).map(s => ({
+    const criticalItems = stocks.filter(s => new Prisma.Decimal(s.quantity).lessThan(5)).map(s => ({
       name: s.part.name,
-      quantity: s.quantity,
+      quantity: s.quantity.toString(),
       branchId: s.branchId
     }));
 
@@ -59,12 +64,12 @@ export class StockDashboardService {
     });
 
     return stocks
-      .filter(s => s.quantity < (s.part.minStock || 5))
+      .filter(s => new Prisma.Decimal(s.quantity).lessThan(s.part.minStock || 5))
       .map(s => ({
         id: s.part.id,
         name: s.part.name,
         internalCode: s.part.internalCode,
-        quantity: s.quantity,
+        quantity: s.quantity.toString(),
         minStock: s.part.minStock || 5,
         branchId: s.branchId
       }));

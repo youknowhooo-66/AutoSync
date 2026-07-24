@@ -1,6 +1,7 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { logger } from '../../../shared/logger';
+import { Prisma } from '@prisma/client';
 
 interface IRequest {
   companyId: string;
@@ -29,14 +30,16 @@ export class StockTransferUseCase {
         where: { partId_branchId: { partId: data.partId, branchId: data.sourceBranchId } }
       });
 
-      if (!sourceStock || sourceStock.quantity < data.quantity) {
+      const sourceQty = sourceStock ? new Prisma.Decimal(sourceStock.quantity) : new Prisma.Decimal(0);
+      const transferQty = new Prisma.Decimal(data.quantity);
+      if (!sourceStock || sourceQty.lessThan(transferQty)) {
         throw new AppError('Insufficient stock in source branch.', 400);
       }
 
       // 2. Deduct from Source
       await tx.stock.update({
         where: { id: sourceStock.id },
-        data: { quantity: { decrement: data.quantity } }
+        data: { quantity: { decrement: new Prisma.Decimal(data.quantity) } }
       });
 
       // 3. Increment in Target
@@ -50,13 +53,13 @@ export class StockTransferUseCase {
             companyId: data.companyId,
             branchId: data.targetBranchId,
             partId: data.partId,
-            quantity: data.quantity
+            quantity: new Prisma.Decimal(data.quantity)
           }
         });
       } else {
         await tx.stock.update({
           where: { id: targetStock.id },
-          data: { quantity: { increment: data.quantity } }
+          data: { quantity: { increment: new Prisma.Decimal(data.quantity) } }
         });
       }
 
@@ -67,7 +70,7 @@ export class StockTransferUseCase {
           branchId: data.sourceBranchId, // Record at source
           userId: data.userId,
           type: 'TRANSFER',
-          quantity: data.quantity,
+          quantity: new Prisma.Decimal(data.quantity),
           sourceBranchId: data.sourceBranchId,
           targetBranchId: data.targetBranchId,
           reason: `Transfer to branch ${data.targetBranchId}`,
