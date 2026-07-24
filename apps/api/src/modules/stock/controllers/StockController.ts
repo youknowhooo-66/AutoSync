@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { StockEntryUseCase } from '../useCases/StockEntryUseCase';
 import { StockTransferUseCase } from '../useCases/StockTransferUseCase';
 import { StockDashboardService } from '../services/StockDashboardService';
+import { SearchPartsService } from '../services/SearchPartsService';
+import { searchPartsQuerySchema } from '../validators/searchPartsSchema';
 
 export class StockController {
   async entry(req: Request, res: Response) {
@@ -75,13 +77,33 @@ export class StockController {
     return res.json(items);
   }
 
-  async listParts(req: Request, res: Response) {
+  async searchParts(req: Request, res: Response) {
     const { companyId } = req.user;
-    const { ListPartsService } = await import('../services/ListPartsService');
-    const service = new ListPartsService();
-    const parts = await service.execute(companyId);
 
-    return res.json(parts);
+    const parsed = searchPartsQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Parâmetros de busca inválidos',
+        details: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const { q, page, pageSize, availability, sortBy, sortOrder, branchId } = parsed.data;
+
+    const service = new SearchPartsService();
+    const result = await service.execute({
+      companyId,
+      q,
+      page,
+      pageSize,
+      availability,
+      sortBy,
+      sortOrder,
+      branchId,
+    });
+
+    return res.json({ success: true, data: result });
   }
 
   async listSuppliers(req: Request, res: Response) {

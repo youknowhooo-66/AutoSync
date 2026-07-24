@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcryptjs';
 import { prismaClient } from '../../src/shared/database/prismaClient';
+import { normalizeInternalCode } from '../../src/shared/utils/normalizeInternalCode';
 
 export class FactoryEngine {
   /**
@@ -126,11 +127,12 @@ export class FactoryEngine {
   /**
    * Creates a random Part entity.
    */
-  static async createPart(companyId: string, overrides = {}) {
+  static async createPart(companyId: string, overrides: Record<string, any> = {}) {
+    const internalCode = overrides.internalCode ?? faker.helpers.fromRegExp(/PRT-[0-9]{6}/);
     const data = {
       companyId,
       name: faker.commerce.productName(),
-      internalCode: faker.helpers.fromRegExp(/PRT-[0-9]{6}/),
+      internalCode,
       manufacturerCode: faker.helpers.fromRegExp(/MFG-[0-9]{8}/),
       description: faker.commerce.productDescription(),
       category: faker.commerce.department(),
@@ -139,11 +141,17 @@ export class FactoryEngine {
       salePrice: parseFloat(faker.commerce.price({ min: 25, max: 500 })),
       minStock: faker.number.int({ min: 2, max: 10 }),
       location: faker.location.streetAddress(),
+      active: true,
       ...overrides,
     };
 
+    // Always compute normalizedInternalCode from the final internalCode value
+    // (handles both default and overridden internalCode)
+    data.normalizedInternalCode = normalizeInternalCode(data.internalCode);
+
     return await prismaClient.part.create({ data });
   }
+
 
   /**
    * Creates a random Stock record.
