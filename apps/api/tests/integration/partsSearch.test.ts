@@ -55,9 +55,10 @@ async function createPartWithStock(
   return { part, stock };
 }
 
-// ── Section 1: Basic listing ───────────────────────────────────────────────────
-describe('GET /api/inventory/parts — Listing without search term', () => {
-  it('should return paginated parts for the authenticated company', async () => {
+describe.sequential('GET /api/inventory/parts Integration Tests', () => {
+  // ── Section 1: Basic listing ───────────────────────────────────────────────────
+  describe('GET /api/inventory/parts — Listing without search term', () => {
+    it('should return paginated parts for the authenticated company', async () => {
     const { company, branch, headers } = await setupBasicScenario();
     await FactoryEngine.createPart(company.id, { name: 'Filtro Óleo', internalCode: 'F001' });
     await FactoryEngine.createPart(company.id, { name: 'Amortecedor', internalCode: 'A001' });
@@ -572,4 +573,5 @@ describe('GET /api/inventory/parts — Response DTO contract', () => {
     expect(item.reservedQuantity).toBe('1.250');
     expect(item.availableQuantity).toBe('4.250');
   });
+});
 });

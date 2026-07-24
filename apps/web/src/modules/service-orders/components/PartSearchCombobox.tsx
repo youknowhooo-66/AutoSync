@@ -286,7 +286,6 @@ export function PartSearchCombobox({
                 {items.map((item) => {
                   const isSelected = value === item.id;
                   const isDisabled = !item.canSelectFromStock;
-                  const available = parseFloat(item.availableQuantity);
 
                   return (
                     <CommandItem

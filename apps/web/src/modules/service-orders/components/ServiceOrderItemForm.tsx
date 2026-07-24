@@ -84,6 +84,7 @@ export function ServiceOrderItemForm({
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     formState: { errors },
   } = useForm<FormValues>({
@@ -107,6 +108,16 @@ export function ServiceOrderItemForm({
   }
 
   function handleFormSubmit(data: FormValues) {
+    if (data.type === 'PART' && selectedPart) {
+      const avail = parseFloat(selectedPart.availableQuantity);
+      if (data.quantity > avail) {
+        setError('quantity', {
+          type: 'manual',
+          message: `A quantidade solicitada (${data.quantity}) excede o saldo disponível (${avail.toFixed(3)})`,
+        });
+        return;
+      }
+    }
     onSubmit({ ...data, selectedPart: selectedPart ?? undefined });
   }
 
