@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { AuditLog } from '@/core/audit/auditLog';
+import { logger } from '@/utils/logger';
 
 export function setupQueryMonitor(queryClient: QueryClient) {
   queryClient.getQueryCache().subscribe((event) => {
@@ -18,5 +19,5 @@ export function setupQueryMonitor(queryClient: QueryClient) {
     }
   });
 
-  console.log('[Observability] Query monitor active.');
+  logger.query.info('Query monitor active.');
 }

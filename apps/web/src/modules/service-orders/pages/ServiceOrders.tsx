@@ -5,6 +5,7 @@ import { Plus, Save } from 'lucide-react';
 import api from '@/services/api';
 import { ServiceOrderTable } from '../components/ServiceOrderTable';
 import { ServiceOrderDetailSheet } from '../components/ServiceOrderDetailSheet';
+import { ServiceOrderStatusBadge } from '../components/ServiceOrderStatusBadge';
 import { Button } from '@/components/ui/button';
 import { FormField, Page, PageHeader } from '@/components/primitives';
 import Modal from '@/components/Modal';
@@ -12,8 +13,10 @@ import type { ServiceOrder } from '../types/serviceOrder.types';
 import { useServiceOrders, useCreateServiceOrder } from '../hooks/useServiceOrders';
 import { useClients } from '../../clients/hooks/useClients';
 import { useVehicles } from '../../vehicles/hooks/useVehicles';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function ServiceOrders() {
+  const isMobile = useIsMobile();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedOS, setSelectedOS] = useState<ServiceOrder | null>(null);
 
@@ -123,12 +126,55 @@ export default function ServiceOrders() {
       />
 
       <div className="w-full flex-1 min-h-[500px]">
-        <ServiceOrderTable
-          data={osList}
-          isLoading={isLoading}
-          onRowClick={(os) => setSelectedOS(os)}
-          onEdit={(os) => setSelectedOS(os)}
-        />
+        {isMobile ? (
+          <div className="flex flex-col gap-3">
+            {isLoading ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">Carregando ordens de serviço...</div>
+            ) : osList.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">Nenhuma ordem de serviço registrada.</div>
+            ) : (
+              osList.map((os) => {
+                const formattedVal = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(os.finalValue || 0));
+                return (
+                  <button
+                    type="button"
+                    key={os.id}
+                    onClick={() => setSelectedOS(os)}
+                    aria-label={`Ver detalhes da Ordem de Serviço #${os.number}`}
+                    className="p-4 rounded-xl border border-border bg-card shadow-xs flex flex-col gap-3 text-left w-full cursor-pointer hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-all active:scale-[0.99]"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 font-mono font-semibold text-sm">
+                        <span className="text-primary">#</span>
+                        <span className="text-foreground">{String(os.number).padStart(4, '0')}</span>
+                      </div>
+                      <ServiceOrderStatusBadge status={os.status} />
+                    </div>
+
+                    <div className="flex flex-col gap-1 text-xs">
+                      <div className="font-semibold text-foreground truncate">{os.client?.name || 'Sem Cliente'}</div>
+                      <div className="text-muted-foreground truncate">{os.vehicle?.model ? `${os.vehicle.model} • ${os.vehicle.plate}` : 'Sem Veículo'}</div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
+                      <span className="text-muted-foreground font-mono">
+                        {os.createdAt ? new Date(os.createdAt).toLocaleDateString('pt-BR') : '---'}
+                      </span>
+                      <span className="font-bold text-foreground text-sm">{formattedVal}</span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          <ServiceOrderTable
+            data={osList}
+            isLoading={isLoading}
+            onRowClick={(os) => setSelectedOS(os)}
+            onEdit={(os) => setSelectedOS(os)}
+          />
+        )}
       </div>
 
       <ServiceOrderDetailSheet os={selectedOS} onClose={() => setSelectedOS(null)} />

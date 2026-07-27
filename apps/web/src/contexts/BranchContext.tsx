@@ -19,7 +19,7 @@ interface BranchContextData {
   setIsSelectingBranch(selecting: boolean): void;
 }
 
-const BranchContext = createContext<BranchContextData>({} as BranchContextData);
+const BranchContext = createContext<BranchContextData | undefined>(undefined);
 
 export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeBranch, setActiveBranchState] = useState<Branch | null>(null);
@@ -63,4 +63,10 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-export const useBranch = () => useContext(BranchContext);
+export const useBranch = (): BranchContextData => {
+  const context = useContext(BranchContext);
+  if (!context) {
+    throw new Error('useBranch must be used within a BranchProvider');
+  }
+  return context;
+};

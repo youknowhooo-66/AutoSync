@@ -146,7 +146,7 @@ export const addItemsToOS = async (req: AuthRequest, res: Response) => {
       const allParts = await tx.oSPart.findMany({ where: { serviceOrderId: id } });
       const allServices = await tx.oSService.findMany({ where: { serviceOrderId: id } });
 
-      const totalParts = allParts.reduce((acc, p) => acc + (Number(p.unitPrice) * p.quantity), 0);
+      const totalParts = allParts.reduce((acc, p) => acc + (Number(p.unitPrice) * Number(p.quantity)), 0);
       const totalServices = allServices.reduce((acc, s) => acc + Number(s.price), 0);
       const finalValue = totalParts + totalServices;
 

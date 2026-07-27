@@ -34,21 +34,24 @@ export class ConsumeStockUseCase {
 
       // Return existing result
       const part = await prismaClient.oSPart.findUnique({ where: { id: osPartId } });
+      if (!part || !part.partId) {
+        throw new AppError('Peça não encontrada ou não materializada no catálogo', 400);
+      }
       const stock = await prismaClient.stock.findFirst({
-        where: { partId: part?.partId, companyId, branchId: existingMovement.branchId }
+        where: { partId: part.partId, companyId, branchId: existingMovement.branchId }
       });
-
+ 
       return {
         partId: osPartId,
         stockId: stock?.id || '',
-        plannedQuantity: part?.quantity || 0,
-        consumedQuantity: part?.consumedQuantity || 0,
-        remainingQuantity: Math.max(0, (part?.quantity || 0) - (part?.consumedQuantity || 0)),
-        availableStock: stock ? stock.quantity : 0,
+        plannedQuantity: Number(part.quantity),
+        consumedQuantity: Number(part.consumedQuantity),
+        remainingQuantity: Math.max(0, Number(part.quantity) - Number(part.consumedQuantity)),
+        availableStock: stock ? Number(stock.quantity) : 0,
         movements: [
           {
             id: existingMovement.id,
-            quantity: existingMovement.quantity,
+            quantity: Number(existingMovement.quantity),
             performedById: existingMovement.userId,
             createdAt: existingMovement.createdAt
           }
@@ -68,20 +71,23 @@ export class ConsumeStockUseCase {
           }
           // Return
           const part = await tx.oSPart.findUnique({ where: { id: osPartId } });
+          if (!part || !part.partId) {
+            throw new AppError('Peça não encontrada ou não materializada no catálogo', 400);
+          }
           const stock = await tx.stock.findFirst({
-            where: { partId: part?.partId, companyId, branchId: innerMovement.branchId }
+            where: { partId: part.partId, companyId, branchId: innerMovement.branchId }
           });
           return {
             partId: osPartId,
             stockId: stock?.id || '',
-            plannedQuantity: part?.quantity || 0,
-            consumedQuantity: part?.consumedQuantity || 0,
-            remainingQuantity: Math.max(0, (part?.quantity || 0) - (part?.consumedQuantity || 0)),
-            availableStock: stock ? stock.quantity : 0,
+            plannedQuantity: Number(part.quantity),
+            consumedQuantity: Number(part.consumedQuantity),
+            remainingQuantity: Math.max(0, Number(part.quantity) - Number(part.consumedQuantity)),
+            availableStock: stock ? Number(stock.quantity) : 0,
             movements: [
               {
                 id: innerMovement.id,
-                quantity: innerMovement.quantity,
+                quantity: Number(innerMovement.quantity),
                 performedById: innerMovement.userId,
                 createdAt: innerMovement.createdAt
               }
@@ -142,6 +148,10 @@ export class ConsumeStockUseCase {
           throw new AppError('Peça planejada não encontrada nesta Ordem de Serviço', 404);
         }
 
+        if (!osPart.partId) {
+          throw new AppError('Peça ad-hoc/provisória não pode ser consumida sem estar materializada no catálogo', 400);
+        }
+
         // 6. Validate against approval snapshot
         const snapshot = latestApproval.snapshot as any;
         const snapshotParts = snapshot?.parts || [];
@@ -159,10 +169,9 @@ export class ConsumeStockUseCase {
           throw new AppError('Divergência detectada entre os dados da peça e o snapshot aprovado', 409);
         }
 
-        // 7. Validate quantities
-        const remainingPlanned = osPart.quantity - osPart.consumedQuantity;
-        if (quantity > remainingPlanned) {
-          throw new AppError(`A quantidade solicitada (${quantity}) excede a quantidade planejada restante (${remainingPlanned})`, 400);
+        const remainingPlanned = osPart.quantity.sub(osPart.consumedQuantity);
+        if (new Prisma.Decimal(quantity).greaterThan(remainingPlanned)) {
+          throw new AppError(`A quantidade solicitada (${quantity}) excede a quantidade planejada restante (${remainingPlanned.toString()})`, 400);
         }
 
         // 8. Fetch local stock and validate
@@ -174,8 +183,9 @@ export class ConsumeStockUseCase {
           }
         });
 
-        if (!stock || stock.quantity < quantity) {
-          throw new AppError(`Saldo insuficiente em estoque. Disponível: ${stock ? stock.quantity : 0}`, 400);
+        const stockQty = stock ? new Prisma.Decimal(stock.quantity) : new Prisma.Decimal(0);
+        if (!stock || stockQty.lessThan(quantity)) {
+          throw new AppError(`Saldo insuficiente em estoque. Disponível: ${stock ? stock.quantity.toString() : '0.000'}`, 400);
         }
 
         // 9. Conditionally update OSPart.consumedQuantity
@@ -184,12 +194,12 @@ export class ConsumeStockUseCase {
             id: osPartId,
             serviceOrderId,
             consumedQuantity: {
-              lte: osPart.quantity - quantity
+              lte: osPart.quantity.sub(quantity)
             }
           },
           data: {
             consumedQuantity: {
-              increment: quantity
+              increment: new Prisma.Decimal(quantity)
             }
           }
         });
@@ -205,12 +215,12 @@ export class ConsumeStockUseCase {
             companyId,
             branchId: os.branchId,
             quantity: {
-              gte: quantity
+              gte: new Prisma.Decimal(quantity)
             }
           },
           data: {
             quantity: {
-              decrement: quantity
+              decrement: new Prisma.Decimal(quantity)
             }
           }
         });
@@ -226,7 +236,7 @@ export class ConsumeStockUseCase {
             branchId: os.branchId,
             userId,
             type: 'OUT',
-            quantity,
+            quantity: new Prisma.Decimal(quantity),
             reason: 'SERVICE_ORDER_CONSUMPTION',
             serviceOrderId,
             osPartId,
@@ -240,14 +250,14 @@ export class ConsumeStockUseCase {
         return {
           partId: osPartId,
           stockId: stock.id,
-          plannedQuantity: updatedPart?.quantity || 0,
-          consumedQuantity: updatedPart?.consumedQuantity || 0,
-          remainingQuantity: Math.max(0, (updatedPart?.quantity || 0) - (updatedPart?.consumedQuantity || 0)),
-          availableStock: updatedStock ? updatedStock.quantity : 0,
+          plannedQuantity: Number(updatedPart?.quantity || 0),
+          consumedQuantity: Number(updatedPart?.consumedQuantity || 0),
+          remainingQuantity: Math.max(0, Number(updatedPart?.quantity || 0) - Number(updatedPart?.consumedQuantity || 0)),
+          availableStock: updatedStock ? Number(updatedStock.quantity) : 0,
           movements: [
             {
               id: movement.id,
-              quantity: movement.quantity,
+              quantity: Number(movement.quantity),
               performedById: movement.userId,
               createdAt: movement.createdAt
             }
@@ -265,20 +275,23 @@ export class ConsumeStockUseCase {
             throw new AppError('Chave de idempotência já utilizada para outra requisição', 409);
           }
           const part = await prismaClient.oSPart.findUnique({ where: { id: osPartId } });
+          if (!part || !part.partId) {
+            throw new AppError('Peça não encontrada ou não materializada no catálogo', 400);
+          }
           const stock = await prismaClient.stock.findFirst({
-            where: { partId: part?.partId, companyId, branchId: existingMovementConcurrent.branchId }
+            where: { partId: part.partId, companyId, branchId: existingMovementConcurrent.branchId }
           });
           return {
             partId: osPartId,
             stockId: stock?.id || '',
-            plannedQuantity: part?.quantity || 0,
-            consumedQuantity: part?.consumedQuantity || 0,
-            remainingQuantity: Math.max(0, (part?.quantity || 0) - (part?.consumedQuantity || 0)),
-            availableStock: stock ? stock.quantity : 0,
+            plannedQuantity: Number(part.quantity),
+            consumedQuantity: Number(part.consumedQuantity),
+            remainingQuantity: Math.max(0, Number(part.quantity) - Number(part.consumedQuantity)),
+            availableStock: stock ? Number(stock.quantity) : 0,
             movements: [
               {
                 id: existingMovementConcurrent.id,
-                quantity: existingMovementConcurrent.quantity,
+                quantity: Number(existingMovementConcurrent.quantity),
                 performedById: existingMovementConcurrent.userId,
                 createdAt: existingMovementConcurrent.createdAt
               }

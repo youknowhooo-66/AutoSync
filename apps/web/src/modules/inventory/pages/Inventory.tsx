@@ -45,13 +45,17 @@ export default function Inventory() {
   const { data: parts = [], isLoading } = useQuery<InventoryItem[]>({
     queryKey: ['inventory'],
     queryFn: async () => {
-      const { data } = await api.get('/inventory/parts');
-      return data.map((item: any) => {
-        const totalQuantity = item.stocks ? item.stocks.reduce((acc: number, s: any) => acc + s.quantity, 0) : 0;
+      const res = await api.get('/inventory/parts');
+      const items = res.data?.data?.items || (Array.isArray(res.data) ? res.data : []);
+      return items.map((item: any) => {
+        const totalQuantity = item.stocks && Array.isArray(item.stocks)
+          ? item.stocks.reduce((acc: number, s: any) => acc + (Number(s.quantity) || 0), 0)
+          : Number(item.onHandQuantity || item.availableQuantity || 0);
         let status = 'OK';
+        const minStock = Number(item.minStock || 5);
         if (totalQuantity === 0) status = 'OUT_OF_STOCK';
-        else if (totalQuantity <= item.minStock / 2) status = 'CRITICAL';
-        else if (totalQuantity <= item.minStock) status = 'LOW';
+        else if (totalQuantity <= minStock / 2) status = 'CRITICAL';
+        else if (totalQuantity <= minStock) status = 'LOW';
         return { ...item, totalQuantity, status };
       });
     },
@@ -178,7 +182,7 @@ export default function Inventory() {
 
       <StockAlertBanner items={parts} />
 
-      <div className="w-full flex-1 min-h-[500px]">
+      <div className="w-full flex-1 min-h-[500px]" data-testid="inventory-table">
         <InventoryTable
           data={parts}
           isLoading={isLoading}

@@ -6,6 +6,7 @@ import type { ServiceOrderStatus } from '../types/serviceOrder.types'
 export const STATUS_CONFIG: Record<ServiceOrderStatus, { label: string; icon: React.ReactNode; className: string }> = {
   OPEN: { label: 'Aberta', icon: <FileText className="w-3 h-3 mr-1" />, className: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20' },
   DIAGNOSIS: { label: 'Diagnóstico', icon: <Search className="w-3 h-3 mr-1" />, className: 'bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border-indigo-500/20' },
+  AWAITING_PARTS: { label: 'Aguardando Peças', icon: <PauseCircle className="w-3 h-3 mr-1" />, className: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20' },
   WAITING_PARTS: { label: 'Aguardando Peças', icon: <PauseCircle className="w-3 h-3 mr-1" />, className: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20' },
   IN_PROGRESS: { label: 'Em Execução', icon: <Clock className="w-3 h-3 mr-1" />, className: 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20' },
   COMPLETED: { label: 'Finalizada', icon: <CheckCircle2 className="w-3 h-3 mr-1" />, className: 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20' },

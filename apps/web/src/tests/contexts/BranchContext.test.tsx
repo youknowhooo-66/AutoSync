@@ -83,4 +83,43 @@ describe('BranchContext', () => {
 
     expect(screen.getByTestId('is-selecting')).toHaveTextContent('yes');
   });
+
+  it('4. REGRESSION TEST: should throw explicit error when useBranch is consumed outside BranchProvider', () => {
+    const UnwrappedComponent = () => {
+      useBranch();
+      return null;
+    };
+
+    expect(() => render(<UnwrappedComponent />)).toThrow(
+      'useBranch must be used within a BranchProvider'
+    );
+  });
+
+  it('5. POSITIVE CONTRACT TEST: should update availableBranches context state when setAvailableBranches is called within BranchProvider', async () => {
+    const ConsumerComponent = () => {
+      const { availableBranches, setAvailableBranches } = useBranch();
+      return (
+        <div>
+          <span data-testid="branch-list-count">{availableBranches.length}</span>
+          <button onClick={() => setAvailableBranches([{ id: 'b10', name: 'Filial Leste', companyId: 'c1' }])}>
+            Add Leste
+          </button>
+        </div>
+      );
+    };
+
+    render(
+      <BranchProvider>
+        <ConsumerComponent />
+      </BranchProvider>
+    );
+
+    expect(screen.getByTestId('branch-list-count')).toHaveTextContent('0');
+
+    await act(async () => {
+      screen.getByText('Add Leste').click();
+    });
+
+    expect(screen.getByTestId('branch-list-count')).toHaveTextContent('1');
+  });
 });

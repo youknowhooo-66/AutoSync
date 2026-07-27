@@ -5,6 +5,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { PageSkeleton } from './components/feedback/PageSkeleton';
 import { useAuth } from './modules/auth/hooks/useAuth';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
+import { BranchProvider } from './contexts/BranchContext';
 
 // Lazy-loaded route components for performance optimization and code splitting
 const Login = lazy(() => import('./modules/auth/pages/Login'));
@@ -150,9 +151,11 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <Router>
-        <AppContent />
-      </Router>
+      <BranchProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </BranchProvider>
     </ThemeProvider>
   );
 }

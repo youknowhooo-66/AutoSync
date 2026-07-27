@@ -59,6 +59,6 @@ describe('Concurrency & Lock Integration Tests', () => {
     const stock = await prismaClient.stock.findUnique({
       where: { partId_branchId: { partId: part.id, branchId: branch.id } }
     });
-    expect(stock?.quantity).toBe(0);
+    expect(Number(stock?.quantity)).toBe(0);
   });
 });

@@ -43,9 +43,9 @@ export type ServiceForCompletion = {
 // OSPart model uses: id, partId, quantity, consumedQuantity, unitPrice
 export type PartForCompletion = {
   id: string;
-  partId: string;
-  quantity: number;
-  consumedQuantity: number;
+  partId: string | null;
+  quantity: Prisma.Decimal;
+  consumedQuantity: Prisma.Decimal;
   unitPrice: Prisma.Decimal;
 };
 
@@ -68,7 +68,7 @@ export type ApprovalForCompletion = {
 
 export type InventoryMovementForCompletion = {
   osPartId: string | null;
-  quantity: number;
+  quantity: Prisma.Decimal;
   type: string;
 };
 
@@ -210,7 +210,7 @@ export function evaluateCompletionBlockers(
     }
 
     // 5a. Full consumption required
-    if (osPart.consumedQuantity !== osPart.quantity) {
+    if (!osPart.consumedQuantity.equals(osPart.quantity)) {
       blockers.push({
         code: 'PART_NOT_FULLY_CONSUMED',
         message: `A peça ${osPart.id} tem quantidade planejada ${osPart.quantity} mas somente ${osPart.consumedQuantity} foram consumidas.`,
@@ -222,7 +222,7 @@ export function evaluateCompletionBlockers(
     const snapQty = parseInt(snapPart.quantity, 10);
     const snapPrice = new Prisma.Decimal(snapPart.unitPrice);
     if (
-      snapQty !== osPart.quantity ||
+      snapQty !== Number(osPart.quantity) ||
       !snapPrice.equals(osPart.unitPrice)
     ) {
       blockers.push({
@@ -250,9 +250,9 @@ export function evaluateCompletionBlockers(
   for (const osPart of os.parts) {
     const ledgerSum = movements
       .filter((m) => m.osPartId === osPart.id && m.type === 'OUT')
-      .reduce((sum, m) => sum + m.quantity, 0);
+      .reduce((sum, m) => sum + Number(m.quantity), 0);
 
-    if (ledgerSum !== osPart.consumedQuantity) {
+    if (ledgerSum !== Number(osPart.consumedQuantity)) {
       blockers.push({
         code: 'MOVEMENT_LEDGER_MISMATCH',
         message: `Divergência no ledger da peça ${osPart.id}: consumedQuantity=${osPart.consumedQuantity}, movimentos OUT=${ledgerSum}.`,

@@ -47,7 +47,7 @@ describe('Stock Integration Tests', () => {
     const stock = await prismaClient.stock.findFirst({
       where: { partId: part.id, branchId: branch.id },
     });
-    expect(stock?.quantity).toBe(15);
+    expect(Number(stock?.quantity)).toBe(15);
 
     // Verify part purchase price was updated
     const updatedPart = await prismaClient.part.findUnique({
@@ -59,7 +59,7 @@ describe('Stock Integration Tests', () => {
     const movement = await prismaClient.inventoryMovement.findFirst({
       where: { partId: part.id, type: 'IN' },
     });
-    expect(movement?.quantity).toBe(15);
+    expect(Number(movement?.quantity)).toBe(15);
     expect(movement?.userId).toBe(user.id);
   });
 
@@ -98,8 +98,8 @@ describe('Stock Integration Tests', () => {
       where: { partId_branchId: { partId: part.id, branchId: branchB.id } },
     });
 
-    expect(stockA?.quantity).toBe(6);
-    expect(stockB?.quantity).toBe(4);
+    expect(Number(stockA?.quantity)).toBe(6);
+    expect(Number(stockB?.quantity)).toBe(4);
 
     // Assert inventory movement was recorded
     const movement = await prismaClient.inventoryMovement.findFirst({
@@ -107,7 +107,7 @@ describe('Stock Integration Tests', () => {
     });
     expect(movement?.sourceBranchId).toBe(branchA.id);
     expect(movement?.targetBranchId).toBe(branchB.id);
-    expect(movement?.quantity).toBe(4);
+    expect(Number(movement?.quantity)).toBe(4);
   });
 
   it('should fail to transfer stock if quantity is insufficient', async () => {

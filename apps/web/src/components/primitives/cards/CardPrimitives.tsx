@@ -39,7 +39,7 @@ export function MetricCard({
   return (
     <Card
       className={cn(
-        'p-5 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-md border',
+        'p-5 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-sm border',
         onClick && 'cursor-pointer hover:border-primary/50',
         variantStyles[variant],
         className
@@ -49,7 +49,7 @@ export function MetricCard({
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</span>
         {icon && (
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-surface-muted text-foreground shrink-0">
+          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-secondary text-foreground shrink-0">
             {icon}
           </div>
         )}
@@ -115,18 +115,18 @@ export function ActionCard({ title, description, icon, onClick, className }: Act
     <Card
       onClick={onClick}
       className={cn(
-        'p-4 flex items-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group border border-border bg-card',
+        'p-5 flex flex-col items-center justify-center text-center gap-3 cursor-pointer border border-border bg-card hover:border-primary/50 hover:bg-secondary/40 transition-all group h-full min-h-[140px]',
         className
       )}
     >
-      <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary group-hover:scale-105 transition-transform">
         {icon}
       </div>
-      <div className="flex flex-col gap-0.5 min-w-0">
-        <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+      <div className="flex min-h-[44px] flex-col items-center justify-start gap-1 w-full">
+        <h4 className="text-sm font-semibold leading-5 text-foreground group-hover:text-primary transition-colors line-clamp-1">
           {title}
         </h4>
-        <p className="text-xs text-muted-foreground line-clamp-1">{description}</p>
+        <p className="text-xs leading-4 text-muted-foreground line-clamp-2">{description}</p>
       </div>
     </Card>
   );

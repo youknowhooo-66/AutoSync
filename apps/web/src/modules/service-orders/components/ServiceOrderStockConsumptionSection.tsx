@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useServiceOrderStockConsumption } from '../hooks/useServiceOrderStockConsumption';
 import { useServiceOrderExecution } from '../hooks/useServiceOrderExecution';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
-import { approvalService } from '../services/approvalService';
+import { useServiceOrderApproval } from '../hooks/useServiceOrderApproval';
 import type { ServiceOrderPartConsumption } from '../types/stockConsumption.types';
 
 interface ServiceOrderStockConsumptionSectionProps {
@@ -24,11 +23,7 @@ export function ServiceOrderStockConsumptionSection({ serviceOrderId }: ServiceO
     isLoading: isLoadingExecution
   } = useServiceOrderExecution(serviceOrderId);
 
-  const { data: latestApproval, isLoading: isLoadingApproval } = useQuery({
-    queryKey: ['latest-approval', serviceOrderId],
-    queryFn: () => approvalService.getByServiceOrder(serviceOrderId),
-    enabled: !!serviceOrderId
-  });
+  const { data: latestApproval, isLoading: isLoadingApproval } = useServiceOrderApproval(serviceOrderId);
 
   const [quantities, setQuantities] = useState<Record<string, string>>({});
 

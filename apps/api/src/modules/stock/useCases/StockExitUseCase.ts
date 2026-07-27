@@ -1,6 +1,7 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { logger } from '../../../shared/logger';
+import { Prisma } from '@prisma/client';
 
 interface IRequest {
   companyId: string;
@@ -21,12 +22,14 @@ export class StockExitUseCase {
         where: { partId_branchId: { partId: data.partId, branchId: data.branchId } }
       });
 
-      if (!stock || stock.quantity < data.quantity) {
-        throw new AppError(`Insufficient stock for part ${data.partId}. Available: ${stock?.quantity || 0}`, 400);
+      const stockQty = stock ? new Prisma.Decimal(stock.quantity) : new Prisma.Decimal(0);
+      const exitQty = new Prisma.Decimal(data.quantity);
+      if (!stock || stockQty.lessThan(exitQty)) {
+        throw new AppError(`Insufficient stock for part ${data.partId}. Available: ${stock ? stock.quantity.toString() : '0.000'}`, 400);
       }
 
       const quantityBefore = stock.quantity;
-      const quantityAfter = stock.quantity - data.quantity;
+      const quantityAfter = quantityBefore.sub(exitQty);
 
       // 2. Update stock
       await tx.stock.update({
@@ -41,7 +44,7 @@ export class StockExitUseCase {
           branchId: data.branchId,
           userId: data.userId,
           type: 'OUT',
-          quantity: data.quantity,
+          quantity: new Prisma.Decimal(data.quantity),
           reason: `Service Order Consumption (OS: ${data.serviceOrderId})`,
           // Note: Extending the reason with before/after for audit
         }

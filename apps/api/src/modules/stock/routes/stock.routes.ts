@@ -9,7 +9,7 @@ stockRoutes.post('/transfer', controller.transfer);
 stockRoutes.get('/dashboard', controller.dashboard);
 stockRoutes.get('/low-stock', controller.lowStock);
 
-stockRoutes.get('/parts', controller.listParts);
+stockRoutes.get('/parts', controller.searchParts);
 stockRoutes.get('/top-parts', controller.topParts);
 
 // Legacy/Basic routes (if still needed)

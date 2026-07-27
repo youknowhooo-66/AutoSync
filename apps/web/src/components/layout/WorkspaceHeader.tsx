@@ -109,6 +109,7 @@ export function WorkspaceHeader({ onOpenCommandPalette }: WorkspaceHeaderProps) 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
+                id="header-branch-switcher"
                 variant="outline"
                 size="sm"
                 className="h-9 px-2.5 gap-2 text-xs font-semibold border-border bg-card hover:bg-surface-muted max-w-[150px] sm:max-w-[200px]"

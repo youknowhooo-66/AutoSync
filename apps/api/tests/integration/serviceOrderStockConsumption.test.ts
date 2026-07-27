@@ -158,7 +158,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
     const stock = await prismaClient.stock.findFirst({
       where: { partId: part.id, branchId: branch.id }
     });
-    expect(stock?.quantity).toBe(8);
+    expect(Number(stock?.quantity)).toBe(8);
 
     // Verify InventoryMovement created
     const movement = await prismaClient.inventoryMovement.findUnique({
@@ -166,7 +166,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
     });
     expect(movement).toBeDefined();
     expect(movement?.type).toBe('OUT');
-    expect(movement?.quantity).toBe(2);
+    expect(Number(movement?.quantity)).toBe(2);
     expect(movement?.serviceOrderId).toBe(osId);
     expect(movement?.osPartId).toBe(osPartId);
     expect(movement?.userId).toBe(admin.id);
@@ -212,7 +212,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
     // Set stock to 2
     await prismaClient.stock.update({
       where: { id: stockBefore.id },
-      data: { quantity: 2 }
+      data: { quantity: new Prisma.Decimal(2) }
     });
 
     const { osId, osPartId } = await createOSWithExecutionState('APPROVED');
@@ -253,7 +253,7 @@ describe('Service Order Stock Consumption (P4.6)', () => {
     const stock = await prismaClient.stock.findFirst({
       where: { partId: part.id, branchId: branch.id }
     });
-    expect(stock?.quantity).toBe(8); // 10 - 2, not 10 - 4
+    expect(Number(stock?.quantity)).toBe(8); // 10 - 2, not 10 - 4
   });
 
   it('should block idempotency key reuse on different parts', async () => {

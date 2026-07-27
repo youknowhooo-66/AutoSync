@@ -51,7 +51,7 @@ describe('Service Order Items (P4.3)', () => {
 
     // Verify stock is untouched
     const currentStock = await prismaClient.stock.findUnique({ where: { id: stock.id } });
-    expect(currentStock?.quantity).toBe(2); // Untouched
+    expect(Number(currentStock?.quantity)).toBe(2); // Untouched
 
     // Verify no movement created
     const movements = await prismaClient.inventoryMovement.findMany({ where: { partId: part.id } });
@@ -143,7 +143,10 @@ describe('Service Order Items (P4.3)', () => {
     const osId = createResponse.body.data.id;
 
     // Finish OS
-    await request(app).patch(`/api/service-orders/${osId}/status`).set(headers).send({ status: 'FINISHED' });
+    await prismaClient.serviceOrder.update({
+      where: { id: osId },
+      data: { status: 'FINISHED' }
+    });
 
     // Try to add
     const addResponse = await request(app)

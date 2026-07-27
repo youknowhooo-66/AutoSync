@@ -1,14 +1,15 @@
 import api from '@/services/api';
 import type { AuditLogEntry } from './audit.types';
 import { useAuditStore } from './audit.store';
+import { logger } from '@/utils/logger';
 
 class AuditService {
   persist(log: AuditLogEntry) {
     // 1. Add to local state (for real-time UI)
     useAuditStore.getState().addLog(log);
     
-    // 2. Logging for debug
-    console.log('[AUDIT LOG]:', log);
+    // 2. Logging via namespaced logger
+    logger.audit.debug('Persisting audit entry', log);
   }
 
   async fetchLogs(filters?: any): Promise<AuditLogEntry[]> {
@@ -21,7 +22,7 @@ class AuditService {
       
       return logs;
     } catch (error) {
-      console.error('Failed to fetch audit logs:', error);
+      logger.audit.error('Failed to fetch audit logs', error);
       return [];
     }
   }

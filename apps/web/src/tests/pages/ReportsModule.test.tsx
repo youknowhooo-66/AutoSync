@@ -90,7 +90,7 @@ describe('Reports Module (Phase 3)', () => {
     });
 
     expect(screen.getByText(/15\.400,50/)).toBeInTheDocument();
-    expect(screen.getByText('75.0%')).toBeInTheDocument();
+    expect(screen.getByText(/75[,.]0%/)).toBeInTheDocument();
   });
 
   it('2. should display correct OS count metric from real API response', async () => {

@@ -37,12 +37,16 @@ export default function ExecutiveDashboard() {
   const { dataset, isLoading, error } = useDashboardMetrics();
 
   if (isLoading) {
-    return <PageSkeleton />;
+    return (
+      <Page data-testid="dashboard-page">
+        <PageSkeleton />
+      </Page>
+    );
   }
 
   if (error || !dataset) {
     return (
-      <Page>
+      <Page data-testid="dashboard-page">
         <ErrorState
           title="Falha ao carregar indicadores operacionais"
           description="Não foi possível conectar ao servidor para buscar os dados em tempo real."
@@ -59,7 +63,7 @@ export default function ExecutiveDashboard() {
     : 'R$ 0,00';
 
   return (
-    <Page>
+    <Page data-testid="dashboard-page">
       {/* Header: Context & Active Branch */}
       <PageHeader
         title="Centro Operacional & Executivo"

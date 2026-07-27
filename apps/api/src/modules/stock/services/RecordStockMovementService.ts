@@ -1,6 +1,7 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { AuditLogService } from '../../../shared/audit/AuditLogService';
+import { Prisma } from '@prisma/client';
 
 interface IMovementRequest {
   companyId: string;
@@ -39,19 +40,20 @@ export class RecordStockMovementService {
         },
       });
 
-      let currentQuantity = stock ? stock.quantity : 0;
+      const currentQuantity = stock ? new Prisma.Decimal(stock.quantity) : new Prisma.Decimal(0);
+      const qtyDecimal = new Prisma.Decimal(quantity);
       let newQuantity = currentQuantity;
 
       // 2. Calculate new quantity and validate
       if (['OUT', 'TRANSFER'].includes(type)) {
-        if (currentQuantity < quantity) {
+        if (currentQuantity.lessThan(qtyDecimal)) {
           throw new AppError('Insufficient stock for this operation.', 400);
         }
-        newQuantity -= quantity;
+        newQuantity = currentQuantity.sub(qtyDecimal);
       } else if (['IN', 'RETURN'].includes(type)) {
-        newQuantity += quantity;
+        newQuantity = currentQuantity.add(qtyDecimal);
       } else if (type === 'ADJUSTMENT') {
-        newQuantity = quantity; // In adjustments, quantity is the target value
+        newQuantity = qtyDecimal; // In adjustments, quantity is the target value
       }
 
       // 3. Update or Create Stock record
@@ -80,7 +82,7 @@ export class RecordStockMovementService {
           branchId,
           userId,
           type,
-          quantity,
+          quantity: new Prisma.Decimal(quantity),
           reason,
           sourceBranchId,
           targetBranchId,

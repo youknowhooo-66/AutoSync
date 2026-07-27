@@ -302,7 +302,7 @@ describe('Service Order Technical Execution (P4.5)', () => {
     const stockAfter = await prismaClient.stock.findUnique({
       where: { id: stockBefore.id }
     });
-    expect(stockAfter?.quantity).toBe(10); // Unchanged!
+    expect(Number(stockAfter?.quantity)).toBe(10); // Unchanged!
 
     // Check inventory movement
     const movements = await prismaClient.inventoryMovement.findMany({

@@ -88,14 +88,14 @@ export class RequestApprovalUseCase {
       const partsSnapshot: BudgetApprovalSnapshot['parts'] = [];
       for (const p of os.parts) {
         // Find stock item
-        const stock = await tx.stock.findUnique({
+        const stock = p.partId ? await tx.stock.findUnique({
           where: {
             partId_branchId: {
               partId: p.partId,
               branchId: os.branchId
             }
           }
-        });
+        }) : null;
 
         const partTotal = new Prisma.Decimal(p.unitPrice).mul(p.quantity);
         calculatedTotalParts = calculatedTotalParts.add(partTotal);
@@ -103,8 +103,8 @@ export class RequestApprovalUseCase {
         partsSnapshot.push({
           id: p.id,
           stockItemId: stock?.id || '',
-          code: p.part.internalCode,
-          description: p.part.name,
+          code: p.part?.internalCode || '',
+          description: p.part?.name || p.description || '',
           quantity: p.quantity.toString(),
           unitPrice: p.unitPrice.toString(),
           total: partTotal.toString()

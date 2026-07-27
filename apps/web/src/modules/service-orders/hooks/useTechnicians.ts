@@ -13,7 +13,7 @@ export function useTechnicians() {
   return useQuery<User[]>({
     queryKey: ['technicians'],
     queryFn: async () => {
-      const response = await api.get('/api/users');
+      const response = await api.get('/users');
       // Filter mechanics
       const allUsers = response.data.data || [];
       return allUsers.filter((u: User) => u.role === 'MECHANIC' && u.active);

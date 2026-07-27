@@ -439,7 +439,7 @@ describe('Service Order Completion (P4.7)', () => {
 
       // Stock must be unchanged by the completion
       const stockAfter = await prismaClient.stock.findUnique({ where: { id: stockEntry.id } });
-      expect(stockAfter?.quantity).toBe(stockBefore?.quantity);
+      expect(Number(stockAfter?.quantity)).toBe(Number(stockBefore?.quantity));
     });
 
     it('should verify no new InventoryMovement created during completion', async () => {

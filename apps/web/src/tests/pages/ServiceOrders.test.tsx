@@ -12,6 +12,10 @@ vi.mock('../../modules/service-orders/hooks/useServiceOrders', () => {
   return {
     useServiceOrders: vi.fn(),
     useCreateServiceOrder: vi.fn(),
+    useServiceOrder: vi.fn(),
+    serviceOrderKeys: {
+      all: ['service-orders'],
+    }
   };
 });
 
@@ -126,6 +130,11 @@ describe('ServiceOrders Component', () => {
     vi.mocked(hooks.useCreateServiceOrder).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
+    } as any);
+
+    vi.mocked(hooks.useServiceOrder).mockReturnValue({
+      data: null,
+      isLoading: false,
     } as any);
 
     vi.mocked(clientHooks.useClients).mockReturnValue({

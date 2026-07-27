@@ -1,0 +1,450 @@
+[
+  {
+    "file": "01-login-light.png",
+    "expectedPath": "/login",
+    "expectedHeading": "Acessar Conta",
+    "requiredSelector": "form",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/login",
+    "capturedAt": "2026-07-27T20:57:25.523Z"
+  },
+  {
+    "file": "02-dashboard-dark.png",
+    "expectedPath": "/",
+    "expectedHeading": "Centro Operacional & Executivo",
+    "requiredSelector": "main",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/",
+    "capturedAt": "2026-07-27T20:57:27.593Z"
+  },
+  {
+    "file": "03-service-orders-light.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:29.353Z"
+  },
+  {
+    "file": "04-service-order-detail-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "main",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:30.886Z"
+  },
+  {
+    "file": "05-service-order-statuses.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "[data-testid=\"os-status-workflow-badges\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:33.305Z"
+  },
+  {
+    "file": "06-part-combobox-open-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "#part-search-combobox-trigger",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:36.137Z"
+  },
+  {
+    "file": "07-part-search-results-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "[role=\"option\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:40.617Z"
+  },
+  {
+    "file": "08-part-without-stock-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "[role=\"option\"][aria-disabled=\"true\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:45.670Z"
+  },
+  {
+    "file": "09-part-selected-light.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "#item-quantity",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:50.701Z"
+  },
+  {
+    "file": "10-part-quantity-validation-light.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "#item-quantity",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:56.185Z"
+  },
+  {
+    "file": "11-budget-approval-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "[data-testid=\"budget-approval-section\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:57:59.340Z"
+  },
+  {
+    "file": "12-inventory-light.png",
+    "expectedPath": "/estoque",
+    "expectedHeading": "Estoque de Peças & Materiais",
+    "requiredSelector": "tbody tr, table",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/estoque",
+    "capturedAt": "2026-07-27T20:58:02.828Z"
+  },
+  {
+    "file": "13-clients-light.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:04.543Z"
+  },
+  {
+    "file": "14-client-create-light.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "form",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:06.072Z"
+  },
+  {
+    "file": "15-client-edit-dark.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "form",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:08.033Z"
+  },
+  {
+    "file": "16-vehicles-light.png",
+    "expectedPath": "/veiculos",
+    "expectedHeading": "Veículos",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/veiculos",
+    "capturedAt": "2026-07-27T20:58:10.153Z"
+  },
+  {
+    "file": "17-suppliers-light.png",
+    "expectedPath": "/fornecedores",
+    "expectedHeading": "Gestão de Fornecedores & Insumos",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/fornecedores",
+    "capturedAt": "2026-07-27T20:58:11.857Z"
+  },
+  {
+    "file": "18-finance-light.png",
+    "expectedPath": "/financeiro",
+    "expectedHeading": "Financeiro & Conciliação Operacional",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/financeiro",
+    "capturedAt": "2026-07-27T20:58:13.560Z"
+  },
+  {
+    "file": "19-branches-light.png",
+    "expectedPath": "/filiais",
+    "expectedHeading": "Gestão de Filiais & Unidades Operacionais",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/filiais",
+    "capturedAt": "2026-07-27T20:58:15.251Z"
+  },
+  {
+    "file": "20-branch-switch-dark.png",
+    "expectedPath": "/filiais",
+    "expectedHeading": "Gestão de Filiais & Unidades Operacionais",
+    "requiredSelector": "[role=\"menu\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/filiais",
+    "capturedAt": "2026-07-27T20:58:16.693Z"
+  },
+  {
+    "file": "21-users-light.png",
+    "expectedPath": "/usuarios",
+    "expectedHeading": "Usuários & Governança RBAC",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/usuarios",
+    "capturedAt": "2026-07-27T20:58:18.412Z"
+  },
+  {
+    "file": "22-audit-dark.png",
+    "expectedPath": "/auditoria",
+    "expectedHeading": "Auditoria, Governança & Logs de Auditoria",
+    "requiredSelector": "main",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/auditoria",
+    "capturedAt": "2026-07-27T20:58:20.144Z"
+  },
+  {
+    "file": "23-reports-light.png",
+    "expectedPath": "/relatorios",
+    "expectedHeading": "Relatórios Executivos & Inteligência Operacional",
+    "requiredSelector": "main",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/relatorios",
+    "capturedAt": "2026-07-27T20:58:21.886Z"
+  },
+  {
+    "file": "24-select-light.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "select, [role=\"combobox\"]",
+    "theme": "light",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:58:24.591Z"
+  },
+  {
+    "file": "25-select-dark.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "select, [role=\"combobox\"]",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:58:26.397Z"
+  },
+  {
+    "file": "26-desktop-1024.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "[data-state=\"collapsed\"]",
+    "theme": "light",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:28.098Z"
+  },
+  {
+    "file": "27-tablet-768.png",
+    "expectedPath": "/filiais",
+    "expectedHeading": "Gestão de Filiais & Unidades Operacionais",
+    "requiredSelector": "[data-state=\"collapsed\"]",
+    "theme": "light",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/filiais",
+    "capturedAt": "2026-07-27T20:58:29.796Z"
+  },
+  {
+    "file": "28-mobile-dashboard-390.png",
+    "expectedPath": "/",
+    "expectedHeading": "Centro Operacional & Executivo",
+    "requiredSelector": "main",
+    "theme": "dark",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/",
+    "capturedAt": "2026-07-27T20:58:31.522Z"
+  },
+  {
+    "file": "29-mobile-clients-390.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "[data-testid=\"clients-table\"] .rounded-xl, .rounded-xl",
+    "theme": "light",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:33.223Z"
+  },
+  {
+    "file": "30-mobile-service-orders-390.png",
+    "expectedPath": "/os",
+    "expectedHeading": "Ordens de Serviço",
+    "requiredSelector": "[data-testid=\"service-orders-page\"] button.rounded-xl, button.rounded-xl",
+    "theme": "light",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/os",
+    "capturedAt": "2026-07-27T20:58:34.939Z"
+  },
+  {
+    "file": "31-mobile-form-390.png",
+    "expectedPath": "/clientes",
+    "expectedHeading": "Clientes",
+    "requiredSelector": "form",
+    "theme": "light",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/clientes",
+    "capturedAt": "2026-07-27T20:58:37.281Z"
+  },
+  {
+    "file": "32-api-decimal-contract.png",
+    "expectedPath": "/api/inventory/parts",
+    "expectedHeading": "HTTP Contract Verification",
+    "requiredSelector": ".card",
+    "theme": "dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "status": "PASS",
+    "actualUrl": "http://localhost/api/inventory/parts",
+    "capturedAt": "2026-07-27T20:58:38.142Z"
+  }
+]

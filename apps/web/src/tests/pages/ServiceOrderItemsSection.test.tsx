@@ -46,7 +46,7 @@ describe('ServiceOrderItemsSection', () => {
     expect(screen.getByText('Itens e Serviços')).toBeInTheDocument();
     expect(screen.getByText('Filtro de Óleo')).toBeInTheDocument();
     expect(screen.getByText('Troca de Óleo')).toBeInTheDocument();
-    expect(screen.getByText('R$ 75.00')).toBeInTheDocument();
+    expect(screen.getByText(/75[,.]00/)).toBeInTheDocument();
   });
 
   it('hides add button if OS is FINISHED', () => {

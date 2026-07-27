@@ -1,5 +1,6 @@
 import { Response, Request } from 'express';
 import { prisma } from '../config/prisma';
+import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { createAuditLog } from './AuditController';
 import * as XLSX from 'xlsx';
@@ -39,21 +40,21 @@ export const transferStock = async (req: AuthRequest, res: Response) => {
           where: { partId_branchId: { partId, branchId: fromBranchId } }
         });
 
-        if (!sourceStock || sourceStock.quantity < qty) {
-          throw new Error(`Estoque insuficiente na filial de origem. Disponível: ${sourceStock?.quantity || 0}`);
+        if (!sourceStock || Number(sourceStock.quantity) < qty) {
+          throw new Error(`Estoque insuficiente na filial de origem. Disponível: ${sourceStock ? Number(sourceStock.quantity) : 0}`);
         }
 
         // 2. Decrement from source
         await tx.stock.update({
           where: { id: sourceStock.id },
-          data: { quantity: { decrement: qty } }
+          data: { quantity: { decrement: new Prisma.Decimal(qty) } }
         });
 
         // 3. Increment/Create at target
         await tx.stock.upsert({
           where: { partId_branchId: { partId, branchId: toBranchId } },
-          update: { quantity: { increment: qty } },
-          create: { partId, branchId: toBranchId, quantity: qty, companyId: req.user!.companyId }
+          update: { quantity: { increment: new Prisma.Decimal(qty) } },
+          create: { partId, branchId: toBranchId, quantity: new Prisma.Decimal(qty), companyId: req.user!.companyId }
         });
 
         // 4. Record movements
@@ -102,13 +103,13 @@ export const getLowStock = async (req: AuthRequest, res: Response) => {
           }
         });
 
-    const lowItems = stocks.filter(s => s.quantity <= s.part.minStock);
+    const lowItems = stocks.filter(s => Number(s.quantity) <= s.part.minStock);
 
     res.json(lowItems.map(s => ({
       id: s.part.id,
       name: s.part.name,
       internalCode: s.part.internalCode,
-      currentStock: s.quantity,
+      currentStock: s.quantity.toString(),
       minStock: s.part.minStock,
       branch: s.branch.name,
       branchId: s.branchId,
@@ -477,7 +478,7 @@ export const importParts = async (req: AuthRequest, res: Response) => {
             data: {
               partId: part.id,
               branchId: stockData.branchId,
-              quantity: stockData.quantity,
+              quantity: new Prisma.Decimal(stockData.quantity),
               companyId: req.user!.companyId
             },
           });

@@ -40,6 +40,7 @@ const mockPrisma = vi.hoisted(() => {
       findFirst: vi.fn(),
     },
     $transaction: vi.fn().mockImplementation(async (cb) => cb(m)),
+    $queryRaw: vi.fn(),
   };
   return m;
 });
@@ -74,16 +75,46 @@ describe('Inventory Controller', () => {
   });
 
   describe('GET /api/inventory/parts', () => {
-    it('should return a list of parts', async () => {
-      const mockParts = [{ id: '1', name: 'Bateria' }];
-      (prismaClient.part.findMany as jest.Mock).mockResolvedValue(mockParts);
+    it('should return paginated parts with the new search contract', async () => {
+      // SearchPartsService uses $queryRaw for count and data queries
+      // First call: pg_trgm extension check, Second call: COUNT, Third call: data rows
+      (prismaClient.$queryRaw as jest.Mock)
+        .mockResolvedValueOnce([{ count: 0n }])    // pg_trgm check (not installed -> PREFIX mode)
+        .mockResolvedValueOnce([{ count: 1n }])    // COUNT query
+        .mockResolvedValueOnce([{                  // data rows
+          id: 'part-1',
+          name: 'Bateria',
+          sku: 'BAT-001',
+          manufacturer_code: null,
+          barcode: null,
+          brand: 'Bosch',
+          description: null,
+          category: null,
+          active: true,
+          on_hand_quantity: '5.000',
+          reserved_quantity: '0.000',
+          available_quantity: '5.000',
+          location: null,
+          average_cost: null,
+          relevance: '0',
+        }]);
 
       const response = await request(app)
         .get('/api/inventory/parts')
         .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockParts);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveProperty('items');
+      expect(response.body.data).toHaveProperty('total');
+      expect(response.body.data).toHaveProperty('totalPages');
+      expect(Array.isArray(response.body.data.items)).toBe(true);
+      expect(response.body.data.items[0]).toMatchObject({
+        id: 'part-1',
+        name: 'Bateria',
+        sku: 'BAT-001',
+        canSelectFromStock: true,
+      });
     });
   });
 

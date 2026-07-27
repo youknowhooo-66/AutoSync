@@ -190,4 +190,73 @@ describe('OS Controller', () => {
       expect(response.header['content-type']).toBe('application/pdf');
     });
   });
+
+  describe('PATCH /api/os/:id/status', () => {
+    it('should allow valid status transitions', async () => {
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({
+        id: 'os-1',
+        status: 'OPEN',
+        companyId: 'comp-1'
+      });
+      (prismaClient.serviceOrder.update as jest.Mock).mockResolvedValue({
+        id: 'os-1',
+        status: 'IN_PROGRESS'
+      });
+
+      const response = await request(app)
+        .patch('/api/os/os-1/status')
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.status).toBe('IN_PROGRESS');
+    });
+
+    it('should block direct transition to FINISHED', async () => {
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({
+        id: 'os-1',
+        status: 'OPEN',
+        companyId: 'comp-1'
+      });
+
+      const response = await request(app)
+        .patch('/api/os/os-1/status')
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({ status: 'FINISHED' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('utilize a seção de Encerramento');
+    });
+
+    it('should return 422 for invalid transition matrix path', async () => {
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({
+        id: 'os-1',
+        status: 'OPEN',
+        companyId: 'comp-1'
+      });
+
+      const response = await request(app)
+        .patch('/api/os/os-1/status')
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({ status: 'AWAITING_PARTS' }); // OPEN cannot go to AWAITING_PARTS? Let's check ALLOWED_TRANSITIONS. Wait, OPEN can go to AWAITING_PARTS. Let's send an invalid target like finished or wait, OPEN cannot go to finished. But finished has a custom 400 check. What status is not allowed? OPEN to IN_PROGRESS is allowed. What about OPEN to FINISHED? Yes, that returns 400. What about OPEN to some other status?
+        // Wait, ALLOWED_TRANSITIONS: OPEN: ['IN_PROGRESS', 'AWAITING_PARTS', 'CANCELLED']
+        // So OPEN cannot go to OPEN? Or wait, if currentStatus === dbStatus it returns os.
+        // What about AWAITING_PARTS to OPEN? AWAITING_PARTS: ['IN_PROGRESS', 'CANCELLED']. So AWAITING_PARTS cannot go to OPEN!
+        // Yes! Let's mock currentStatus as AWAITING_PARTS and transition to OPEN!
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({
+        id: 'os-1',
+        status: 'AWAITING_PARTS',
+        companyId: 'comp-1'
+      });
+
+      const res = await request(app)
+        .patch('/api/os/os-1/status')
+        .set('Authorization', `Bearer ${mockToken}`)
+        .send({ status: 'OPEN' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
+    });
+  });
 });

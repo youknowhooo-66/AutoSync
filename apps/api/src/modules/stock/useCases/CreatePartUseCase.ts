@@ -1,5 +1,6 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
+import { normalizeInternalCode } from '../../../shared/utils/normalizeInternalCode';
 
 interface IRequest {
   companyId: string;
@@ -21,14 +22,16 @@ export class CreatePartUseCase {
     }
 
     return await prismaClient.$transaction(async (tx) => {
-      // 1. Check if part with same code already exists in company
-      const partAlreadyExists = await tx.part.findFirst({
-        where: {
-          companyId: data.companyId,
-          internalCode: data.internalCode,
-          
-        }
-      });
+      // 1. Check if part with same normalized code already exists in company
+      const normalizedCode = normalizeInternalCode(data.internalCode);
+      const partAlreadyExists = normalizedCode
+        ? await tx.part.findFirst({
+            where: {
+              companyId: data.companyId,
+              normalizedInternalCode: normalizedCode,
+            }
+          })
+        : null;
 
       if (partAlreadyExists) {
         throw new AppError('Part with this internal code already exists.', 400);
@@ -40,6 +43,7 @@ export class CreatePartUseCase {
           companyId: data.companyId,
           name: data.name,
           internalCode: data.internalCode,
+          normalizedInternalCode: normalizeInternalCode(data.internalCode),
           description: data.description,
           salePrice: data.salePrice || 0,
           purchasePrice: data.purchasePrice || 0,
@@ -47,31 +51,38 @@ export class CreatePartUseCase {
         }
       });
 
-      // 3. If initial stock is provided, create stock entry
-      if (data.initialStock && data.initialStock > 0 && data.branchId) {
-        await tx.stock.create({
+      // 3. Create stock entry for branch if branchId provided
+      let stockId: string | null = null;
+      if (data.branchId) {
+        const stock = await tx.stock.create({
           data: {
             companyId: data.companyId,
             branchId: data.branchId,
             partId: part.id,
-            quantity: data.initialStock,
+            quantity: data.initialStock || 0,
           }
         });
+        stockId = stock.id;
 
-        // Record movement
-        await tx.inventoryMovement.create({
-          data: {
-            partId: part.id,
-            branchId: data.branchId,
-            userId: data.userId,
-            type: 'IN',
-            quantity: data.initialStock,
-            reason: 'Initial stock entry upon creation'
-          }
-        });
+        // Record movement if initial stock > 0
+        if (data.initialStock && data.initialStock > 0) {
+          await tx.inventoryMovement.create({
+            data: {
+              partId: part.id,
+              branchId: data.branchId,
+              userId: data.userId,
+              type: 'IN',
+              quantity: data.initialStock,
+              reason: 'Initial stock entry upon creation'
+            }
+          });
+        }
       }
 
-      return part;
+      return {
+        ...part,
+        stockId,
+      };
     });
   }
 }

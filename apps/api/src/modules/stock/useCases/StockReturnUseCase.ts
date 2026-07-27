@@ -1,5 +1,6 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { logger } from '../../../shared/logger';
+import { Prisma } from '@prisma/client';
 
 interface IRequest {
   companyId: string;
@@ -28,13 +29,13 @@ export class StockReturnUseCase {
             companyId: data.companyId,
             branchId: data.branchId,
             partId: data.partId,
-            quantity: data.quantity
+            quantity: new Prisma.Decimal(data.quantity)
           }
         });
       }
 
       const quantityBefore = stock.quantity;
-      const quantityAfter = stock.quantity + data.quantity;
+      const quantityAfter = quantityBefore.add(data.quantity);
 
       // 2. Update stock
       await tx.stock.update({
@@ -49,7 +50,7 @@ export class StockReturnUseCase {
           branchId: data.branchId,
           userId: data.userId,
           type: 'RETURN',
-          quantity: data.quantity,
+          quantity: new Prisma.Decimal(data.quantity),
           reason: data.reason || `Service Order Return (OS: ${data.serviceOrderId})`,
         }
       });

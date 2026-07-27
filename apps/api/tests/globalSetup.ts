@@ -27,4 +27,18 @@ export default async function globalSetup() {
     console.error('❌ [Global Setup] Error synchronizing database schema:', error);
     throw error;
   }
+
+  try {
+    // Enable pg_trgm extension required for similarity() full-text search
+    console.log('📦 [Global Setup] Enabling pg_trgm extension for catalog search...');
+    execSync(
+      `psql "${testDbUrl}" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"`,
+      { stdio: 'inherit' }
+    );
+    console.log('✅ [Global Setup] pg_trgm extension enabled.');
+  } catch (error) {
+    // Non-fatal: SearchPartsService falls back to PREFIX mode automatically
+    console.warn('⚠️  [Global Setup] Could not enable pg_trgm (similarity search unavailable, using prefix fallback):', (error as Error).message);
+  }
 }
+

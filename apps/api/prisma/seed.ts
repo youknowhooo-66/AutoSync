@@ -128,19 +128,42 @@ async function main() {
     createdParts.push(part);
   }
 
+  // Create explicit zero-stock part for validation
+  const zeroStockPart = await prisma.part.create({
+    data: {
+      companyId: company.id,
+      name: 'Kit de Embreagem (Sem Saldo)',
+      internalCode: 'ENG-999',
+      category: 'Motor',
+      brand: 'Sachs',
+      purchasePrice: 450,
+      salePrice: 950,
+      minStock: 10,
+      supplierId: createdSuppliers[0].id,
+      stocks: {
+        create: branches.map(b => ({
+          companyId: company.id,
+          branchId: b.id,
+          quantity: 0
+        }))
+      }
+    }
+  });
+  createdParts.push(zeroStockPart);
+
   const clientsData = [
-    { name: 'João Silva', doc: '111.222.333-44', vehicle: { model: 'Civic', brand: 'Honda', plate: 'ABC1D23', year: 2022 } },
-    { name: 'Maria Souza', doc: '555.666.777-88', vehicle: { model: 'Corolla', brand: 'Toyota', plate: 'XYZ9A87', year: 2021 } },
-    { name: 'Pedro Santos', doc: '999.000.111-22', vehicle: { model: 'Onix', brand: 'Chevrolet', plate: 'KJH5G43', year: 2020 } },
-    { name: 'Fernanda Lima', doc: '333.444.555-66', vehicle: { model: 'Golf', brand: 'Volkswagen', plate: 'MNO2B11', year: 2019 } },
-    { name: 'Roberto J.', doc: '777.888.999-00', vehicle: { model: 'Hilux', brand: 'Toyota', plate: 'PRT3F22', year: 2023 } },
-    { name: 'Aline P.', doc: '222.333.444-55', vehicle: { model: 'HB20', brand: 'Hyundai', plate: 'HGB6E44', year: 2022 } },
-    { name: 'Transportes Rápidos Ltda', doc: '10.200.300/0001-44', vehicle: { model: 'Daily', brand: 'Iveco', plate: 'LOG1A00', year: 2021 } },
-    { name: 'Carlos Eduardo', doc: '123.456.789-00', vehicle: { model: 'Compass', brand: 'Jeep', plate: 'JEE3P00', year: 2022 } },
-    { name: 'Beatriz Almeida', doc: '987.654.321-11', vehicle: { model: 'Renegade', brand: 'Jeep', plate: 'REN4G99', year: 2021 } },
-    { name: 'Marcos Costa', doc: '456.123.789-22', vehicle: { model: 'Creta', brand: 'Hyundai', plate: 'CRE5T88', year: 2023 } },
-    { name: 'Luciana Mendes', doc: '321.654.987-33', vehicle: { model: 'Nivus', brand: 'Volkswagen', plate: 'NIV6V77', year: 2022 } },
-    { name: 'Locadora Viagem', doc: '20.300.400/0001-55', vehicle: { model: 'Argo', brand: 'Fiat', plate: 'LOC7A66', year: 2023 } }
+    { name: 'João Silva', doc: '111.222.333-44', email: 'joao.silva@example.com', vehicle: { model: 'Civic', brand: 'Honda', plate: 'ABC1D23', year: 2022 } },
+    { name: 'Maria Souza', doc: '555.666.777-88', email: 'maria.souza@example.com', vehicle: { model: 'Corolla', brand: 'Toyota', plate: 'XYZ9A87', year: 2021 } },
+    { name: 'Pedro Santos', doc: '999.000.111-22', email: 'pedro.santos@example.com', vehicle: { model: 'Onix', brand: 'Chevrolet', plate: 'KJH5G43', year: 2020 } },
+    { name: 'Fernanda Lima', doc: '333.444.555-66', email: 'fernanda.lima@example.com', vehicle: { model: 'Golf', brand: 'Volkswagen', plate: 'MNO2B11', year: 2019 } },
+    { name: 'Roberto J.', doc: '777.888.999-00', email: 'roberto.j@example.com', vehicle: { model: 'Hilux', brand: 'Toyota', plate: 'PRT3F22', year: 2023 } },
+    { name: 'Aline P.', doc: '222.333.444-55', email: 'aline.p@example.com', vehicle: { model: 'HB20', brand: 'Hyundai', plate: 'HGB6E44', year: 2022 } },
+    { name: 'Transportes Rápidos Ltda', doc: '10.200.300/0001-44', email: 'contato@transportesrapidos.com.br', vehicle: { model: 'Daily', brand: 'Iveco', plate: 'LOG1A00', year: 2021 } },
+    { name: 'Carlos Eduardo', doc: '123.456.789-00', email: 'carlos.eduardo@example.com', vehicle: { model: 'Compass', brand: 'Jeep', plate: 'JEE3P00', year: 2022 } },
+    { name: 'Beatriz Almeida', doc: '987.654.321-11', email: 'beatriz.almeida@example.com', vehicle: { model: 'Renegade', brand: 'Jeep', plate: 'REN4G99', year: 2021 } },
+    { name: 'Marcos Costa', doc: '456.123.789-22', email: 'marcos.costa@example.com', vehicle: { model: 'Creta', brand: 'Hyundai', plate: 'CRE5T88', year: 2023 } },
+    { name: 'Luciana Mendes', doc: '321.654.987-33', email: 'luciana.mendes@example.com', vehicle: { model: 'Nivus', brand: 'Volkswagen', plate: 'NIV6V77', year: 2022 } },
+    { name: 'Locadora Viagem', doc: '20.300.400/0001-55', email: 'contato@locadoraviagem.com.br', vehicle: { model: 'Argo', brand: 'Fiat', plate: 'LOC7A66', year: 2023 } }
   ];
 
   for (let i = 0; i < clientsData.length; i++) {
@@ -150,6 +173,7 @@ async function main() {
         companyId: company.id,
         name: c.name,
         document: c.doc,
+        email: c.email,
         phone: `(11) 98888-${7000 + i}`,
         vehicles: {
           create: { companyId: company.id, ...c.vehicle }
@@ -256,6 +280,80 @@ async function main() {
         });
       }
     }
+  }
+
+  // Seed an explicit IN_PROGRESS OS with an APPROVED budget approval record
+  const approvedOS = await prisma.serviceOrder.create({
+    data: {
+      companyId: company.id,
+      branchId: branchMatriz.id,
+      clientId: (await prisma.client.findFirst())!.id,
+      vehicleId: (await prisma.vehicle.findFirst())!.id,
+      mechanicId: createdUsers[0].id,
+      status: OSStatus.IN_PROGRESS,
+      totalParts: 1220.00,
+      totalServices: 800.00,
+      finalValue: 2020.00,
+      notes: 'Orçamento aprovado pelo cliente via WhatsApp. Peças reservadas.',
+      services: {
+        create: [
+          { name: 'Manutenção Preventiva Completa', price: 800.00 }
+        ]
+      }
+    }
+  });
+
+  await prisma.serviceOrderApproval.create({
+    data: {
+      serviceOrderId: approvedOS.id,
+      companyId: company.id,
+      branchId: branchMatriz.id,
+      version: 2,
+      status: 'APPROVED',
+      requestedAt: new Date(Date.now() - 3600000 * 4),
+      requestedById: createdUsers[0].id,
+      approvedAt: new Date(Date.now() - 3600000 * 2),
+      approvedById: createdUsers[0].id,
+      totalParts: 1220.00,
+      totalServices: 800.00,
+      discount: 0.00,
+      finalValue: 2020.00,
+      snapshot: {
+        approvedBy: 'Ricardo Oliveira (CEO)',
+        totalParts: 1220.00,
+        totalServices: 800.00,
+        finalValue: 2020.00
+      }
+    }
+  });
+
+  // Seed diverse Audit Logs
+  console.log('📜 Generating diverse audit logs...');
+  const auditActions = [
+    { action: 'AUTH_SUCCESS', resource: 'USER', details: { email: 'admin@autosync.com' } },
+    { action: 'SERVICE_ORDER_CREATED', resource: 'OS', details: { osNumber: `#${approvedOS.number}`, finalValue: 2020 } },
+    { action: 'BUDGET_APPROVED', resource: 'OS_APPROVAL', details: { version: 2, approvedBy: 'Ricardo Oliveira' } },
+    { action: 'STOCK_MOVEMENT', resource: 'STOCK', details: { part: 'Óleo Motor 5W30', qty: -4 } },
+    { action: 'BRANCH_CHANGED', resource: 'BRANCH', details: { from: 'Matriz SP', to: 'Filial Curitiba' } },
+    { action: 'CLIENT_UPDATED', resource: 'CLIENT', details: { field: 'phone', updatedBy: 'Ana Silva' } },
+    { action: 'PAYMENT_REGISTERED', resource: 'FINANCIAL', details: { amount: 2020, status: 'PAID' } },
+  ];
+
+  for (let i = 0; i < auditActions.length; i++) {
+    const act = auditActions[i];
+    const logDate = new Date();
+    logDate.setMinutes(logDate.getMinutes() - i * 25);
+    await prisma.auditLog.create({
+      data: {
+        userId: createdUsers[i % createdUsers.length].id,
+        action: act.action,
+        resource: act.resource,
+        resourceId: `res-${100 + i}`,
+        newValue: act.details,
+        ip: `192.168.1.${10 + i}`,
+        createdAt: logDate
+      }
+    });
   }
 
   // Create additional financial records for reports

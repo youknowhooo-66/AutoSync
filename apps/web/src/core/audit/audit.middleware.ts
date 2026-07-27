@@ -1,6 +1,7 @@
 import { eventBus } from '../events/eventBus';
 import type { DomainEvent } from '../events/eventTypes';
 import { AuditLog } from './auditLog';
+import { logger } from '@/utils/logger';
 
 export function setupAuditMiddleware() {
   // We subscribe a generic interceptor to the publish cycle,
@@ -32,5 +33,5 @@ export function setupAuditMiddleware() {
     });
   });
 
-  console.log('[Audit Middleware] Active and listening to Domain Events.');
+  logger.audit.info('Active and listening to Domain Events.');
 }

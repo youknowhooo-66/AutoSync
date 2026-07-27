@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -199,7 +199,8 @@ describe('Branches Module (Integrated Management)', () => {
       expect(screen.getByText('Matriz Centro')).toBeInTheDocument();
     });
 
-    const selectBtn = screen.getByText('Selecionar Unidade');
+    const card = screen.getByTestId('branch-card-b1');
+    const selectBtn = within(card).getByRole('button', { name: 'Selecionar' });
     fireEvent.click(selectBtn);
 
     await waitFor(() => {

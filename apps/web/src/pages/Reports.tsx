@@ -27,13 +27,17 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 const CHART_COLORS = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'];
 
 const STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Aberta',
+  IN_PROGRESS: 'Em Execução',
+  AWAITING_PARTS: 'Aguardando Peças',
+  COMPLETED: 'Concluído',
+  FINISHED: 'Concluído',
+  CANCELLED: 'Cancelado',
+  CANCELED: 'Cancelado',
   DRAFT: 'Rascunho',
   DIAGNOSIS: 'Em Diagnóstico',
   WAITING_APPROVAL: 'Aguardando Aprovação',
   APPROVED: 'Aprovado',
-  IN_EXECUTION: 'Em Execução',
-  FINISHED: 'Concluído',
-  CANCELLED: 'Cancelado',
 };
 
 export interface ReportData {
@@ -140,7 +144,7 @@ const Reports: React.FC = () => {
   const funnel = data?.stats?.funnel || { created: 0, completed: 0, invoiced: 0, paid: 0 };
 
   return (
-    <Page data-testid="reports-page" className="reports-container">
+    <Page data-testid="reports-page">
       <PageHeader
         title="Relatórios Executivos & Inteligência Operacional"
         description="Métricas consolidadas de faturamento, eficiência operacional e distribuição de Ordens de Serviço."
@@ -182,7 +186,7 @@ const Reports: React.FC = () => {
         />
         <MetricCard
           title="Taxa de Conversão OS -> Pago"
-          value={`${kpis.conversionRate.toFixed(1)}%`}
+          value={`${(kpis.conversionRate || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
           variant="warning"
           icon={<TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
         />
@@ -198,7 +202,7 @@ const Reports: React.FC = () => {
         {/* OS Status Distribution Chart */}
         <ChartCard
           title="Distribuição por Status de OS"
-          description={`Fonte: GET /api/service-orders | Filial: ${activeBranch?.name || 'Global'}`}
+          description={`Fonte: GET /service-orders | Filial: ${activeBranch?.name || 'Global'}`}
         >
           {data?.osStatusDistribution && data.osStatusDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -240,7 +244,7 @@ const Reports: React.FC = () => {
         {/* Funnel Bar Chart */}
         <ChartCard
           title="Funil Operacional & Financeiro"
-          description={`Fonte: GET /api/dashboard | Filial: ${activeBranch?.name || 'Global'}`}
+          description={`Fonte: GET /dashboard | Filial: ${activeBranch?.name || 'Global'}`}
         >
           {funnel.created > 0 || funnel.completed > 0 || funnel.paid > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -280,7 +284,7 @@ const Reports: React.FC = () => {
       {/* Financial Volume Chart */}
       <ChartCard
         title="Volume Financeiro por Natureza (Entradas vs Saídas)"
-        description={`Fonte: GET /api/financial | Filial: ${activeBranch?.name || 'Global'}`}
+        description={`Fonte: GET /financial | Filial: ${activeBranch?.name || 'Global'}`}
       >
         {data?.financialTypeDistribution && data.financialTypeDistribution.length > 0 ? (
           <div className="flex flex-col md:flex-row items-center justify-around gap-4 p-4">

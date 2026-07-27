@@ -150,7 +150,7 @@ describe('Service Order Full Lifecycle E2E', () => {
 
       // Verify stock untouched before consumption
       const stockCheckBefore = await prismaClient.stock.findUnique({ where: { id: stock.id } });
-      expect(stockCheckBefore?.quantity).toBe(10);
+      expect(Number(stockCheckBefore?.quantity)).toBe(10);
 
       // 6. Request approval
       const reqApprovalRes = await request(app)
@@ -195,14 +195,14 @@ describe('Service Order Full Lifecycle E2E', () => {
 
       // Verify stock was reduced
       const stockCheckAfter = await prismaClient.stock.findUnique({ where: { id: stock.id } });
-      expect(stockCheckAfter?.quantity).toBe(8);
+      expect(Number(stockCheckAfter?.quantity)).toBe(8);
 
       // Confirm inventory movement OUT
       const movements = await prismaClient.inventoryMovement.findMany({
         where: { osPartId, type: 'OUT' }
       });
       expect(movements).toHaveLength(1);
-      expect(movements[0].quantity).toBe(2);
+      expect(Number(movements[0].quantity)).toBe(2);
 
       // 11. Complete service
       const completeServiceRes = await request(app)
@@ -413,7 +413,7 @@ describe('Service Order Full Lifecycle E2E', () => {
 
       // Verify stock only decreased by 2, not 4
       const finalStock = await prismaClient.stock.findUnique({ where: { id: stock.id } });
-      expect(finalStock?.quantity).toBe(8);
+      expect(Number(finalStock?.quantity)).toBe(8);
 
       // Complete execution and OS to test faturamento idempotency
       await request(app)
@@ -713,8 +713,8 @@ describe('Service Order Full Lifecycle E2E', () => {
       expect(Number(receivable?.amount)).toBe(250); // (2 * 100) + 50
 
       // Check 2: OSPart.consumedQuantity === SUM(InventoryMovement OUT)
-      expect(osPart?.consumedQuantity).toBe(movementsSum._sum.quantity);
-      expect(osPart?.consumedQuantity).toBe(2);
+      expect(Number(osPart?.consumedQuantity)).toBe(Number(movementsSum._sum.quantity));
+      expect(Number(osPart?.consumedQuantity)).toBe(2);
     });
   });
 });
