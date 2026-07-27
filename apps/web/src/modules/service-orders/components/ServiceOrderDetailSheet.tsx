@@ -127,7 +127,7 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
 
   return (
     <Sheet open={!!os} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-[600px] sm:max-w-2xl sm:w-full overflow-y-auto border-l border-border bg-card/95 backdrop-blur-xl p-0 flex flex-col">
+      <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl overflow-y-auto border-l border-border bg-card/95 backdrop-blur-xl p-0 flex flex-col">
         <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-xl border-b border-border/50 p-6 flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div>
@@ -147,7 +147,7 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-2" data-testid="os-status-workflow-badges">
             {CANONICAL_FLOW_STATUSES.map((key) => {
               const config = STATUS_CONFIG[key]
               const isActive = osDetail?.status === key || (key === 'FINISHED' && osDetail?.status === 'COMPLETED') || (key === 'CANCELLED' && osDetail?.status === 'CANCELED')
@@ -187,7 +187,7 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
           ) : (
             <>
               {/* Header Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-background/50">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</span>
                   <span className="font-semibold">{osDetail.client.name}</span>

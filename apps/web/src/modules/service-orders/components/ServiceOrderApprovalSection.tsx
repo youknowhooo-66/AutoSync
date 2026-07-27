@@ -123,13 +123,20 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
     INVALIDATED: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
   };
 
+  const statusLabels: Record<string, string> = {
+    PENDING: 'PENDENTE',
+    APPROVED: 'APROVADO',
+    REJECTED: 'REJEITADO',
+    INVALIDATED: 'INVALIDADO'
+  };
+
   const partsVal = toNumber(approval?.totalParts);
   const servicesVal = toNumber(approval?.totalServices);
   const finalVal = toNumber(approval?.finalValue);
   const hasValidSnapshot = approval ? (finalVal > 0 && Number.isFinite(partsVal) && Number.isFinite(servicesVal)) : false;
 
   return (
-    <Card className="border border-border/40 bg-card/60 backdrop-blur-xs shadow-md mt-6">
+    <Card data-testid="budget-approval-section" className="border border-border/40 bg-card/60 backdrop-blur-xs shadow-md mt-6">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
           <FileText className="w-5 h-5 text-primary" />
@@ -141,7 +148,7 @@ export function ServiceOrderApprovalSection({ serviceOrder }: Props) {
               Versão {approval.version}
             </span>
             <Badge variant="outline" className={`${statusColors[approval.status]} font-semibold`}>
-              {approval.status}
+              {statusLabels[approval.status] || approval.status}
             </Badge>
           </div>
         )}

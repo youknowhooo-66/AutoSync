@@ -94,7 +94,7 @@ export default function VehicleList() {
   ];
 
   return (
-    <Page>
+    <Page data-testid="vehicles-page">
       <PageHeader
         title="Veículos"
         description="Gerencie a frota de veículos dos seus clientes."

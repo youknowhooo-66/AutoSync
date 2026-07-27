@@ -117,7 +117,7 @@ describe('ServiceOrderApprovalSection Component', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('PENDENTE')).toBeInTheDocument();
     expect(screen.getByText('Aprovar Orçamento')).toBeInTheDocument();
     expect(screen.getByText('Rejeitar Orçamento')).toBeInTheDocument();
   });
@@ -230,7 +230,7 @@ describe('ServiceOrderApprovalSection Component', () => {
     );
 
     expect(screen.getByText('Versão 3')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('PENDENTE')).toBeInTheDocument();
   });
 
   it('should disable approval and reject buttons and show error when snapshot is invalid', () => {

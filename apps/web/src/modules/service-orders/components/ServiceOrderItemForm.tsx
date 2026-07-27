@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import api from '@/services/api';
+import { extractErrorMessage } from '@/utils/errorHandler';
 import type { ItemType } from '../types/serviceOrderItem.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { PartSearchCombobox, type PartSearchItem } from './PartSearchCombobox';
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
@@ -78,7 +89,81 @@ export function ServiceOrderItemForm({
   canCreatePart = false,
   onCreatePart,
 }: ServiceOrderItemFormProps) {
+  const queryClient = useQueryClient();
+  const createPartTriggerRef = React.useRef<HTMLButtonElement>(null);
   const [selectedPart, setSelectedPart] = useState<PartSearchItem | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Quick Part Registration form state
+  const [newPartName, setNewPartName] = useState('');
+  const [newPartSku, setNewPartSku] = useState('');
+  const [newPartBrand, setNewPartBrand] = useState('');
+  const [newPartPrice, setNewPartPrice] = useState('');
+  const [newPartStock, setNewPartStock] = useState('1');
+  const [isCreatingPart, setIsCreatingPart] = useState(false);
+
+  const handleQuickCreatePart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPartName.trim()) {
+      toast.error('Informe o nome da peça');
+      return;
+    }
+    setIsCreatingPart(true);
+    try {
+      const codeToUse =
+        newPartSku.trim() ||
+        `PAR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+      const userBranchId = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}')?.branchId : undefined;
+      const activeBranchId = branchId || userBranchId;
+
+      const res = await api.post('/inventory/parts', {
+        name: newPartName.trim(),
+        internalCode: codeToUse,
+        brand: newPartBrand.trim() || undefined,
+        salePrice: newPartPrice ? parseFloat(newPartPrice) : 0,
+        minStock: 5,
+        initialStock: parseFloat(newPartStock || '1'),
+        branchId: activeBranchId || undefined,
+      });
+      const created = res.data?.data || res.data;
+      toast.success(`Peça "${created.name || newPartName}" cadastrada no estoque com sucesso!`);
+      queryClient.invalidateQueries({ queryKey: ['parts-search'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+
+      const partItem: PartSearchItem = {
+        id: created.id || `part-${Date.now()}`,
+        stockId: created.stockId || null,
+        name: created.name || newPartName,
+        sku: created.internalCode || codeToUse,
+        manufacturerCode: null,
+        barcode: null,
+        brand: created.brand || newPartBrand || null,
+        description: null,
+        category: null,
+        unit: 'UN',
+        onHandQuantity: String(created.initialStock || newPartStock || '1'),
+        reservedQuantity: '0',
+        availableQuantity: String(created.initialStock || newPartStock || '1'),
+        location: null,
+        averageCost: null,
+        salePrice: newPartPrice || '0',
+        canSelectFromStock: true,
+        active: true,
+      };
+
+      handlePartSelect(partItem);
+      setShowCreateModal(false);
+      setNewPartName('');
+      setNewPartSku('');
+      setNewPartBrand('');
+      setNewPartPrice('');
+      setNewPartStock('1');
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Erro ao cadastrar peça.'));
+    } finally {
+      setIsCreatingPart(false);
+    }
+  };
 
   const {
     register,
@@ -89,7 +174,7 @@ export function ServiceOrderItemForm({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { type: 'SERVICE', quantity: 1 },
+    defaultValues: { type: 'PART', quantity: 1 },
   });
 
   const watchedType = watch('type');
@@ -108,24 +193,35 @@ export function ServiceOrderItemForm({
   }
 
   function handleFormSubmit(data: FormValues) {
-    if (data.type === 'PART' && selectedPart) {
-      const avail = parseFloat(selectedPart.availableQuantity);
+    if (data.type === 'PART') {
+      const stockId = selectedPart?.stockId;
+      if (!stockId) {
+        toast.error('A peça selecionada não possui vínculo de estoque com esta filial.');
+        return;
+      }
+      const avail = parseFloat(selectedPart?.availableQuantity || '0');
       if (data.quantity > avail) {
+        const formattedAvail = Number.isInteger(avail) ? avail.toString() : avail.toFixed(3).replace(/\.?0+$/, '');
+        const formattedQty = Number.isInteger(data.quantity) ? data.quantity.toString() : data.quantity.toString();
+        const unitStr = selectedPart?.unit ?? 'UN';
         setError('quantity', {
           type: 'manual',
-          message: `A quantidade solicitada (${data.quantity}) excede o saldo disponível (${avail.toFixed(3)})`,
+          message: `A quantidade solicitada (${formattedQty}) excede o saldo disponível (${formattedAvail} ${unitStr})`,
         });
         return;
       }
+      onSubmit({ ...data, stockId, selectedPart: selectedPart ?? undefined });
+      return;
     }
-    onSubmit({ ...data, selectedPart: selectedPart ?? undefined });
+    onSubmit({ ...data });
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className="space-y-4 border p-4 rounded-md bg-muted/20"
-    >
+    <>
+      <form
+        onSubmit={handleSubmit(handleFormSubmit, (errs) => toast.error('Formulário inválido: ' + JSON.stringify(errs)))}
+        className="space-y-4 border p-4 rounded-md bg-muted/20"
+      >
       <h3 className="font-medium text-sm">Adicionar Item ou Serviço</h3>
 
       {/* Row 1: Type + Part/Service input */}
@@ -155,11 +251,24 @@ export function ServiceOrderItemForm({
             <Label htmlFor="part-search-combobox-trigger">Peça do Catálogo</Label>
             <PartSearchCombobox
               value={watchedPartId}
+              selectedPart={selectedPart}
               onSelect={handlePartSelect}
               branchId={branchId}
-              showCreateLink={canCreatePart}
-              onCreatePart={onCreatePart}
+              showCreateLink={true}
+              onCreatePart={() => setShowCreateModal(true)}
             />
+            <div className="flex justify-between items-center text-xs pt-1">
+              <span className="text-muted-foreground">Não encontrou no estoque ou é uma peça nova?</span>
+              <Button
+                ref={createPartTriggerRef}
+                type="button"
+                variant="link"
+                className="h-auto p-0 text-xs text-primary font-medium"
+                onClick={() => setShowCreateModal(true)}
+              >
+                + Cadastrar Nova Peça
+              </Button>
+            </div>
             {errors.partId && (
               <p className="text-red-500 text-xs">{errors.partId.message}</p>
             )}
@@ -235,13 +344,111 @@ export function ServiceOrderItemForm({
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isLoading}>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
+        <Button id="add-item-submit-button" type="submit" disabled={isLoading}>
           {isLoading ? 'Salvando...' : 'Adicionar'}
         </Button>
       </div>
     </form>
-  );
+
+    {/* Quick Part Registration Dialog */}
+    <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      <DialogContent
+        className="sm:max-w-lg z-[80]"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          requestAnimationFrame(() => {
+            document.getElementById('new-part-name')?.focus();
+          });
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          createPartTriggerRef.current?.focus();
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Cadastrar Nova Peça no Estoque</DialogTitle>
+          <DialogDescription>
+            Cadastre uma nova peça no catálogo e adicione-a diretamente a esta Ordem de Serviço.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleQuickCreatePart} className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label htmlFor="new-part-name">Nome da Peça *</Label>
+            <Input
+              id="new-part-name"
+              value={newPartName}
+              onChange={(e) => setNewPartName(e.target.value)}
+              placeholder="Ex: Correia Dentada 120T"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-part-sku">SKU / Código Interno</Label>
+              <Input
+                id="new-part-sku"
+                value={newPartSku}
+                onChange={(e) => setNewPartSku(e.target.value)}
+                placeholder="Ex: COR-120"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-part-brand">Marca / Fabricante</Label>
+              <Input
+                id="new-part-brand"
+                value={newPartBrand}
+                onChange={(e) => setNewPartBrand(e.target.value)}
+                placeholder="Ex: Dayco / Bosch"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-part-price">Preço de Venda (R$)</Label>
+              <Input
+                id="new-part-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={newPartPrice}
+                onChange={(e) => setNewPartPrice(e.target.value)}
+                placeholder="150.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-part-stock">Estoque Inicial *</Label>
+              <Input
+                id="new-part-stock"
+                type="number"
+                step="1"
+                min="0"
+                value={newPartStock}
+                onChange={(e) => setNewPartStock(e.target.value)}
+                placeholder="1"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isCreatingPart}>
+              {isCreatingPart ? 'Cadastrando...' : 'Cadastrar e Selecionar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  </>
+);
 }

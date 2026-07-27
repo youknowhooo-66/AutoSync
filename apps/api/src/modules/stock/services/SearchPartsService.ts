@@ -237,6 +237,7 @@ export class SearchPartsService {
     // Step 2: apply ORDER BY + LIMIT/OFFSET on the CTE output
     type RawPartRow = {
       id: string;
+      stock_id: string | null;
       name: string;
       sku: string | null;
       manufacturer_code: string | null;
@@ -258,6 +259,7 @@ export class SearchPartsService {
       WITH base_parts AS (
         SELECT
           p.id,
+          MAX(s.id::text)                                          AS stock_id,
           p.name,
           p."internalCode"                                         AS sku,
           p."manufacturerCode"                                     AS manufacturer_code,
@@ -299,6 +301,7 @@ export class SearchPartsService {
 
       return {
         id: row.id,
+        stockId: row.stock_id || null,
         name: row.name,
         sku: row.sku,
         manufacturerCode: row.manufacturer_code,

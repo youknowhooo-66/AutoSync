@@ -42,6 +42,11 @@ Thumbs.db
 coverage/
 *.test.ts.snap
 *.test.js.snap
+playwright-report/
+test-results/
+
+# Visual audit debug artifacts (failure screenshots from capture scripts)
+docs/demo/failures/
 
 # Prisma
 .env.test

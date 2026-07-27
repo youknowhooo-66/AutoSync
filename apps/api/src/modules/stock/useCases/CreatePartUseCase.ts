@@ -51,31 +51,38 @@ export class CreatePartUseCase {
         }
       });
 
-      // 3. If initial stock is provided, create stock entry
-      if (data.initialStock && data.initialStock > 0 && data.branchId) {
-        await tx.stock.create({
+      // 3. Create stock entry for branch if branchId provided
+      let stockId: string | null = null;
+      if (data.branchId) {
+        const stock = await tx.stock.create({
           data: {
             companyId: data.companyId,
             branchId: data.branchId,
             partId: part.id,
-            quantity: data.initialStock,
+            quantity: data.initialStock || 0,
           }
         });
+        stockId = stock.id;
 
-        // Record movement
-        await tx.inventoryMovement.create({
-          data: {
-            partId: part.id,
-            branchId: data.branchId,
-            userId: data.userId,
-            type: 'IN',
-            quantity: data.initialStock,
-            reason: 'Initial stock entry upon creation'
-          }
-        });
+        // Record movement if initial stock > 0
+        if (data.initialStock && data.initialStock > 0) {
+          await tx.inventoryMovement.create({
+            data: {
+              partId: part.id,
+              branchId: data.branchId,
+              userId: data.userId,
+              type: 'IN',
+              quantity: data.initialStock,
+              reason: 'Initial stock entry upon creation'
+            }
+          });
+        }
       }
 
-      return part;
+      return {
+        ...part,
+        stockId,
+      };
     });
   }
 }

@@ -18,13 +18,29 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
   const handleAddSubmit = (data: any) => {
     const payload: any = { serviceOrderId: serviceOrder.id };
     if (data.type === 'PART') {
-      payload.parts = [{ stockId: data.stockId, quantity: data.quantity, unitPrice: data.unitPrice }];
+      if (!data.stockId) {
+        toast.error('Não foi possível identificar o estoque desta peça na filial selecionada.');
+        return;
+      }
+      payload.parts = [
+        {
+          stockId: data.stockId,
+          quantity: Number(data.quantity),
+          unitPrice: data.unitPrice ? String(data.unitPrice) : undefined,
+        },
+      ];
     } else {
-      payload.services = [{ description: data.description, quantity: data.quantity, unitPrice: data.unitPrice }];
+      payload.services = [
+        {
+          description: data.description,
+          quantity: Number(data.quantity),
+          unitPrice: String(data.unitPrice),
+        },
+      ];
     }
 
     createMutation.mutate(payload, {
-      onSuccess: () => setIsAdding(false)
+      onSuccess: () => setIsAdding(false),
     });
   };
 
@@ -47,6 +63,7 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
 
       {isAdding && (
         <ServiceOrderItemForm 
+          branchId={serviceOrder?.branchId || serviceOrder?.branch?.id}
           onSubmit={handleAddSubmit} 
           onCancel={() => setIsAdding(false)} 
           isLoading={createMutation.isPending}
@@ -68,7 +85,7 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
               {serviceOrder.services.map((s: any) => (
                 <tr key={s.id} className="border-t">
                   <td className="p-3">{s.name}</td>
-                  <td className="p-3">R$ {Number(s.price).toFixed(2)}</td>
+                  <td className="p-3">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(s.price || 0))}</td>
                   {canRemove && isEditable && (
                     <td className="p-3 text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleRemove(s.id, 'SERVICE')} disabled={deleteMutation.isPending}>
@@ -101,8 +118,8 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
                 <tr key={p.id} className="border-t">
                   <td className="p-3">{p.part?.name || p.partId}</td>
                   <td className="p-3">{p.quantity}</td>
-                  <td className="p-3">R$ {Number(p.unitPrice).toFixed(2)}</td>
-                  <td className="p-3">R$ {(Number(p.unitPrice) * p.quantity).toFixed(2)}</td>
+                  <td className="p-3">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(p.unitPrice || 0))}</td>
+                  <td className="p-3">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(p.unitPrice || 0) * p.quantity)}</td>
                   {canRemove && isEditable && (
                     <td className="p-3 text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleRemove(p.id, 'PART')} disabled={deleteMutation.isPending}>
@@ -128,21 +145,21 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
         <div className="w-64 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total Serviços:</span>
-            <span>R$ {Number(serviceOrder?.totalServices || 0).toFixed(2)}</span>
+            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(serviceOrder?.totalServices || 0))}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total Peças:</span>
-            <span>R$ {Number(serviceOrder?.totalParts || 0).toFixed(2)}</span>
+            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(serviceOrder?.totalParts || 0))}</span>
           </div>
           {Number(serviceOrder?.discount || 0) > 0 && (
             <div className="flex justify-between text-sm text-red-500">
               <span>Desconto:</span>
-              <span>- R$ {Number(serviceOrder?.discount).toFixed(2)}</span>
+              <span>- {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(serviceOrder?.discount || 0))}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold text-lg pt-2 border-t">
+          <div className="flex justify-between text-base font-bold pt-2 border-t">
             <span>Total Final:</span>
-            <span>R$ {Number(serviceOrder?.finalValue || 0).toFixed(2)}</span>
+            <span className="text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(serviceOrder?.finalValue || 0))}</span>
           </div>
         </div>
       </div>

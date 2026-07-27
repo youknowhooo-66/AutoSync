@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 
 export interface PartSearchItem {
   id: string;
+  stockId?: string | null;
   name: string;
   sku: string | null;
   manufacturerCode: string | null;
@@ -70,6 +71,8 @@ interface SearchPartsResponse {
 export interface PartSearchComboboxProps {
   /** Currently selected part ID */
   value?: string;
+  /** Optional pre-selected part item object */
+  selectedPart?: PartSearchItem | null;
   /** Called with the selected PartSearchItem when the user selects a part */
   onSelect: (part: PartSearchItem) => void;
   /** Optional branchId to scope stock quantities */
@@ -113,6 +116,7 @@ function formatQty(qty: string, unit?: string | null): string {
 
 export function PartSearchCombobox({
   value,
+  selectedPart: selectedPartProp,
   onSelect,
   branchId,
   showCreateLink = false,
@@ -123,7 +127,9 @@ export function PartSearchCombobox({
 }: PartSearchComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState('');
-  const [selectedPart, setSelectedPart] = React.useState<PartSearchItem | null>(null);
+  const [internalSelectedPart, setInternalSelectedPart] = React.useState<PartSearchItem | null>(null);
+
+  const selectedPart = selectedPartProp ?? internalSelectedPart;
 
   const debouncedQuery = useDebounce(inputValue, 300);
 
@@ -156,20 +162,20 @@ export function PartSearchCombobox({
   // ── Sync selectedPart label from external value ─────────────────────────────
   React.useEffect(() => {
     if (!value) {
-      setSelectedPart(null);
+      setInternalSelectedPart(null);
       return;
     }
     // If items include the selected part, update the display label
     const found = items.find((i) => i.id === value);
     if (found) {
-      setSelectedPart(found);
+      setInternalSelectedPart(found);
     }
   }, [value, items]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   function handleSelect(item: PartSearchItem) {
     if (!item.canSelectFromStock) return;
-    setSelectedPart(item);
+    setInternalSelectedPart(item);
     onSelect(item);
     setOpen(false);
     setInputValue('');
@@ -216,14 +222,14 @@ export function PartSearchCombobox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[520px] p-0"
+        className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] p-0 z-[80] shadow-xl"
         align="start"
-        sideOffset={4}
+        side="bottom"
+        sideOffset={6}
+        collisionPadding={16}
       >
         <Command shouldFilter={false}>
-          {/* Custom input with search icon */}
-          <div className="flex items-center border-b px-3">
-            <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <div className="flex items-center border-b px-2">
             <CommandInput
               id="part-search-combobox-input"
               placeholder={placeholder}
@@ -334,7 +340,7 @@ export function PartSearchCombobox({
                       </div>
 
                       {/* Row 2: SKU / brand / location metadata */}
-                      <div className="ml-5.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <div className="pl-5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
                         {item.sku && <span>SKU: {item.sku}</span>}
                         {item.brand && <span>{item.brand}</span>}
                         {item.manufacturerCode && <span>Fab: {item.manufacturerCode}</span>}

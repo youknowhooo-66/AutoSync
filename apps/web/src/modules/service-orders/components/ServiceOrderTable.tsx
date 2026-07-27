@@ -69,10 +69,16 @@ export function ServiceOrderTable({ data, isLoading, onRowClick, onEdit, onDelet
       },
       {
         accessorKey: "status",
+        size: 190,
+        minSize: 190,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Status" />
         ),
-        cell: ({ row }) => <ServiceOrderStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => (
+          <div className="min-w-[190px] w-[190px] overflow-visible whitespace-nowrap">
+            <ServiceOrderStatusBadge status={row.getValue("status")} />
+          </div>
+        ),
         enableSorting: true,
       },
       {

@@ -8,8 +8,10 @@ import { CreateClientModal } from '../components/CreateClientModal';
 import { Page, PageHeader } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function ClientList() {
+  const isMobile = useIsMobile();
   const [page] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,7 +93,7 @@ export default function ClientList() {
   ];
 
   return (
-    <Page>
+    <Page data-testid="clients-page">
       <PageHeader
         title="Clientes"
         description="Gerencie sua base de clientes e históricos de atendimento."
@@ -123,7 +125,65 @@ export default function ClientList() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filteredData} loading={isLoading} />
+      <div data-testid="clients-table">
+        {isMobile ? (
+          <div className="flex flex-col gap-3">
+            {isLoading ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">Carregando clientes...</div>
+            ) : filteredData.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">Nenhum cliente encontrado.</div>
+            ) : (
+              filteredData.map((client) => (
+                <div key={client.id} className="p-4 rounded-xl border border-border bg-card shadow-xs flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs shrink-0">
+                        {client.name?.substring(0, 2).toUpperCase() || <UserIcon className="h-4 w-4" />}
+                      </div>
+                      <span className="font-semibold text-sm text-foreground truncate">{client.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => {
+                          setEditingClient(client);
+                          setIsModalOpen(true);
+                        }}
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-danger"
+                        onClick={() => {
+                          if (confirm('Deseja realmente excluir este cliente?')) {
+                            deleteClient(client.id);
+                          }
+                        }}
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1 text-xs text-muted-foreground pt-2 border-t border-border/40">
+                    {client.email && <div><span className="font-medium text-foreground/70">E-mail:</span> {client.email}</div>}
+                    {client.phone && <div><span className="font-medium text-foreground/70">Telefone:</span> <span className="font-mono">{client.phone}</span></div>}
+                    {client.document && <div><span className="font-medium text-foreground/70">Documento:</span> <span className="font-mono">{client.document}</span></div>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <DataTable columns={columns} data={filteredData} loading={isLoading} />
+        )}
+      </div>
 
       <CreateClientModal
         isOpen={isModalOpen}

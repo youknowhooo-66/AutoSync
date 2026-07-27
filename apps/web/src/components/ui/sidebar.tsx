@@ -109,6 +109,18 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
 
+  // Automatically collapse sidebar on compact / tablet viewports (768px to 1024px)
+  React.useEffect(() => {
+    const checkCompactViewport = () => {
+      if (typeof window !== "undefined" && window.innerWidth >= 768 && window.innerWidth <= 1024) {
+        _setOpen(false)
+      }
+    }
+    checkCompactViewport()
+    window.addEventListener("resize", checkCompactViewport)
+    return () => window.removeEventListener("resize", checkCompactViewport)
+  }, [])
+
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"

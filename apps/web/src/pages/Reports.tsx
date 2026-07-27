@@ -27,13 +27,17 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 const CHART_COLORS = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'];
 
 const STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Aberta',
+  IN_PROGRESS: 'Em Execução',
+  AWAITING_PARTS: 'Aguardando Peças',
+  COMPLETED: 'Concluído',
+  FINISHED: 'Concluído',
+  CANCELLED: 'Cancelado',
+  CANCELED: 'Cancelado',
   DRAFT: 'Rascunho',
   DIAGNOSIS: 'Em Diagnóstico',
   WAITING_APPROVAL: 'Aguardando Aprovação',
   APPROVED: 'Aprovado',
-  IN_EXECUTION: 'Em Execução',
-  FINISHED: 'Concluído',
-  CANCELLED: 'Cancelado',
 };
 
 export interface ReportData {
@@ -140,7 +144,7 @@ const Reports: React.FC = () => {
   const funnel = data?.stats?.funnel || { created: 0, completed: 0, invoiced: 0, paid: 0 };
 
   return (
-    <Page data-testid="reports-page" className="reports-container">
+    <Page data-testid="reports-page">
       <PageHeader
         title="Relatórios Executivos & Inteligência Operacional"
         description="Métricas consolidadas de faturamento, eficiência operacional e distribuição de Ordens de Serviço."
@@ -182,7 +186,7 @@ const Reports: React.FC = () => {
         />
         <MetricCard
           title="Taxa de Conversão OS -> Pago"
-          value={`${kpis.conversionRate.toFixed(1)}%`}
+          value={`${(kpis.conversionRate || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
           variant="warning"
           icon={<TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
         />

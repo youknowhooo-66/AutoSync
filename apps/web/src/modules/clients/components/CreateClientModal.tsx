@@ -69,7 +69,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-      <div className="bg-card text-card-foreground rounded-2xl shadow-xl border border-border w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-250">
+      <div className="bg-card text-card-foreground rounded-2xl shadow-xl border border-border w-[calc(100vw-2rem)] max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in fade-in zoom-in-95 duration-250">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-xl font-bold text-foreground">
             {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
@@ -101,7 +101,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
             {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-semibold text-foreground">Telefone</label>
               <input
@@ -120,7 +120,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}

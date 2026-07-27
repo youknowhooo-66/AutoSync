@@ -4,12 +4,18 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import Modal from '../components/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Plus, Search, Store, Pencil, ToggleLeft, ToggleRight, MapPin, Phone, Mail, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Store, Pencil, ToggleLeft, ToggleRight, MapPin, Phone, Mail, Check, AlertCircle, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { Page, PageHeader, PageGrid, FormField, FormGrid } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useBranch } from '../contexts/BranchContext';
 import { usePermissions } from '../modules/auth/hooks/usePermissions';
 import { formatDocument, formatPhone } from '@/utils/formatters';
@@ -271,38 +277,35 @@ const Branches: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/40">
+              <div className="flex items-center justify-between gap-1.5 pt-3 border-t border-border/40 flex-wrap">
                 <Button
                   variant={isSelected ? "secondary" : "outline"}
                   size="sm"
                   disabled={isSelected || branch.active === false}
                   onClick={() => setActiveBranch(branch)}
-                  className="text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 disabled:opacity-50 w-full"
+                  className="flex-1 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10 disabled:opacity-50 min-w-[110px]"
                 >
                   {isSelected ? 'Ativa' : 'Selecionar'}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEditClick(branch)}
-                  disabled={!canManage}
-                  className="text-xs font-semibold w-full"
-                >
-                  <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setTogglingBranch(branch)}
-                  disabled={!canManage || isSelected}
-                  className={`text-xs font-semibold w-full ${
-                    branch.active !== false ? 'text-danger hover:bg-danger/10' : 'text-emerald-600 hover:bg-emerald-500/10'
-                  } ${!canManage || isSelected ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title={isSelected ? 'Não é possível desativar a filial ativa no seu contexto' : ''}
-                >
-                  {branch.active !== false ? <ToggleLeft className="h-4 w-4 mr-1" /> : <ToggleRight className="h-4 w-4 mr-1" />}
-                  {branch.active !== false ? 'Desativar' : 'Ativar'}
-                </Button>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2.5 text-xs text-muted-foreground hover:text-primary"
+                    onClick={() => handleEditClick(branch)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-8 px-2.5 text-xs ${branch.active ? 'text-muted-foreground hover:text-danger' : 'text-emerald-600 hover:text-emerald-700'}`}
+                    onClick={() => setTogglingBranch(branch)}
+                  >
+                    {branch.active ? 'Desativar' : 'Reativar'}
+                  </Button>
+                </div>
               </div>
             </Card>
           );
