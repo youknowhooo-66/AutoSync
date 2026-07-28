@@ -9,7 +9,9 @@ const redisConfig = {
   maxRetriesPerRequest: null,
 };
 
-export const redisClient = new Redis(redisConfig);
+export const redisClient = env.REDIS_URL
+  ? new Redis(env.REDIS_URL, { maxRetriesPerRequest: null })
+  : new Redis(redisConfig);
 
 redisClient.on('connect', () => logger.info('🚀 Redis connected'));
 redisClient.on('error', (error) => logger.error(error, '❌ Redis error:'));
