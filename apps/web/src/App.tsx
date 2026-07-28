@@ -18,6 +18,7 @@ const Vehicles = lazy(() => import('./modules/vehicles/pages/VehicleList'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
 const Financial = lazy(() => import('./pages/Financial'));
 const PurchaseRequestsPage = lazy(() => import('./modules/procurement/pages/PurchaseRequests'));
+const Branches = lazy(() => import('./pages/Branches'));
 import { PermissionRoute } from './modules/auth/components/PermissionRoute';
 const Users = lazy(() => import('./pages/Users'));
 const Audit = lazy(() => import('./pages/Audit'));
