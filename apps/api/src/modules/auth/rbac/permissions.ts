@@ -38,6 +38,15 @@ export enum Permission {
 
   SERVICE_ORDER_FINANCE_VIEW = 'SERVICE_ORDER_FINANCE_VIEW',
   SERVICE_ORDER_FINANCE_GENERATE = 'SERVICE_ORDER_FINANCE_GENERATE',
+
+  PROCUREMENT_REQUEST = 'service-orders.parts.request',
+  PROCUREMENT_READ = 'procurement.part-requests.read',
+  PROCUREMENT_START = 'procurement.part-requests.start',
+  PROCUREMENT_PURCHASE = 'procurement.part-requests.purchase',
+  PROCUREMENT_RECEIVE = 'procurement.part-requests.receive',
+  PROCUREMENT_INSTALL = 'procurement.part-requests.install',
+  PROCUREMENT_CANCEL = 'procurement.part-requests.cancel',
+  NOTIFICATIONS_READ = 'notifications.read',
 }
 
 export enum Role {

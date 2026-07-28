@@ -17,7 +17,8 @@ const Clients = lazy(() => import('./modules/clients/pages/ClientList'));
 const Vehicles = lazy(() => import('./modules/vehicles/pages/VehicleList'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
 const Financial = lazy(() => import('./pages/Financial'));
-const Branches = lazy(() => import('./pages/Branches'));
+const PurchaseRequestsPage = lazy(() => import('./modules/procurement/pages/PurchaseRequests'));
+import { PermissionRoute } from './modules/auth/components/PermissionRoute';
 const Users = lazy(() => import('./pages/Users'));
 const Audit = lazy(() => import('./pages/Audit'));
 const Reports = lazy(() => import('./pages/Reports'));
@@ -98,6 +99,18 @@ function AppContent() {
               <AppLayout>
                 <Financial />
               </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/financeiro/solicitacoes-de-pecas"
+          element={
+            <ProtectedRoute>
+              <PermissionRoute permission="procurement.part-requests.read">
+                <AppLayout>
+                  <PurchaseRequestsPage />
+                </AppLayout>
+              </PermissionRoute>
             </ProtectedRoute>
           }
         />

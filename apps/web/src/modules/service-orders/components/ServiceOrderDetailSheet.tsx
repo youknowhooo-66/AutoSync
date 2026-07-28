@@ -19,6 +19,7 @@ import { useServiceOrder, serviceOrderKeys } from '../hooks/useServiceOrders'
 import { RoleGuard } from '@/modules/auth/components/RoleGuard'
 import { DiagnosisSection } from './DiagnosisSection'
 import { ServiceOrderItemsSection } from './ServiceOrderItemsSection'
+import { ServiceOrderPartRequestsSection } from './ServiceOrderPartRequestsSection'
 import { ServiceOrderApprovalSection } from './ServiceOrderApprovalSection'
 import { ServiceOrderExecutionSection } from './ServiceOrderExecutionSection'
 import { ServiceOrderStockConsumptionSection } from './ServiceOrderStockConsumptionSection'
@@ -208,6 +209,8 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
               />
 
               <ServiceOrderItemsSection serviceOrder={osDetail} />
+
+              <ServiceOrderPartRequestsSection serviceOrderId={osDetail.id} />
 
               <ServiceOrderApprovalSection serviceOrder={osDetail} />
 

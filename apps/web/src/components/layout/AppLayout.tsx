@@ -6,12 +6,27 @@ import { SidebarProvider } from '../ui/sidebar';
 import { Toaster } from '../ui/sonner';
 import { TooltipProvider } from '../ui/tooltip';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const handleBranchChanged = () => {
+      queryClient.cancelQueries({ queryKey: ['procurement'] });
+      queryClient.removeQueries({ queryKey: ['procurement'] });
+      queryClient.removeQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries();
+    };
+
+    window.addEventListener('autosync:branch-changed', handleBranchChanged);
+    return () => window.removeEventListener('autosync:branch-changed', handleBranchChanged);
+  }, [queryClient]);
 
   return (
     <TooltipProvider>

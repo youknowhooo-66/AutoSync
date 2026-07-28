@@ -9,16 +9,27 @@ export default async function globalSetup() {
   const envPath = path.resolve(__dirname, '../.env.test');
   dotenv.config({ path: envPath });
 
-  // Enforce DATABASE_URL for prisma CLI processes
   const testDbUrl = process.env.DATABASE_URL || "postgresql://postgres:admin123@localhost:5436/autosync_test?schema=public";
   process.env.DATABASE_URL = testDbUrl;
+
+  const parsedUrl = new URL(testDbUrl);
+  const databaseName = parsedUrl.pathname.replace(/^\//, '');
+
+  if (
+    process.env.NODE_ENV !== 'test' ||
+    !databaseName.toLowerCase().includes('test')
+  ) {
+    throw new Error(
+      `Execução bloqueada: a suíte de testes exige um banco isolado com "test" no nome. Banco recebido: ${databaseName}`,
+    );
+  }
 
   console.log(`📡 [Global Setup] Database URL: ${testDbUrl}`);
 
   try {
     // Run prisma db push to sync the postgres test database with schema.prisma
     console.log('📦 [Global Setup] Synchronizing Prisma schema with test database...');
-    execSync('npx prisma db push --accept-data-loss', {
+    execSync('pnpm exec prisma migrate deploy --schema=prisma/schema.prisma', {
       env: { ...process.env, DATABASE_URL: testDbUrl },
       stdio: 'inherit',
     });

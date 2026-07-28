@@ -27,6 +27,8 @@ import { companiesRoutes } from './modules/companies/routes/companies.routes';
 import { dashboardRouter } from './modules/dashboard/routes/dashboard.routes';
 import branchRoutes from './routes/branchRoutes';
 import auditRoutes from './routes/auditRoutes';
+import { procurementRouter } from './modules/procurement/routes/procurement.routes';
+import { notificationRouter } from './modules/notifications/routes/notifications.routes';
 
 const app = express();
 
@@ -126,6 +128,8 @@ app.use('/api/branches', branchRoutes);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/audit', auditRoutes);
 app.use('/api/auditoria', auditRoutes); // Alias for frontend
+app.use('/api/procurement', procurementRouter);
+app.use('/api/notifications', notificationRouter);
 
 // ── 12. Global error handler — must be last ───────────────────────────────────
 app.use(errorHandler);

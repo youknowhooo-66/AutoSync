@@ -2,7 +2,7 @@ import { Role, Permission } from './permissions';
 
 export const rolePermissions: Record<Role, Permission[]> = {
   [Role.ADMIN]: Object.values(Permission), // Admin has everything
-  
+
   [Role.MANAGER]: [
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_ITEM_VIEW,
@@ -33,6 +33,14 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_STOCK_CONSUME,
     Permission.SERVICE_ORDER_FINANCE_VIEW,
     Permission.SERVICE_ORDER_FINANCE_GENERATE,
+    Permission.PROCUREMENT_REQUEST,
+    Permission.PROCUREMENT_READ,
+    Permission.PROCUREMENT_START,
+    Permission.PROCUREMENT_PURCHASE,
+    Permission.PROCUREMENT_RECEIVE,
+    Permission.PROCUREMENT_INSTALL,
+    Permission.PROCUREMENT_CANCEL,
+    Permission.NOTIFICATIONS_READ,
   ],
 
   [Role.MECHANIC]: [
@@ -52,6 +60,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_EXECUTION_COMPLETE,
     Permission.SERVICE_ORDER_STOCK_VIEW,
     Permission.SERVICE_ORDER_STOCK_CONSUME,
+    Permission.PROCUREMENT_REQUEST,
+    Permission.PROCUREMENT_READ,
+    Permission.PROCUREMENT_INSTALL,
+    Permission.PROCUREMENT_CANCEL,
+    Permission.NOTIFICATIONS_READ,
   ],
 
   [Role.FINANCIAL]: [
@@ -65,6 +78,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_STOCK_VIEW,
     Permission.SERVICE_ORDER_FINANCE_VIEW,
     Permission.SERVICE_ORDER_FINANCE_GENERATE,
+    Permission.PROCUREMENT_READ,
+    Permission.PROCUREMENT_START,
+    Permission.PROCUREMENT_PURCHASE,
+    Permission.PROCUREMENT_CANCEL,
+    Permission.NOTIFICATIONS_READ,
   ],
 
   [Role.ATTENDANT]: [
@@ -80,6 +98,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_EXECUTION_VIEW,
     Permission.SERVICE_ORDER_STOCK_VIEW,
     Permission.SERVICE_ORDER_FINANCE_VIEW,
+    Permission.PROCUREMENT_REQUEST,
+    Permission.PROCUREMENT_READ,
+    Permission.NOTIFICATIONS_READ,
   ],
 
   [Role.STOCKIST]: [
@@ -90,5 +111,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     Permission.SERVICE_ORDER_EXECUTION_VIEW,
     Permission.SERVICE_ORDER_STOCK_VIEW,
     Permission.SERVICE_ORDER_STOCK_CONSUME,
+    Permission.PROCUREMENT_READ,
+    Permission.PROCUREMENT_RECEIVE,
+    Permission.NOTIFICATIONS_READ,
   ],
 };
