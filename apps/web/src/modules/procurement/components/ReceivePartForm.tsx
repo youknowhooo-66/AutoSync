@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { receivePartSchema } from '../schemas/procurementSchemas';
 import { useProcurementMutations } from '../hooks/useProcurementMutations';
-import { PurchaseRequest } from '../types/procurement.types';
+import type { PurchaseRequest } from '../types/procurement.types';
 import { formatCurrencyBRL } from '../utils/procurementUtils';
 
 interface Props {

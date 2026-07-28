@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createPartRequestSchema } from '../schemas/procurementSchemas';
 import { useProcurementMutations } from '../hooks/useProcurementMutations';
-import { PurchaseRequestPriority } from '../types/procurement.types';
+import type { PurchaseRequestPriority } from '../types/procurement.types';
 
 interface CreatePartRequestDialogProps {
   open: boolean;

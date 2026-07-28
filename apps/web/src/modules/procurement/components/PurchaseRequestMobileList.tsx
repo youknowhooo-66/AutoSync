@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PurchaseRequestStatusBadge } from './PurchaseRequestStatusBadge';
-import { PurchaseRequest } from '../types/procurement.types';
+import type { PurchaseRequest } from '../types/procurement.types';
 import { formatCurrencyBRL } from '../utils/procurementUtils';
 
 interface Props {

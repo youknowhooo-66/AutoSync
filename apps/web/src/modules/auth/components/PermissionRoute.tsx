@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';
-import { AppPermission } from '../types/roles.types';
+import type { AppPermission } from '../types/roles.types';
 
 interface PermissionRouteProps {
   permission: AppPermission;

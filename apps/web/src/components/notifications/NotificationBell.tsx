@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useNotifications } from '@/modules/procurement/hooks/useNotifications';
 import { useBranch } from '@/contexts/BranchContext';
-import { NotificationItem } from '@/modules/procurement/types/procurement.types';
+import type { NotificationItem } from '@/modules/procurement/types/procurement.types';
 
 export const NotificationBell: React.FC = () => {
   const [open, setOpen] = useState(false);

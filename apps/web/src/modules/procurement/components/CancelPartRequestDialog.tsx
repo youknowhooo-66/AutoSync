@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cancelPartRequestSchema } from '../schemas/procurementSchemas';
 import { useProcurementMutations } from '../hooks/useProcurementMutations';
-import { PurchaseRequest } from '../types/procurement.types';
+import type { PurchaseRequest } from '../types/procurement.types';
 
 interface Props {
   open: boolean;

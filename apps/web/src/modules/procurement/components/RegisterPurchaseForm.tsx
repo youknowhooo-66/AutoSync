@@ -12,7 +12,7 @@ import { registerPurchaseSchema } from '../schemas/procurementSchemas';
 import { useProcurementMutations } from '../hooks/useProcurementMutations';
 import { useCodeSuggestion } from '../hooks/useCodeSuggestion';
 import { useSuppliers } from '../hooks/useSuppliers';
-import { PurchaseRequest } from '../types/procurement.types';
+import type { PurchaseRequest } from '../types/procurement.types';
 import { normalizeDecimalInput } from '../utils/procurementUtils';
 
 interface Props {

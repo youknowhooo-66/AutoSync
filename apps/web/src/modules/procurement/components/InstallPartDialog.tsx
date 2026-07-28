@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PurchaseRequest } from '../types/procurement.types';
+import type { PurchaseRequest } from '../types/procurement.types';
 import { useProcurementMutations } from '../hooks/useProcurementMutations';
 
 interface InstallPartDialogProps {

@@ -1,5 +1,5 @@
 import api from '@/services/api';
-import {
+import type {
   PurchaseRequest,
   CreatePartRequestInput,
   RegisterPurchaseInput,

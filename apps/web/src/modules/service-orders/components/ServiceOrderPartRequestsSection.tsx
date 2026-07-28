@@ -5,7 +5,7 @@ import { usePurchaseRequests } from '@/modules/procurement/hooks/usePurchaseRequ
 import { PurchaseRequestStatusBadge } from '@/modules/procurement/components/PurchaseRequestStatusBadge';
 import { InstallPartDialog } from '@/modules/procurement/components/InstallPartDialog';
 import { PermissionGate } from '@/modules/auth/components/PermissionGate';
-import { PurchaseRequest } from '@/modules/procurement/types/procurement.types';
+import type { PurchaseRequest } from '@/modules/procurement/types/procurement.types';
 import { formatCurrencyBRL } from '@/modules/procurement/utils/procurementUtils';
 
 interface Props {
