@@ -65,6 +65,11 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
   const watchedPriority = watch('priority');
 
   const onSubmitForm = async (data: FormValues) => {
+    if (!serviceOrderId) {
+      toast.error('Ordem de Serviço não identificada. Por favor, reabra a OS.');
+      return;
+    }
+
     try {
       await createRequestMutation.mutateAsync({
         serviceOrderId,
@@ -130,12 +135,12 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
               <Label htmlFor="priority">Prioridade</Label>
               <Select
                 value={watchedPriority}
-                onValueChange={(val) => setValue('priority', val as PurchaseRequestPriority)}
+                onValueChange={(val) => setValue('priority', val as PurchaseRequestPriority, { shouldValidate: true })}
               >
                 <SelectTrigger id="priority">
                   <SelectValue placeholder="Selecione a prioridade" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[200]">
                   <SelectItem value="LOW">Baixa</SelectItem>
                   <SelectItem value="NORMAL">Normal</SelectItem>
                   <SelectItem value="HIGH">Alta</SelectItem>

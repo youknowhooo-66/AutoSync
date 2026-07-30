@@ -1,13 +1,10 @@
 import { Router } from 'express';
-import { authMiddleware } from '../../../shared/middlewares/authMiddleware';
 import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
 import { Permission } from '../../auth/rbac/permissions';
 import { ProcurementController } from '../controllers/ProcurementController';
 
 const procurementRouter = Router();
 const controller = new ProcurementController();
-
-procurementRouter.use(authMiddleware);
 
 procurementRouter.post('/part-requests', rbacMiddleware(Permission.PROCUREMENT_REQUEST), (req, res, next) => controller.create(req, res).catch(next));
 procurementRouter.get('/part-requests', rbacMiddleware(Permission.PROCUREMENT_READ), (req, res, next) => controller.list(req, res).catch(next));
