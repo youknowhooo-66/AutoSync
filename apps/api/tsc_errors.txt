@@ -1,0 +1,196 @@
+src/controllers/AuditController.ts(56,11): error TS2304: Cannot find name 'logger'.
+src/controllers/AuditController.ts(79,7): error TS2304: Cannot find name 'logger'.
+src/controllers/AuthController.ts(51,5): error TS2304: Cannot find name 'logger'.
+src/controllers/BranchController.ts(26,7): error TS2322: Type '{ name: any; cnpj: any; address: any; phone: any; email: any; }' is not assignable to type '(Without<BranchCreateInput, BranchUncheckedCreateInput> & BranchUncheckedCreateInput) | (Without<...> & BranchCreateInput)'.
+src/controllers/BranchController.ts(36,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/BranchController.ts(41,5): error TS2304: Cannot find name 'logger'.
+src/controllers/BranchController.ts(72,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/BranchController.ts(77,5): error TS2304: Cannot find name 'logger'.
+src/controllers/ClientController.ts(3,31): error TS2307: Cannot find module '../../modules/clients/services/ClientService' or its corresponding type declarations.
+src/controllers/ClientController.ts(4,56): error TS2307: Cannot find module '../../modules/clients/dtos/ClientDTO' or its corresponding type declarations.
+src/controllers/ClientController.ts(24,7): error TS2304: Cannot find name 'logger'.
+src/controllers/ClientController.ts(39,7): error TS2304: Cannot find name 'logger'.
+src/controllers/ClientController.ts(56,7): error TS2304: Cannot find name 'logger'.
+src/controllers/ClientController.ts(75,7): error TS2304: Cannot find name 'logger'.
+src/controllers/ClientController.ts(93,7): error TS2304: Cannot find name 'logger'.
+src/controllers/DashboardController.ts(128,5): error TS2304: Cannot find name 'logger'.
+src/controllers/FinancialController.ts(28,7): error TS2322: Type '{ branchId: any; type: any; category: any; description: any; amount: any; dueDate: Date; status: "PENDING"; }' is not assignable to type '(Without<FinancialRecordCreateInput, FinancialRecordUncheckedCreateInput> & FinancialRecordUncheckedCreateInput) | (Without<...> & FinancialRecordCreateInput)'.
+src/controllers/InventoryController.ts(55,11): error TS2322: Type '{ partId: any; branchId: any; quantity: number; }' is not assignable to type '(Without<StockCreateInput, StockUncheckedCreateInput> & StockUncheckedCreateInput) | (Without<...> & StockCreateInput)'.
+src/controllers/InventoryController.ts(85,7): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(217,5): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(264,11): error TS2322: Type '{ internalCode: any; manufacturerCode: any; name: any; description: any; category: any; brand: any; supplierId: any; purchasePrice: number; salePrice: number; minStock: number; location: any; }' is not assignable to type '(Without<PartCreateInput, PartUncheckedCreateInput> & PartUncheckedCreateInput) | (Without<...> & PartCreateInput)'.
+src/controllers/InventoryController.ts(284,13): error TS2322: Type '{ partId: string; branchId: any; quantity: number; }' is not assignable to type '(Without<StockCreateInput, StockUncheckedCreateInput> & StockUncheckedCreateInput) | (Without<...> & StockCreateInput)'.
+src/controllers/InventoryController.ts(318,7): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(324,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/InventoryController.ts(329,5): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(346,9): error TS2322: Type '{ partId: any; branchId: any; quantity: any; }' is not assignable to type '(Without<StockCreateInput, StockUncheckedCreateInput> & StockUncheckedCreateInput) | (Without<...> & StockCreateInput)'.
+src/controllers/InventoryController.ts(373,5): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(396,59): error TS2322: Type '{ internalCode: string; }' is not assignable to type 'PartWhereUniqueInput'.
+src/controllers/InventoryController.ts(402,66): error TS2322: Type '{ name: string; }' is not assignable to type '(Without<SupplierCreateInput, SupplierUncheckedCreateInput> & SupplierUncheckedCreateInput) | (Without<...> & SupplierCreateInput)'.
+src/controllers/InventoryController.ts(446,13): error TS2322: Type '{ partId: string; branchId: any; quantity: any; }' is not assignable to type '(Without<StockCreateInput, StockUncheckedCreateInput> & StockUncheckedCreateInput) | (Without<...> & StockCreateInput)'.
+src/controllers/InventoryController.ts(466,5): error TS2304: Cannot find name 'logger'.
+src/controllers/InventoryController.ts(498,5): error TS2304: Cannot find name 'logger'.
+src/controllers/OSController.ts(55,7): error TS2322: Type '{ clientId: any; vehicleId: any; mechanicId: any; branchId: any; notes: any; status: "OPEN"; }' is not assignable to type '(Without<ServiceOrderCreateInput, ServiceOrderUncheckedCreateInput> & ServiceOrderUncheckedCreateInput) | (Without<...> & ServiceOrderCreateInput)'.
+src/controllers/OSController.ts(75,5): error TS2304: Cannot find name 'logger'.
+src/controllers/OSController.ts(163,5): error TS2304: Cannot find name 'logger'.
+src/controllers/OSController.ts(188,9): error TS2322: Type '{ branchId: string; type: "RECEIVABLE"; category: string; description: string; amount: Decimal; dueDate: Date; status: "PENDING"; }' is not assignable to type '(Without<FinancialRecordCreateInput, FinancialRecordUncheckedCreateInput> & FinancialRecordUncheckedCreateInput) | (Without<...> & FinancialRecordCreateInput)'.
+src/controllers/OSController.ts(206,5): error TS2304: Cannot find name 'logger'.
+src/controllers/PDFController.ts(154,5): error TS2304: Cannot find name 'logger'.
+src/controllers/SupplierController.ts(36,7): error TS2322: Type '{ name: any; cnpj: any; phone: any; address: any; email: any; }' is not assignable to type '(Without<SupplierCreateInput, SupplierUncheckedCreateInput> & SupplierUncheckedCreateInput) | (Without<...> & SupplierCreateInput)'.
+src/controllers/SupplierController.ts(46,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/SupplierController.ts(51,5): error TS2304: Cannot find name 'logger'.
+src/controllers/UserController.ts(32,7): error TS2322: Type '{ name: any; email: any; password: string; role: any; branchId: any; }' is not assignable to type '(Without<UserCreateInput, UserUncheckedCreateInput> & UserUncheckedCreateInput) | (Without<...> & UserCreateInput)'.
+src/controllers/UserController.ts(50,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/UserController.ts(55,5): error TS2304: Cannot find name 'logger'.
+src/controllers/VehicleController.ts(27,7): error TS2322: Type '{ plate: any; model: any; brand: any; year: number; chassis: any; mileage: number; engine: any; clientId: any; }' is not assignable to type '(Without<VehicleCreateInput, VehicleUncheckedCreateInput> & VehicleUncheckedCreateInput) | (Without<...> & VehicleCreateInput)'.
+src/controllers/VehicleController.ts(39,15): error TS2339: Property 'code' does not exist on type 'Error'.
+src/controllers/VehicleController.ts(44,5): error TS2304: Cannot find name 'logger'.
+src/middlewares/authMiddleware.ts(5,18): error TS2430: Interface 'AuthRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/modules/auth/services/AuthenticateUserService.ts(43,19): error TS2769: No overload matches this call.
+src/modules/clients/controllers/DeleteClientController.ts(13,44): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/clients/repositories/ClientRepository.ts(8,9): error TS2353: Object literal may only specify known properties, and 'companyId_document' does not exist in type 'ClientWhereUniqueInput'.
+src/modules/clients/repositories/ClientRepository.ts(18,7): error TS2322: Type '{ companyId: string; name: string; email: string; phone?: string; document?: string; address?: string; city?: string; state?: string; zipCode?: string; }' is not assignable to type '(Without<ClientCreateInput, ClientUncheckedCreateInput> & ClientUncheckedCreateInput) | (Without<...> & ClientCreateInput)'.
+src/modules/clients/repositories/PrismaClientRepository.ts(22,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/modules/clients/repositories/PrismaClientRepository.ts(29,5): error TS2322: Type '{ name: string; id: string; document: string; address: string | null; phone: string | null; email: string | null; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; whatsapp: string | null; }' is not assignable to type 'Client'.
+src/modules/clients/repositories/PrismaClientRepository.ts(40,5): error TS2322: Type '{ name: string; id: string; document: string; address: string | null; phone: string | null; email: string | null; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; whatsapp: string | null; } | null' is not assignable to type 'Client | null'.
+src/modules/clients/repositories/PrismaClientRepository.ts(51,5): error TS2322: Type '{ name: string; id: string; document: string; address: string | null; phone: string | null; email: string | null; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; whatsapp: string | null; } | null' is not assignable to type 'Client | null'.
+src/modules/clients/repositories/PrismaClientRepository.ts(61,5): error TS2322: Type '{ name: string; id: string; document: string; address: string | null; phone: string | null; email: string | null; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; whatsapp: string | null; }[]' is not assignable to type 'Client[]'.
+src/modules/clients/repositories/PrismaClientRepository.ts(81,5): error TS2322: Type '{ name: string; id: string; document: string; address: string | null; phone: string | null; email: string | null; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; whatsapp: string | null; }' is not assignable to type 'Client'.
+src/modules/companies/controllers/DeleteCompanyController.ts(12,45): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/companies/controllers/UpdateCompanyController.ts(14,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/financial/controllers/CreateFinancialEntryController.ts(6,10): error TS2724: '"../dtos"' has no exported member named 'FinancialEntryType'. Did you mean 'FinancialType'?
+src/modules/financial/controllers/CreateFinancialEntryController.ts(11,55): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/modules/financial/controllers/CreateFinancialEntryController.ts(32,7): error TS2304: Cannot find name 'logger'.
+src/modules/financial/controllers/DeleteFinancialController.ts(13,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/financial/controllers/DeleteFinancialEntryController.ts(10,55): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/modules/financial/controllers/DeleteFinancialEntryController.ts(15,54): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/financial/controllers/DeleteFinancialEntryController.ts(25,7): error TS2304: Cannot find name 'logger'.
+src/modules/financial/controllers/ListFinancialEntryController.ts(10,55): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/modules/financial/controllers/ListFinancialEntryController.ts(27,7): error TS2304: Cannot find name 'logger'.
+src/modules/financial/controllers/UpdateFinancialController.ts(15,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/financial/controllers/UpdateFinancialEntryController.ts(6,10): error TS2724: '"../dtos"' has no exported member named 'FinancialEntryType'. Did you mean 'FinancialType'?
+src/modules/financial/controllers/UpdateFinancialEntryController.ts(11,55): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/modules/financial/controllers/UpdateFinancialEntryController.ts(34,7): error TS2304: Cannot find name 'logger'.
+src/modules/financial/repositories/IFinancialEntryRepository.ts(3,10): error TS2724: '"../dtos"' has no exported member named 'CreateFinancialEntryDTO'. Did you mean 'CreateFinancialDTO'?
+src/modules/financial/repositories/IFinancialEntryRepository.ts(3,35): error TS2724: '"../dtos"' has no exported member named 'UpdateFinancialEntryDTO'. Did you mean 'UpdateFinancialDTO'?
+src/modules/financial/repositories/IFinancialEntryRepository.ts(3,60): error TS2724: '"../dtos"' has no exported member named 'FinancialEntryType'. Did you mean 'FinancialType'?
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(5,10): error TS2724: '"../dtos"' has no exported member named 'CreateFinancialEntryDTO'. Did you mean 'CreateFinancialDTO'?
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(5,35): error TS2724: '"../dtos"' has no exported member named 'UpdateFinancialEntryDTO'. Did you mean 'UpdateFinancialDTO'?
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(16,46): error TS2339: Property 'financialEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(30,46): error TS2339: Property 'financialEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(42,48): error TS2339: Property 'financialEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(51,46): error TS2339: Property 'financialEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialEntryRepository.ts(70,23): error TS2339: Property 'financialEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialRepository.ts(16,41): error TS2339: Property 'financial' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialRepository.ts(30,41): error TS2339: Property 'financial' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialRepository.ts(42,42): error TS2339: Property 'financial' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialRepository.ts(51,41): error TS2339: Property 'financial' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/repositories/PrismaFinancialRepository.ts(70,23): error TS2339: Property 'financial' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/modules/financial/services/CreateFinancialEntryService.ts(4,10): error TS2724: '"../dtos"' has no exported member named 'CreateFinancialEntryDTO'. Did you mean 'CreateFinancialDTO'?
+src/modules/financial/services/CreateFinancialEntryService.ts(4,35): error TS2724: '"../dtos"' has no exported member named 'FinancialEntryType'. Did you mean 'FinancialType'?
+src/modules/financial/services/UpdateFinancialEntryService.ts(4,10): error TS2724: '"../dtos"' has no exported member named 'UpdateFinancialEntryDTO'. Did you mean 'UpdateFinancialDTO'?
+src/modules/serviceOrders/application/eventBus/EventBus.ts(41,9): error TS2304: Cannot find name 'logger'.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(1,30): error TS2307: Cannot find module '../../../shared/database/prismaClient' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(2,26): error TS2307: Cannot find module '../../../shared/errors/AppError' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(4,33): error TS2307: Cannot find module '../../../shared/events/EventDispatcher' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(5,24): error TS2307: Cannot find module '../../../shared/logger' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(6,30): error TS2307: Cannot find module '../../../modules/auth/policy/PolicyEngine' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(7,28): error TS2307: Cannot find module '../../../modules/auth/rbac/permissions' or its corresponding type declarations.
+src/modules/serviceOrders/application/useCases/CompleteServiceOrderUseCase.ts(72,39): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/modules/serviceOrders/controllers/CreateServiceOrderController.ts(17,7): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'ICreateOSRequest'.
+src/modules/serviceOrders/controllers/DeleteServiceOrderController.ts(13,50): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/serviceOrders/controllers/ServiceOrderController.ts(19,44): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/serviceOrders/controllers/ServiceOrderController.ts(27,44): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/serviceOrders/controllers/ServiceOrderController.ts(35,44): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/serviceOrders/controllers/UpdateServiceOrderController.ts(15,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/serviceOrders/index.ts(17,65): error TS2554: Expected 0 arguments, but got 1.
+src/modules/serviceOrders/index.ts(18,65): error TS2345: Argument of type 'PrismaServiceOrderRepository' is not assignable to parameter of type 'IServiceOrderRepository'.
+src/modules/serviceOrders/index.ts(19,65): error TS2345: Argument of type 'PrismaServiceOrderRepository' is not assignable to parameter of type 'IServiceOrderRepository'.
+src/modules/serviceOrders/index.ts(20,61): error TS2345: Argument of type 'PrismaServiceOrderRepository' is not assignable to parameter of type 'IServiceOrderRepository'.
+src/modules/serviceOrders/repositories/PrismaServiceOrderRepository.ts(22,9): error TS2322: Type 'ServiceOrderStatus' is not assignable to type 'OSStatus | undefined'.
+src/modules/serviceOrders/repositories/PrismaServiceOrderRepository.ts(31,9): error TS2416: Property 'findById' in type 'PrismaServiceOrderRepository' is not assignable to the same property in base type 'IServiceOrderRepository'.
+src/modules/serviceOrders/repositories/PrismaServiceOrderRepository.ts(105,9): error TS2322: Type 'ServiceOrderStatus | undefined' is not assignable to type 'OSStatus | EnumOSStatusFieldUpdateOperationsInput | undefined'.
+src/modules/serviceOrders/useCases/CancelServiceOrderUseCase.ts(20,9): error TS2367: This comparison appears to be unintentional because the types 'OSStatus' and 'ServiceOrderStatus.COMPLETED' have no overlap.
+src/modules/serviceOrders/useCases/CancelServiceOrderUseCase.ts(24,9): error TS2367: This comparison appears to be unintentional because the types 'OSStatus' and 'ServiceOrderStatus.CANCELED' have no overlap.
+src/modules/serviceOrders/useCases/CancelServiceOrderUseCase.ts(31,9): error TS2820: Type 'ServiceOrderStatus.CANCELED' is not assignable to type 'OSStatus | EnumOSStatusFieldUpdateOperationsInput | undefined'. Did you mean '"CANCELLED"'?
+src/modules/serviceOrders/useCases/CompleteServiceOrderUseCase.ts(29,11): error TS2367: This comparison appears to be unintentional because the types 'OSStatus' and 'ServiceOrderStatus.CANCELED' have no overlap.
+src/modules/serviceOrders/useCases/CompleteServiceOrderUseCase.ts(33,11): error TS2367: This comparison appears to be unintentional because the types 'OSStatus' and 'ServiceOrderStatus.COMPLETED' have no overlap.
+src/modules/serviceOrders/useCases/CompleteServiceOrderUseCase.ts(77,11): error TS2322: Type 'ServiceOrderStatus.COMPLETED' is not assignable to type 'OSStatus | EnumOSStatusFieldUpdateOperationsInput | undefined'.
+src/modules/serviceOrders/useCases/CreateServiceOrderUseCase.ts(44,11): error TS2322: Type 'ServiceOrderStatus.CREATED' is not assignable to type 'OSStatus | undefined'.
+src/modules/serviceOrders/useCases/StartServiceOrderUseCase.ts(20,9): error TS2367: This comparison appears to be unintentional because the types 'OSStatus' and 'ServiceOrderStatus.CREATED' have no overlap.
+src/modules/stock/controllers/DeleteStockController.ts(13,43): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/stock/controllers/UpdateStockController.ts(15,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/stock/repositories/PrismaStockRepository.ts(19,9): error TS2353: Object literal may only specify known properties, and 'productId' does not exist in type '(Without<StockCreateInput, StockUncheckedCreateInput> & StockUncheckedCreateInput) | (Without<...> & StockCreateInput)'.
+src/modules/stock/repositories/PrismaStockRepository.ts(31,9): error TS2561: Object literal may only specify known properties, but 'id_companyId' does not exist in type 'StockWhereUniqueInput'. Did you mean to write 'companyId'?
+src/modules/stock/repositories/PrismaStockRepository.ts(62,9): error TS2561: Object literal may only specify known properties, but 'id_companyId' does not exist in type 'StockWhereUniqueInput'. Did you mean to write 'companyId'?
+src/modules/stock/repositories/PrismaStockRepository.ts(68,9): error TS2353: Object literal may only specify known properties, and 'productId' does not exist in type '(Without<StockUpdateInput, StockUncheckedUpdateInput> & StockUncheckedUpdateInput) | (Without<...> & StockUpdateInput)'.
+src/modules/stock/repositories/PrismaStockRepository.ts(80,9): error TS2561: Object literal may only specify known properties, but 'id_companyId' does not exist in type 'StockWhereUniqueInput'. Did you mean to write 'companyId'?
+src/modules/users/controllers/DeleteUserController.ts(13,42): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/users/controllers/UpdateUserController.ts(15,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/users/repositories/PrismaUserRepository.ts(19,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/modules/users/repositories/PrismaUserRepository.ts(21,24): error TS2339: Property 'branchId' does not exist on type 'CreateUserDTO'.
+src/modules/users/repositories/PrismaUserRepository.ts(70,24): error TS2339: Property 'branchId' does not exist on type 'UpdateUserDTO'.
+src/modules/vehicles/controllers/CreateVehicleController.ts(14,61): error TS2345: Argument of type '{ companyId: string; clientId: string; plate: string; brand: string; model: string; year: number; color?: string | undefined; vin?: string | undefined; }' is not assignable to parameter of type 'CreateVehicleDTO'.
+src/modules/vehicles/controllers/DeleteVehicleController.ts(13,45): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/modules/vehicles/controllers/UpdateVehicleController.ts(15,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+src/modules/vehicles/index.ts(17,55): error TS2345: Argument of type 'PrismaVehicleRepository' is not assignable to parameter of type 'IVehicleRepository'.
+src/modules/vehicles/index.ts(18,55): error TS2345: Argument of type 'PrismaVehicleRepository' is not assignable to parameter of type 'IVehicleRepository'.
+src/modules/vehicles/index.ts(19,55): error TS2345: Argument of type 'PrismaVehicleRepository' is not assignable to parameter of type 'IVehicleRepository'.
+src/modules/vehicles/index.ts(20,51): error TS2345: Argument of type 'PrismaVehicleRepository' is not assignable to parameter of type 'IVehicleRepository'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(8,14): error TS2420: Class 'PrismaVehicleRepository' incorrectly implements interface 'IVehicleRepository'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(22,21): error TS2339: Property 'plate' does not exist on type 'CreateVehicleDTO'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(27,5): error TS2739: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; }' is missing the following properties from type 'Vehicle': licensePlate, color
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(38,5): error TS2322: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; } | null' is not assignable to type 'Vehicle | null'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(49,5): error TS2322: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; } | null' is not assignable to type 'Vehicle | null'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(59,5): error TS2322: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; }[]' is not assignable to type 'Vehicle[]'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(70,5): error TS2322: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; }[]' is not assignable to type 'Vehicle[]'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(83,21): error TS2339: Property 'plate' does not exist on type 'UpdateVehicleDTO'.
+src/modules/vehicles/repositories/PrismaVehicleRepository.ts(88,5): error TS2739: Type '{ model: string; id: string; deletedAt: Date | null; createdAt: Date; updatedAt: Date; companyId: string; plate: string; brand: string; year: number; chassis: string | null; mileage: number | null; engine: string | null; clientId: string; }' is missing the following properties from type 'Vehicle': licensePlate, color
+src/routes/auditRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/branchRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/branchRoutes.ts(9,17): error TS2769: No overload matches this call.
+src/routes/branchRoutes.ts(10,18): error TS2769: No overload matches this call.
+src/routes/branchRoutes.ts(11,20): error TS2769: No overload matches this call.
+src/routes/dashboardRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/financialRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/financialRoutes.ts(9,17): error TS2769: No overload matches this call.
+src/routes/financialRoutes.ts(10,18): error TS2769: No overload matches this call.
+src/routes/financialRoutes.ts(11,26): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(9,12): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(11,22): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(15,23): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(16,26): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(17,29): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(18,23): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(19,26): error TS2769: No overload matches this call.
+src/routes/inventoryRoutes.ts(20,53): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(8,12): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(10,17): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(11,29): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(12,20): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(13,24): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(14,18): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(15,27): error TS2769: No overload matches this call.
+src/routes/osRoutes.ts(16,29): error TS2769: No overload matches this call.
+src/routes/supplierRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/supplierRoutes.ts(9,17): error TS2769: No overload matches this call.
+src/routes/supplierRoutes.ts(10,18): error TS2769: No overload matches this call.
+src/routes/supplierRoutes.ts(11,20): error TS2769: No overload matches this call.
+src/routes/supplierRoutes.ts(12,23): error TS2769: No overload matches this call.
+src/routes/userRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/userRoutes.ts(9,17): error TS2769: No overload matches this call.
+src/routes/userRoutes.ts(10,18): error TS2769: No overload matches this call.
+src/routes/userRoutes.ts(11,20): error TS2769: No overload matches this call.
+src/routes/vehicleRoutes.ts(7,12): error TS2769: No overload matches this call.
+src/routes/vehicleRoutes.ts(9,17): error TS2769: No overload matches this call.
+src/routes/vehicleRoutes.ts(10,18): error TS2769: No overload matches this call.
+src/routes/vehicleRoutes.ts(11,20): error TS2769: No overload matches this call.
+src/shared/audit/AuditLogService.ts(41,7): error TS2304: Cannot find name 'logger'.
+src/shared/events/SecureEvent.ts(1,30): error TS2307: Cannot find module 'uuid' or its corresponding type declarations.
+src/shared/infra/http/health.routes.ts(24,29): error TS2339: Property 'ping' does not exist on type 'Promise<RedisClient>'.
+src/shared/middlewares/authMiddleware.ts(28,7): error TS2353: Object literal may only specify known properties, and 'branchId' does not exist in type '{ id: string; companyId: string; role: "ADMIN" | "USER" | "VIEWER"; }'.
+src/shared/middlewares/authMiddleware.ts(28,25): error TS2339: Property 'branchId' does not exist on type 'TokenPayload'.
+src/shared/middlewares/tenantMiddleware.ts(16,9): error TS2339: Property 'branchId' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/shared/queue/EventsWorker.ts(13,13): error TS2339: Property 'name' does not exist on type 'ISecureEvent'.
+src/shared/queue/EventsWorker.ts(47,17): error TS2339: Property 'statusCode' does not exist on type 'Error'.
+src/shared/queue/EventsWorker.ts(47,45): error TS2339: Property 'statusCode' does not exist on type 'Error'.
