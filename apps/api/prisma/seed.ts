@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DESTRUCTIVE_SEED !== 'yes') {
+    throw new Error('Refusing to run destructive seed in production (it deletes all data).');
+  }
   console.log('🌱 Starting complete database seeding for presentation...');
 
   console.log('🧹 Cleaning database...');

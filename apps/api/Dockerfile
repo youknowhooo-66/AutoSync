@@ -50,4 +50,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-CMD ["sh", "-c", "npx prisma@6.19.3 migrate deploy --schema=apps/api/prisma/schema.prisma && npx prisma@6.19.3 db seed && node apps/api/dist/server.js"]
+# Migrations are applied on start (safe, forward-only). The demo seed
+# (prisma/seed.ts) DELETES ALL DATA and must never run here.
+# First admin: docker compose exec api node_modules/.bin/ts-node prisma/bootstrap-admin.ts
+CMD ["sh", "-c", "./apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma && node apps/api/dist/server.js"]
