@@ -23,6 +23,7 @@ const mockPrisma = vi.hoisted(() => {
     },
     branch: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
     },
     inventoryMovement: {
@@ -130,6 +131,7 @@ describe('Inventory Controller', () => {
       const mockCreatedPart = { id: 'part-1', ...newPartData };
       (prismaClient.part.create as jest.Mock).mockResolvedValue(mockCreatedPart);
       (prismaClient.branch.findUnique as jest.Mock).mockResolvedValue({ id: 'branch-1' });
+      (prismaClient.branch.findFirst as jest.Mock).mockResolvedValue({ id: 'branch-1' });
       (prismaClient.stock.create as jest.Mock).mockResolvedValue({ id: 'stock-1' });
 
       const response = await request(app)
@@ -161,6 +163,8 @@ describe('Inventory Controller', () => {
       };
 
       (prismaClient.branch.findMany as jest.Mock).mockResolvedValue([{ id: 'branch-1' }, { id: 'branch-2' }]);
+      (prismaClient.branch.findFirst as jest.Mock).mockResolvedValue({ id: 'branch-1' });
+      (prismaClient.part.findFirst as jest.Mock).mockResolvedValue({ id: 'part-1' });
       (prismaClient.stock.findUnique as jest.Mock).mockResolvedValue({ id: 'stock-1', quantity: 10 });
 
       const response = await request(app)

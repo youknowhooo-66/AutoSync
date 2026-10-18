@@ -4,6 +4,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
   [Role.ADMIN]: Object.values(Permission), // Admin has everything
   
   [Role.MANAGER]: [
+    Permission.CUSTOMER_VIEW,
+    Permission.CUSTOMER_MANAGE,
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_ITEM_VIEW,
     Permission.SERVICE_ORDER_ITEM_ADD,
@@ -36,6 +38,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
   ],
 
   [Role.MECHANIC]: [
+    Permission.CUSTOMER_VIEW,
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_ITEM_VIEW,
     Permission.SERVICE_ORDER_ITEM_ADD,
@@ -55,12 +58,12 @@ export const rolePermissions: Record<Role, Permission[]> = {
   ],
 
   [Role.FINANCIAL]: [
+    Permission.CUSTOMER_VIEW,
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_ITEM_VIEW,
     Permission.SERVICE_ORDER_APPROVAL_VIEW,
     Permission.FINANCIAL_VIEW,
     Permission.FINANCIAL_CREATE,
-    Permission.AUDIT_VIEW,
     Permission.SERVICE_ORDER_EXECUTION_VIEW,
     Permission.SERVICE_ORDER_STOCK_VIEW,
     Permission.SERVICE_ORDER_FINANCE_VIEW,
@@ -68,6 +71,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
   ],
 
   [Role.ATTENDANT]: [
+    Permission.CUSTOMER_VIEW,
+    Permission.CUSTOMER_MANAGE,
     Permission.SERVICE_ORDER_VIEW,
     Permission.SERVICE_ORDER_ITEM_VIEW,
     Permission.SERVICE_ORDER_ITEM_ADD,

@@ -67,17 +67,19 @@ export class PolicyEngine {
     if (action === 'AUTH_DENIED') {
       logger.warn(logData, `[PolicyEngine] Access Denied: ${reason}`);
     } else {
-      logger.info(logData, `[PolicyEngine] Access Granted`);
+      logger.debug(logData, `[PolicyEngine] Access Granted`);
     }
 
-    // Optionally record in Audit log for security trails
-    AuditLogService.log({
-      userId: user.id,
-      companyId: user.companyId,
-      action,
-      resource: 'AUTH',
-      resourceId: permission,
-      newValue: logData,
-    }).catch(err => logger.error(`[PolicyEngine] Failed to log audit: ${err.message}`));
+    // Grants happen on every request; only denials are worth an audit row.
+    if (action === 'AUTH_DENIED') {
+      AuditLogService.log({
+        userId: user.id,
+        companyId: user.companyId,
+        action,
+        resource: 'AUTH',
+        resourceId: permission,
+        newValue: logData,
+      }).catch(err => logger.error(`[PolicyEngine] Failed to log audit: ${err.message}`));
+    }
   }
 }

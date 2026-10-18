@@ -1,6 +1,7 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { logger } from '../../../shared/logger';
+import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
 import { Prisma } from '@prisma/client';
 
 interface IRequest {
@@ -21,6 +22,10 @@ export class StockTransferUseCase {
     if (data.quantity <= 0) {
       throw new AppError('Quantity must be greater than zero.', 400);
     }
+
+    await assertTenantOwnership('part', data.partId, data.companyId);
+    await assertTenantOwnership('branch', data.sourceBranchId, data.companyId);
+    await assertTenantOwnership('branch', data.targetBranchId, data.companyId);
 
     logger.info(`[StockTransferUseCase] Transferring ${data.quantity} of ${data.partId} from ${data.sourceBranchId} to ${data.targetBranchId}`);
 

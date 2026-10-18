@@ -170,7 +170,7 @@ describe('OS Controller', () => {
 
   describe('GET /api/os/:id/pdf', () => {
     it('should return a PDF document', async () => {
-      (prismaClient.serviceOrder.findUnique as jest.Mock).mockResolvedValue({
+      (prismaClient.serviceOrder.findFirst as jest.Mock).mockResolvedValue({
         id: 'os-1',
         number: 101,
         createdAt: new Date(),

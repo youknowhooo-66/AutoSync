@@ -12,8 +12,15 @@ import { createAuditLog } from '../../../controllers/AuditController';
 import PDFDocument from 'pdfkit';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { rbacMiddleware } from '../../auth/middleware/rbacMiddleware';
+import { Permission } from '../../auth/rbac/permissions';
 
 const financialRoutes = Router();
+
+// Reads need FINANCIAL_VIEW; every write (create, edit, pay, delete) needs FINANCIAL_CREATE.
+financialRoutes.use((req, res, next) =>
+  rbacMiddleware(req.method === 'GET' ? Permission.FINANCIAL_VIEW : Permission.FINANCIAL_CREATE)(req, res, next),
+);
 
 // Base routes
 financialRoutes.post('/', (req, res) => createFinancialController.handle(req, res));

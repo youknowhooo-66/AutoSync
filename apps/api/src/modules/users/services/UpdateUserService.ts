@@ -1,33 +1,53 @@
 // apps/api/src/modules/users/services/UpdateUserService.ts
 
 import { hash } from 'bcryptjs';
+import { Role } from '@prisma/client';
 import { IUserRepository, User } from '../repositories/IUserRepository';
-import { UpdateUserDTO } from '../dtos';
+import { UserActor } from '../dtos';
+import { UpdateUserInput } from '../validators/createSchema';
 import { AppError } from '../../../shared/errors/AppError';
+import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
+
+const PASSWORD_COST = 10;
 
 export class UpdateUserService {
   constructor(private userRepository: IUserRepository) {}
 
-  async execute(data: UpdateUserDTO): Promise<User> {
-    const { id, companyId, password } = data;
-
-    const userExists = await this.userRepository.findById(id, companyId);
-
-    if (!userExists) {
+  async execute(id: string, input: UpdateUserInput, companyId: string, actor: UserActor): Promise<Omit<User, 'password'>> {
+    const current = await this.userRepository.findById(id, companyId);
+    if (!current) {
       throw new AppError('User not found.', 404);
     }
 
-    const updatedData = { ...data };
+    // The UI resends the current role on every edit, so only an actual change counts.
+    const changesRole = input.role !== undefined && input.role !== current.role;
+    const changesActive = input.active !== undefined && input.active !== current.active;
 
-    if (password) {
-      updatedData.password = await hash(password, 8);
+    if ((changesRole || changesActive) && actor.id === id) {
+      throw new AppError('Você não pode alterar o próprio perfil ou status.', 403, 'SELF_PRIVILEGE_CHANGE');
+    }
+    if ((changesRole || changesActive) && actor.role !== Role.ADMIN) {
+      throw new AppError('Apenas administradores podem alterar perfil ou status.', 403, 'ROLE_CHANGE_FORBIDDEN');
+    }
+    // A MANAGER must not be able to edit (e.g. reset the password of) an ADMIN.
+    if (current.role === Role.ADMIN && actor.role !== Role.ADMIN) {
+      throw new AppError('Apenas administradores podem editar administradores.', 403, 'ADMIN_EDIT_FORBIDDEN');
     }
 
-    const user = await this.userRepository.update(updatedData);
+    await assertTenantOwnership('branch', input.branchId, companyId);
 
-    const userResponse = { ...user };
-    delete (userResponse as any).password;
+    const user = await this.userRepository.update({
+      id,
+      companyId,
+      name: input.name,
+      email: input.email,
+      password: input.password ? await hash(input.password, PASSWORD_COST) : undefined,
+      role: input.role,
+      branchId: input.branchId,
+      active: input.active,
+    });
 
-    return userResponse;
+    const { password: _password, ...safe } = user;
+    return safe;
   }
 }

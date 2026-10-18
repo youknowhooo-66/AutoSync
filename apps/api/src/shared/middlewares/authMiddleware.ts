@@ -52,10 +52,39 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     };
 
     req.companyId = user.companyId;
+    req.branchId = await resolveBranch(req.headers['x-branch-id'], user);
 
     return next();
   } catch (err: unknown) {
     if (err instanceof AppError) throw err;
     throw new AppError('Invalid JWT token', 401);
   }
+}
+
+/**
+ * x-branch-id is a UI preference, never an authority. A branch from another company
+ * is rejected; a user bound to a branch always works in that branch, whatever the
+ * header says. Only users without a fixed branch (e.g. ADMIN) can switch.
+ */
+async function resolveBranch(
+  header: string | string[] | undefined,
+  user: { companyId: string; branchId: string | null; role: string },
+): Promise<string | undefined> {
+  const requested = Array.isArray(header) ? header[0] : header;
+
+  if (user.role !== 'ADMIN' && user.branchId) {
+    return user.branchId;
+  }
+  if (!requested) {
+    return user.branchId ?? undefined;
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: requested, companyId: user.companyId },
+    select: { id: true },
+  });
+  if (!branch) {
+    throw new AppError('Branch not available for this user', 403, 'BRANCH_FORBIDDEN');
+  }
+  return branch.id;
 }

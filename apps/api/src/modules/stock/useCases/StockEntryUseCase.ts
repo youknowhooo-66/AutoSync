@@ -1,6 +1,7 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { logger } from '../../../shared/logger';
+import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
 
 interface IRequest {
   companyId: string;
@@ -14,6 +15,10 @@ interface IRequest {
 
 export class StockEntryUseCase {
   async execute(data: IRequest) {
+    await assertTenantOwnership('part', data.partId, data.companyId);
+    await assertTenantOwnership('branch', data.branchId, data.companyId);
+    await assertTenantOwnership('supplier', data.supplierId, data.companyId);
+
     logger.info(`[StockEntryUseCase] Processing entry for part ${data.partId} in branch ${data.branchId}`);
 
     return await prismaClient.$transaction(async (tx) => {

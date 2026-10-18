@@ -2,15 +2,13 @@
 
 import { Request, Response } from 'express';
 import { DeleteUserService } from '../services/DeleteUserService';
+import { actorOf } from './CreateUserController';
 
 export class DeleteUserController {
   constructor(private deleteUserService: DeleteUserService) {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { id } = request.params;
-    const { companyId } = request;
-
-    await this.deleteUserService.execute(id as string, companyId as string);
+    await this.deleteUserService.execute(String(request.params.id), request.user.companyId, actorOf(request));
 
     return response.status(204).send();
   }

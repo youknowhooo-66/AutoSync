@@ -4,7 +4,7 @@ import { FactoryEngine } from '../factories/FactoryEngine';
 import { generateAuthHeaders } from '../helpers/auth';
 
 describe('ServiceOrders Basic Creation & Security Integration Tests', () => {
-  it('should successfully create, list, and read a basic service order, ignoring forged body parameters', async () => {
+  it('should successfully create, list, and read a basic service order, rejecting a forged tenant and ignoring forged status', async () => {
     // Arrange: Create Tenant A structure
     const company = await FactoryEngine.createCompany();
     const branch = await FactoryEngine.createBranch(company.id, { name: 'Main Branch' });
@@ -21,10 +21,16 @@ describe('ServiceOrders Basic Creation & Security Integration Tests', () => {
       branchId: branch.id,
       mechanicId: mechanic.id,
       notes: 'Symptom: engine light is blinking.',
-      // Forged attributes which MUST be ignored or overridden by backend
-      companyId: 'fake-company-id',
+      // Forged attribute which MUST be ignored by the backend
       status: 'FINISHED',
     };
+
+    // A forged tenant is rejected outright rather than silently ignored.
+    const forgedTenant = await request(app)
+      .post('/api/service-orders')
+      .set(headers)
+      .send({ ...createData, companyId: 'fake-company-id' });
+    expect(forgedTenant.status).toBe(400);
 
     const createResponse = await request(app)
       .post('/api/service-orders')

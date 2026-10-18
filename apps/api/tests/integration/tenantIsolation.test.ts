@@ -19,15 +19,12 @@ import { generateAuthHeaders } from '../helpers/auth';
 import { listRoutes, type MountSpec } from '../helpers/routes';
 
 /**
- * Cross-tenant isolation suite (DELIVERY_PLAN step 2).
+ * Cross-tenant isolation suite (DELIVERY_PLAN steps 2 and 3).
  *
  * An ADMIN of company A calls every route aimed at company B's data. A route is
  * isolated when the response is a 4xx, carries none of B's ids or marker, and
  * B's rows are byte-for-byte unchanged afterwards. List routes may answer 2xx
  * but must not include B's data.
- *
- * Known holes are declared with `it.fails`: CI stays green while the hole exists,
- * and the test turns red the moment it is fixed, so it must then become `it`.
  */
 
 const MOUNTS: MountSpec[] = [
@@ -159,8 +156,6 @@ interface IsolationCase {
    * Rejecting those fields outright is covered by the mass-assignment suite.
    */
   allow2xx?: boolean;
-  /** Known hole: the test is expected to fail until the fix lands. */
-  leaks?: boolean;
 }
 
 const CASES: IsolationCase[] = [
@@ -181,7 +176,7 @@ const CASES: IsolationCase[] = [
   { route: 'POST /api/service-orders', title: 'cannot open a service order for a B client/vehicle', url: () => '/api/service-orders', body: (b, a) => ({ clientId: b.client.id, vehicleId: b.vehicle.id, branchId: a.branch.id }) },
   { route: 'GET /api/service-orders/top-services', title: 'top services does not include B data', url: () => '/api/service-orders/top-services', allow2xx: true },
   { route: 'GET /api/service-orders/:id', title: 'cannot read a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}` },
-  { route: 'GET /api/service-orders/:id/pdf', title: 'cannot print a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}/pdf` , leaks: true},
+  { route: 'GET /api/service-orders/:id/pdf', title: 'cannot print a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}/pdf` },
   { route: 'PATCH /api/service-orders/:id/start', title: 'cannot start a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}/start` },
   { route: 'PATCH /api/service-orders/:id/cancel', title: 'cannot cancel a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}/cancel`, body: () => ({ reason: 'cross-tenant' }) },
   { route: 'PATCH /api/service-orders/:id/status', title: 'cannot change status of a B service order', url: (b) => `/api/service-orders/${b.serviceOrder.id}/status`, body: () => ({ status: 'CANCELED', reason: 'cross-tenant' }) },
@@ -209,9 +204,9 @@ const CASES: IsolationCase[] = [
 
   // ── stock ──
   { route: 'GET /api/stock', title: 'stock root does not expose B data', url: () => '/api/stock', allow2xx: true },
-  { route: 'POST /api/stock/entry', title: 'cannot add stock to a B part/branch', url: () => '/api/stock/entry', body: (b) => ({ partId: b.part.id, branchId: b.branch.id, quantity: 5, unitCost: 1 }) , leaks: true},
+  { route: 'POST /api/stock/entry', title: 'cannot add stock to a B part/branch', url: () => '/api/stock/entry', body: (b) => ({ partId: b.part.id, branchId: b.branch.id, quantity: 5, unitCost: 1 }) },
   { route: 'POST /api/stock/parts', title: 'cannot create a part inside B via body companyId', url: () => '/api/stock/parts', body: (b) => ({ name: 'Injected part', internalCode: 'INJ-0001', companyId: b.company.id, salePrice: 1, purchasePrice: 1 }) , allow2xx: true},
-  { route: 'POST /api/stock/transfer', title: 'cannot transfer B stock', url: () => '/api/stock/transfer', body: (b, a) => ({ partId: b.part.id, fromBranchId: b.branch.id, toBranchId: a.branch.id, quantity: 1 }) , leaks: true},
+  { route: 'POST /api/stock/transfer', title: 'cannot transfer B stock', url: () => '/api/stock/transfer', body: (b, a) => ({ partId: b.part.id, fromBranchId: b.branch.id, toBranchId: a.branch.id, quantity: 1 }) },
   { route: 'GET /api/stock/dashboard', title: 'stock dashboard does not include B data', url: () => '/api/stock/dashboard', allow2xx: true },
   { route: 'GET /api/stock/low-stock', title: 'low stock does not include B parts', url: () => '/api/stock/low-stock', allow2xx: true },
   { route: 'GET /api/stock/parts', title: 'part search does not include B parts', url: () => `/api/stock/parts?q=${MARKER}`, allow2xx: true },
@@ -243,11 +238,9 @@ const CASES: IsolationCase[] = [
   { route: 'PUT /api/users/:id', title: 'cannot update a B user', url: (b) => `/api/users/${b.admin.id}`, body: () => ({ name: 'Hijacked', password: 'Password123!' }) },
   { route: 'DELETE /api/users/:id', title: 'cannot delete a B user', url: (b) => `/api/users/${b.mechanic.id}` },
 
-  // ── companies (plan 0.1: tenant API only sees its own company) ──
-  { route: 'GET /api/companies', title: 'company list does not include B', url: () => '/api/companies', allow2xx: true, leaks: true },
-  { route: 'POST /api/companies', title: 'tenant users cannot create companies', url: () => '/api/companies', body: () => ({ name: `${MARKER} new`, document: '11.222.333/0001-44' }), leaks: true },
-  { route: 'PUT /api/companies/:id', title: 'cannot update company B', url: (b) => `/api/companies/${b.company.id}`, body: () => ({ name: 'Hijacked' }), leaks: true },
-  { route: 'DELETE /api/companies/:id', title: 'cannot delete company B', url: (b) => `/api/companies/${b.company.id}` },
+  // ── companies: a tenant only sees and edits its own company ──
+  { route: 'GET /api/companies', title: 'company list does not include B', url: () => '/api/companies', allow2xx: true },
+  { route: 'PUT /api/companies/:id', title: 'cannot update company B', url: (b) => `/api/companies/${b.company.id}`, body: () => ({ name: 'Hijacked' }) },
 
   // ── branches ──
   { route: 'GET /api/branches', title: 'list does not include B branches', url: () => '/api/branches', allow2xx: true },
@@ -257,8 +250,8 @@ const CASES: IsolationCase[] = [
   // ── dashboard ──
   ...dashboardCases(),
 
-  // ── audit (plan 0.3: AuditLog has no companyId yet) ──
-  { route: 'GET /api/audit', title: 'audit log does not include B entries', url: () => '/api/audit', allow2xx: true, leaks: true },
+  // ── audit ──
+  { route: 'GET /api/audit', title: 'audit log does not include B entries', url: () => '/api/audit', allow2xx: true },
 ];
 
 function dashboardCases(): IsolationCase[] {
@@ -292,14 +285,22 @@ describe('Tenant isolation: company A cannot reach company B', () => {
     expect(missing).toEqual([]);
   });
 
+  it('tenant API cannot create or delete companies', async () => {
+    const headers = generateAuthHeaders(a.admin);
+    const created = await request(app).post('/api/companies').set(headers).send({ name: `${MARKER} new`, document: '11.222.333/0001-44' });
+    const deleted = await request(app).delete(`/api/companies/${b.company.id}`).set(headers);
+    expect(created.status).toBe(404);
+    expect(deleted.status).toBe(404);
+    expect(await prismaClient.company.count({ where: { name: `${MARKER} new` } })).toBe(0);
+  });
+
   it('every isolation case targets a real route', () => {
     const routes = new Set(listRoutes(app, MOUNTS));
     expect(CASES.map((c) => c.route).filter((r) => !routes.has(r))).toEqual([]);
   });
 
   for (const c of CASES) {
-    const run = c.leaks ? it.fails : it;
-    run(`${c.route}: ${c.title}`, async () => {
+    it(`${c.route}: ${c.title}`, async () => {
       const before = await snapshot(b);
       const [method] = c.route.split(' ');
       const res = await send(
