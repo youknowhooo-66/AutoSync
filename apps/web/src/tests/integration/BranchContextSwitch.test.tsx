@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import Branches from '@/pages/Branches';
 import Financial from '@/pages/Financial';
 import api from '@/services/api';
 import { BranchProvider, useBranch } from '@/contexts/BranchContext';

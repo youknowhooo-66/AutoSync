@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useBranch } from '@/contexts/BranchContext';

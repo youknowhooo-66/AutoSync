@@ -43,7 +43,7 @@ export function useUpdateClient() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateClientDTO> }) =>
       clientService.update(id, payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: clientKeys.all });
       queryClient.invalidateQueries({ queryKey: clientKeys.detail(variables.id) });
     },

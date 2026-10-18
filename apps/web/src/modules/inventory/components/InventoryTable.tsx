@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Package, Tag, AlertTriangle, ArrowRightLeft } from "lucide-react"
 

@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface Branch {
+// Espelha o model Branch da API (apps/api/prisma/schema.prisma).
+export interface Branch {
   id: string;
   name: string;
   companyId: string;
   cnpj?: string;
-  address?: string;
-  phone?: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+  phone?: string | null;
+  email?: string | null;
   active?: boolean;
+  createdAt?: string;
 }
 
 interface BranchContextData {

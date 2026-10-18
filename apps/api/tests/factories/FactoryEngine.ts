@@ -216,7 +216,7 @@ export class FactoryEngine {
       vehicleId,
       branchId,
       notes: faker.lorem.paragraph(),
-      status: 'OPEN' as 'OPEN',
+      status: 'OPEN' as const,
       totalParts: 0,
       totalServices: 0,
       discount: 0,

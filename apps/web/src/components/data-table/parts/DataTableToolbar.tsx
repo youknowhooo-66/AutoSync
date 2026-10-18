@@ -16,6 +16,7 @@ import { useDataTableStore } from "../core/store"
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   tableId: string
+  /** @deprecated a busca é global (globalFilter); mantido por compatibilidade */
   searchKey?: string
   toolbarActions?: React.ReactNode
 }
@@ -23,7 +24,6 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   tableId,
-  searchKey,
   toolbarActions,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || table.getState().globalFilter

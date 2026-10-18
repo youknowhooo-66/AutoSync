@@ -24,7 +24,7 @@ vi.mock('../config/prisma', () => ({
 describe('Auth Middleware', () => {
   let mockRequest: Partial<AuthRequest>;
   let mockResponse: Partial<Response>;
-  let nextFunction: NextFunction = vi.fn();
+  const nextFunction: NextFunction = vi.fn();
 
   beforeEach(() => {
     mockRequest = {

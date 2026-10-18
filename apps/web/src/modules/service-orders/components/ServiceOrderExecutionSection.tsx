@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useServiceOrderExecution } from '../hooks/useServiceOrderExecution';
 import { useTechnicians } from '../hooks/useTechnicians';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useServiceOrderApproval } from '../hooks/useServiceOrderApproval';
-import { useQuery } from '@tanstack/react-query';
 import type { ServiceExecutionStatus, OSServiceExecution } from '../types/execution.types';
 
 interface ServiceOrderExecutionSectionProps {

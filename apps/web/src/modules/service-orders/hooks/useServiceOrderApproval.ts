@@ -21,7 +21,7 @@ export function useRequestApproval() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (serviceOrderId: string) => approvalService.requestApproval(serviceOrderId),
-    onSuccess: (data, serviceOrderId) => {
+    onSuccess: (_data, serviceOrderId) => {
       toast.success('Solicitação de aprovação enviada com sucesso');
       queryClient.invalidateQueries({ queryKey: approvalKeys.byServiceOrder(serviceOrderId) });
       queryClient.invalidateQueries({ queryKey: serviceOrderKeys.detail(serviceOrderId) });
@@ -39,7 +39,7 @@ export function useApproveServiceOrder() {
   return useMutation({
     mutationFn: (payload: { serviceOrderId: string; approvalId: string }) =>
       approvalService.approve(payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       toast.success('Orçamento aprovado com sucesso');
       queryClient.invalidateQueries({ queryKey: approvalKeys.byServiceOrder(variables.serviceOrderId) });
       queryClient.invalidateQueries({ queryKey: serviceOrderKeys.detail(variables.serviceOrderId) });
@@ -57,7 +57,7 @@ export function useRejectServiceOrder() {
   return useMutation({
     mutationFn: (payload: { serviceOrderId: string; approvalId: string; reason: string }) =>
       approvalService.reject(payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       toast.success('Orçamento rejeitado');
       queryClient.invalidateQueries({ queryKey: approvalKeys.byServiceOrder(variables.serviceOrderId) });
       queryClient.invalidateQueries({ queryKey: serviceOrderKeys.detail(variables.serviceOrderId) });
@@ -75,7 +75,7 @@ export function useInvalidateApproval() {
   return useMutation({
     mutationFn: (payload: { serviceOrderId: string; approvalId: string; reason: string }) =>
       approvalService.invalidate(payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       toast.success('Aprovação invalidada com sucesso');
       queryClient.invalidateQueries({ queryKey: approvalKeys.byServiceOrder(variables.serviceOrderId) });
       queryClient.invalidateQueries({ queryKey: serviceOrderKeys.detail(variables.serviceOrderId) });

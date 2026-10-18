@@ -1,4 +1,3 @@
-import React from 'react';
 import { Activity, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 import type { HealthEvaluation } from '../utils/healthEvaluator';
 

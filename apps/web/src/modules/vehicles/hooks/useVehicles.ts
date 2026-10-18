@@ -43,7 +43,7 @@ export function useUpdateVehicle() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateVehicleDTO> }) =>
       vehicleService.update(id, payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
       queryClient.invalidateQueries({ queryKey: vehicleKeys.detail(variables.id) });
     },

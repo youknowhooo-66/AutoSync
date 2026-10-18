@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useServiceOrderStockConsumption } from '../hooks/useServiceOrderStockConsumption';
 import { useServiceOrderExecution } from '../hooks/useServiceOrderExecution';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
