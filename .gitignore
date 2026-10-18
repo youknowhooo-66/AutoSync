@@ -70,3 +70,6 @@ root/build/
 root/dist/
 root/out/
 root/coverage/
+
+# Redis snapshots (local redis-server)
+dump.rdb
