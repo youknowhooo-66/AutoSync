@@ -1,14 +1,12 @@
 // apps/api/src/modules/users/services/UpdateUserService.ts
 
-import { hash } from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { IUserRepository, User } from '../repositories/IUserRepository';
 import { UserActor } from '../dtos';
 import { UpdateUserInput } from '../validators/createSchema';
 import { AppError } from '../../../shared/errors/AppError';
 import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
-
-const PASSWORD_COST = 10;
+import { hashPassword } from '../../../shared/security/password';
 
 export class UpdateUserService {
   constructor(private userRepository: IUserRepository) {}
@@ -41,7 +39,7 @@ export class UpdateUserService {
       companyId,
       name: input.name,
       email: input.email,
-      password: input.password ? await hash(input.password, PASSWORD_COST) : undefined,
+      password: input.password ? await hashPassword(input.password) : undefined,
       role: input.role,
       branchId: input.branchId,
       active: input.active,

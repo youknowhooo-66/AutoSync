@@ -3,6 +3,7 @@ import { verify } from 'jsonwebtoken';
 import { AppError } from '../errors/AppError';
 import authConfig from '../config/auth';
 import { prisma } from '../../config/prisma';
+import { readSessionCookie } from '../http/sessionCookie';
 
 interface TokenPayload {
   sub: string;
@@ -22,13 +23,13 @@ export interface AuthRequest extends Request {
 }
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  // Browsers send the httpOnly session cookie; scripts and tests may still use a Bearer header.
   const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : readSessionCookie(req);
 
-  if (!authHeader) {
+  if (!token) {
     throw new AppError('JWT token is missing', 401);
   }
-
-  const [, token] = authHeader.split(' ');
 
   try {
     const { secret } = authConfig.jwt;

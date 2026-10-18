@@ -1,14 +1,12 @@
 // apps/api/src/modules/users/services/CreateUserService.ts
 
-import { hash } from 'bcryptjs';
 import { Role } from '@prisma/client';
 import { IUserRepository, User } from '../repositories/IUserRepository';
 import { UserActor } from '../dtos';
 import { CreateUserInput } from '../validators/createSchema';
 import { AppError } from '../../../shared/errors/AppError';
 import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
-
-const PASSWORD_COST = 10;
+import { hashPassword } from '../../../shared/security/password';
 
 export class CreateUserService {
   constructor(private userRepository: IUserRepository) {}
@@ -29,7 +27,7 @@ export class CreateUserService {
       companyId,
       name: input.name,
       email: input.email,
-      password: await hash(input.password, PASSWORD_COST),
+      password: await hashPassword(input.password),
       role: input.role ?? Role.ATTENDANT,
       branchId: input.branchId ?? null,
     });

@@ -59,7 +59,6 @@ describe('Suppliers Module (Phase 1)', () => {
         role: 'ADMIN',
         tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
-      token: 'fake-jwt-token',
     });
   });
 
@@ -210,7 +209,6 @@ describe('Suppliers Module (Phase 1)', () => {
         role: 'MECHANIC',
         tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
-      token: 'fake-jwt-token',
     });
 
     (api.get as any).mockResolvedValue({ data: mockSuppliers });

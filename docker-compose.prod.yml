@@ -64,6 +64,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET (min. 32 chars)}
       CORS_ORIGIN: https://${DOMAIN}
+      # Caddy is the only proxy in front of the API; rate limits key on the real client IP.
+      TRUST_PROXY: 1
       METRICS_TOKEN: ${METRICS_TOKEN:-}
       APP_VERSION: ${GIT_SHA:-local}
       GIT_SHA: ${GIT_SHA:-local}
