@@ -2,7 +2,7 @@
 import { IVehicleRepository, Vehicle } from './IVehicleRepository';
 import { CreateVehicleDTO, UpdateVehicleDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 export class PrismaVehicleRepository implements IVehicleRepository {
   private prisma: PrismaClient;
@@ -140,4 +140,3 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   }
 }
 
-export { PrismaClient } from "@prisma/client";

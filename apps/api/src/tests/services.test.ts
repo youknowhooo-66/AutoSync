@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../app';
-import { prisma } from '../config/prisma';
+import { prismaClient as prisma } from '../shared/database/prismaClient';
 import jwt from 'jsonwebtoken';
 
 const mockPrisma = vi.hoisted(() => ({
@@ -10,10 +10,6 @@ const mockPrisma = vi.hoisted(() => ({
   supplier: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   vehicle: { findMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   auditLog: { findMany: vi.fn(), create: vi.fn() },
-}));
-
-vi.mock('../config/prisma', () => ({
-  prisma: mockPrisma,
 }));
 
 vi.mock('../shared/database/prismaClient', () => ({

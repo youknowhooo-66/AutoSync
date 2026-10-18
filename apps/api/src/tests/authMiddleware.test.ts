@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { authMiddleware, AuthRequest } from '../shared/middlewares/authMiddleware';
 import { ensureRole } from '../shared/middlewares/ensureRole';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../config/prisma';
+import { prismaClient as prisma } from '../shared/database/prismaClient';
 
 vi.mock('jsonwebtoken', () => {
   const verify = vi.fn();
@@ -13,8 +13,8 @@ vi.mock('jsonwebtoken', () => {
     sign,
   };
 });
-vi.mock('../config/prisma', () => ({
-  prisma: {
+vi.mock('../shared/database/prismaClient', () => ({
+  prismaClient: {
     user: {
       findUnique: vi.fn(),
     },

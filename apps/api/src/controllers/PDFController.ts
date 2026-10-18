@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import PDFDocument from 'pdfkit';
-import { prisma } from '../config/prisma';
+import { prismaClient as prisma } from '../shared/database/prismaClient';
 import { AuthRequest } from '../shared/middlewares/authMiddleware';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

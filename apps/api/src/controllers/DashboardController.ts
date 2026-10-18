@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { prisma } from '../config/prisma';
+import { prismaClient as prisma } from '../shared/database/prismaClient';
 import { logger } from "../shared/logger";
 import { AuthRequest } from '../shared/middlewares/authMiddleware';
 

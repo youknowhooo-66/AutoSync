@@ -2,7 +2,7 @@
 import { IFinancialRepository, Financial } from './IFinancialRepository';
 import { CreateFinancialDTO, UpdateFinancialDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 export class PrismaFinancialRepository implements IFinancialRepository {
   private prisma: PrismaClient;

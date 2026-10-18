@@ -26,13 +26,6 @@ Monorepo `pnpm` + Turborepo. A API é organizada por módulo de negócio e publi
 apps/
   api/        # API REST — Express 5, Prisma, PostgreSQL, BullMQ (worker de eventos)
   web/        # Front-end — React 19, Vite, Tailwind 4, TanStack Query/Table, Zustand
-packages/          # Modelo de domínio DDD em evolução (ainda não consumido pelos apps)
-  domain/          # Agregados, entidades e regras de negócio
-  application/     # Casos de uso
-  infrastructure/  # Adapters e publicação de eventos
-  read-models/     # Projeções e views de leitura (CQRS), com replay de eventos
-  types/           # Tipos compartilhados entre apps
-  tests-e2e/       # Testes de integração entre camadas
 docs/         # Domínio (event storming, agregados, state machine, ERD), testes e operação
 ```
 
