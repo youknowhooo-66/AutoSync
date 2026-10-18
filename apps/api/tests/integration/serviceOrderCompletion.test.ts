@@ -5,7 +5,7 @@ import { generateAuthHeaders } from '../helpers/auth';
 import { prismaClient } from '../../src/shared/database/prismaClient';
 import { Prisma } from '@prisma/client';
 
-const { randomUUID } = require('crypto');
+import { randomUUID } from 'crypto';
 
 describe('Service Order Completion (P4.7)', () => {
   let company: any;

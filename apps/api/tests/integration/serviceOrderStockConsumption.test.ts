@@ -6,7 +6,7 @@ import { prismaClient } from '../../src/shared/database/prismaClient';
 import { Prisma } from '@prisma/client';
 import { crypto } from '../../src/shared/utils/crypto'; // Wait, let's check how to generate UUID or if we can use crypto.randomUUID() or a simple uuid generator. Node has global crypto or require('crypto')
 
-const { randomUUID } = require('crypto');
+import { randomUUID } from 'crypto';
 
 describe('Service Order Stock Consumption (P4.6)', () => {
   let company: any;

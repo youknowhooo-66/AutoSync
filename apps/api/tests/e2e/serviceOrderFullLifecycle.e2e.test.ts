@@ -7,6 +7,9 @@ import { Prisma } from '@prisma/client';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import crypto from 'crypto';
 import { AuditLogService } from '../../src/shared/audit/AuditLogService';
+import { futureCivilDate } from '../helpers/dates';
+
+const DUE_DATE = futureCivilDate(30);
 
 vi.mock('../../src/shared/audit/AuditLogService', async () => {
   const actual = await vi.importActual<any>('../../src/shared/audit/AuditLogService');
@@ -235,7 +238,7 @@ describe('Service Order Full Lifecycle E2E', () => {
       const generateRes = await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersAdminA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(generateRes.status).toBe(201);
 
       // 15. Consult financial state
@@ -330,7 +333,7 @@ describe('Service Order Full Lifecycle E2E', () => {
       const financeRes = await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersMechanicA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(financeRes.status).toBe(403);
     });
   });
@@ -430,13 +433,13 @@ describe('Service Order Full Lifecycle E2E', () => {
       const gen1 = await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersAdminA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(gen1.status).toBe(201);
 
       const gen2 = await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersAdminA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(gen2.status).toBe(200);
       expect(gen2.body.message).toContain('já existente (idempotente)');
       expect(gen2.body.data.id).toBe(gen1.body.data.id);
@@ -532,8 +535,8 @@ describe('Service Order Full Lifecycle E2E', () => {
 
       // 3. Concurrent receivable generation
       const [gen1, gen2] = await Promise.all([
-        request(app).post(`/api/service-orders/${osId}/finance/receivable`).set(headersAdminA).send({ dueDate: '2026-08-30' }),
-        request(app).post(`/api/service-orders/${osId}/finance/receivable`).set(headersAdminA).send({ dueDate: '2026-08-30' }),
+        request(app).post(`/api/service-orders/${osId}/finance/receivable`).set(headersAdminA).send({ dueDate: DUE_DATE }),
+        request(app).post(`/api/service-orders/${osId}/finance/receivable`).set(headersAdminA).send({ dueDate: DUE_DATE }),
       ]);
 
       const genStatuses = [gen1.status, gen2.status];
@@ -603,7 +606,7 @@ describe('Service Order Full Lifecycle E2E', () => {
       const genRes = await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersAdminA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(genRes.status).toBe(500);
 
       // Verify no FinancialRecord was created
@@ -693,7 +696,7 @@ describe('Service Order Full Lifecycle E2E', () => {
       await request(app)
         .post(`/api/service-orders/${osId}/finance/receivable`)
         .set(headersAdminA)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       // Run query-level reconciliations directly on database
       const approval = await prismaClient.serviceOrderApproval.findUnique({ where: { id: approvalId } });

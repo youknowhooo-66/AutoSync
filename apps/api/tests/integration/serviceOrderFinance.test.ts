@@ -23,7 +23,10 @@ vi.mock('../../src/shared/audit/AuditLogService', async () => {
   };
 });
 
-const { randomUUID } = require('crypto');
+import { randomUUID } from 'crypto';
+import { futureCivilDate } from '../helpers/dates';
+
+const DUE_DATE = futureCivilDate(30);
 
 describe('Service Order Financial Integration (P4.8)', () => {
   let company: any;
@@ -230,7 +233,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
       await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-12-31' });
+        .send({ dueDate: DUE_DATE });
 
       const res = await request(app)
         .get(`/api/service-orders/${os.id}/finance`)
@@ -265,14 +268,14 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.message).toBe('Recebível gerado com sucesso.');
       expect(res.body.data.amount).toBe('220');
       expect(res.body.data.status).toBe('PENDING');
-      expect(res.body.data.dueDate).toContain('2026-08-30T12:00:00.000Z');
+      expect(res.body.data.dueDate).toContain(`${DUE_DATE}T12:00:00.000Z`);
 
       // Verify DB mapping
       const record = await prismaClient.financialRecord.findUnique({
@@ -301,7 +304,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('A Ordem de Serviço deve estar concluída');
@@ -319,7 +322,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('O último orçamento deve estar aprovado');
@@ -331,7 +334,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res.status).toBe(409);
       expect(res.body.details[0].code).toBe('FINANCIAL_OBLIGATION_NOT_REQUIRED');
@@ -366,7 +369,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
         .send({
-          dueDate: '2026-08-30',
+          dueDate: DUE_DATE,
           amount: '10.00', // forged
           companyId: 'forged-company',
         });
@@ -381,14 +384,14 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res1 = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(res1.status).toBe(201);
 
       // Second call (sequential)
       const res2 = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res2.status).toBe(200);
       expect(res2.body.message).toBe('Recebível já existente (idempotente).');
@@ -403,11 +406,11 @@ describe('Service Order Financial Integration (P4.8)', () => {
         request(app)
           .post(`/api/service-orders/${os.id}/finance/receivable`)
           .set(headersAdmin)
-          .send({ dueDate: '2026-08-30' }),
+          .send({ dueDate: DUE_DATE }),
         request(app)
           .post(`/api/service-orders/${os.id}/finance/receivable`)
           .set(headersAdmin)
-          .send({ dueDate: '2026-08-30' }),
+          .send({ dueDate: DUE_DATE }),
       ]);
 
       const statuses = [r1.status, r2.status];
@@ -429,7 +432,7 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const res = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAdmin)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
 
       expect(res.status).toBe(500);
 
@@ -452,14 +455,14 @@ describe('Service Order Financial Integration (P4.8)', () => {
       const resGenAttendant = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersAttendant)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(resGenAttendant.status).toBe(403);
 
       // FINANCIAL can view and generate
       const resGenFinancial = await request(app)
         .post(`/api/service-orders/${os.id}/finance/receivable`)
         .set(headersFinancial)
-        .send({ dueDate: '2026-08-30' });
+        .send({ dueDate: DUE_DATE });
       expect(resGenFinancial.status).toBe(201);
     });
   });
