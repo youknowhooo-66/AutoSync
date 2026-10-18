@@ -77,11 +77,19 @@ jobs:
       - name: Deploy migrations
         run: pnpm --filter back exec prisma migrate deploy --schema=prisma/schema.prisma
 
+      - name: Lint backend
+        run: pnpm --filter back run lint
+
+      - name: Lint frontend
+        run: pnpm --filter front run lint
+
       - name: Typecheck backend
         run: pnpm --filter back run typecheck
 
+      # tsconfig.json do web é só "references" (files: []), então `tsc --noEmit`
+      # nele não checa nada. O script typecheck aponta para tsconfig.app/node.
       - name: Typecheck frontend
-        run: pnpm --filter front exec tsc --noEmit
+        run: pnpm --filter front run typecheck
 
       - name: Run backend tests
         run: pnpm --filter back run test
