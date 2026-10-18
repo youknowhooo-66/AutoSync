@@ -17,7 +17,8 @@ Plataforma: **somente web** — SPA React servida por Nginx/Vercel + API REST. O
 pnpm install
 pnpm dev                                   # api + web
 pnpm --filter back run typecheck
-pnpm --filter front exec tsc --noEmit
+pnpm --filter front run typecheck
+pnpm --filter back run lint
 pnpm --filter front run lint
 pnpm test:env:up                           # Postgres 5436 + Redis 6380 para testes
 pnpm --filter back run test                # precisa do test:env rodando
@@ -26,7 +27,7 @@ pnpm test:e2e                              # Playwright
 pnpm --filter back exec prisma migrate dev --name <nome>
 ```
 
-CI (`.github/workflows/ci.yml`) roda typecheck api/web, testes api/web e `pnpm build`. Rode o mesmo antes de push.
+CI (`.github/workflows/ci.yml`) roda lint, typecheck e testes de api/web e `pnpm build`. Rode o mesmo antes de push.
 
 ## API (`apps/api`)
 
