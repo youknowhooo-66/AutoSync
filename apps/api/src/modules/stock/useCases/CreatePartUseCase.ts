@@ -1,5 +1,6 @@
 import { prismaClient } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
+import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
 import { normalizeInternalCode } from '../../../shared/utils/normalizeInternalCode';
 
 interface IRequest {
@@ -20,6 +21,8 @@ export class CreatePartUseCase {
     if (!data.name || !data.internalCode) {
       throw new AppError('Name and internal code are required.', 400);
     }
+
+    await assertTenantOwnership('branch', data.branchId, data.companyId);
 
     return await prismaClient.$transaction(async (tx) => {
       // 1. Check if part with same normalized code already exists in company

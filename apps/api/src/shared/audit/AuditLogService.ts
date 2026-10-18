@@ -30,6 +30,7 @@ export class AuditLogService {
       await client.auditLog.create({
         data: {
           userId,
+          companyId,
           action,
           resource,
           resourceId,

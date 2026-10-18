@@ -59,6 +59,7 @@ export class StockReturnUseCase {
       await tx.auditLog.create({
         data: {
           userId: data.userId,
+          companyId: data.companyId,
           action: 'STOCK_RETURN',
           resource: 'STOCK',
           resourceId: stock.id,

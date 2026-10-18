@@ -1,15 +1,12 @@
 // apps/api/src/modules/users/dtos/CreateUserDTO.ts
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-  VIEWER = 'VIEWER',
-}
+import { Role } from '@prisma/client';
 
 export interface CreateUserDTO {
   companyId: string;
   name: string;
   email: string;
-  password?: string;
-  role: UserRole;
+  password: string;
+  role: Role;
+  branchId: string | null;
 }

@@ -1,41 +1,40 @@
 // apps/api/src/modules/users/services/CreateUserService.ts
 
 import { hash } from 'bcryptjs';
+import { Role } from '@prisma/client';
 import { IUserRepository, User } from '../repositories/IUserRepository';
-import { CreateUserDTO } from '../dtos';
+import { UserActor } from '../dtos';
+import { CreateUserInput } from '../validators/createSchema';
 import { AppError } from '../../../shared/errors/AppError';
+import { assertTenantOwnership } from '../../../shared/tenancy/assertTenantOwnership';
+
+const PASSWORD_COST = 10;
 
 export class CreateUserService {
   constructor(private userRepository: IUserRepository) {}
 
-  async execute(data: CreateUserDTO): Promise<User> {
-    const { companyId, email, password } = data;
-
-    if (!companyId) {
-      throw new AppError('Company ID is required.');
+  async execute(input: CreateUserInput, companyId: string, actor: UserActor): Promise<Omit<User, 'password'>> {
+    // Only ADMIN picks a role; anyone else with USER_MANAGE creates the default role.
+    if (input.role && input.role !== Role.ATTENDANT && actor.role !== Role.ADMIN) {
+      throw new AppError('Apenas administradores podem definir o perfil do usuário.', 403, 'ROLE_CHANGE_FORBIDDEN');
     }
 
-    const userExists = await this.userRepository.findByEmail(email, companyId);
+    await assertTenantOwnership('branch', input.branchId, companyId);
 
-    if (userExists) {
+    if (await this.userRepository.findByEmail(input.email, companyId)) {
       throw new AppError('User with this email already exists for this company.', 409);
     }
 
-    if (!password) {
-      throw new AppError('Password is required for user creation.');
-    }
-
-    const hashedPassword = await hash(password, 8);
-
     const user = await this.userRepository.create({
-      ...data,
-      password: hashedPassword,
+      companyId,
+      name: input.name,
+      email: input.email,
+      password: await hash(input.password, PASSWORD_COST),
+      role: input.role ?? Role.ATTENDANT,
+      branchId: input.branchId ?? null,
     });
 
-    // Remove password from response
-    const userResponse = { ...user };
-    delete (userResponse as any).password;
-
-    return userResponse;
+    const { password: _password, ...safe } = user;
+    return safe;
   }
 }

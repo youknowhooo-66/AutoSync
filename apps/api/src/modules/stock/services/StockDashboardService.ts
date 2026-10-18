@@ -25,7 +25,8 @@ export class StockDashboardService {
     // 2. Top Used Items (based on movements)
     const topItems = await prismaClient.inventoryMovement.groupBy({
       by: ['partId'],
-      where: { ...scope, type: 'OUT' },
+      // InventoryMovement has no companyId column; the tenant comes through its branch.
+      where: { type: 'OUT', branch: { companyId }, ...(branchId ? { branchId } : {}) },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 5

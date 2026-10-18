@@ -41,6 +41,7 @@ model Company {
   stocks                Stock[]
   serviceOrderApprovals ServiceOrderApproval[]
   purchaseRequests      PurchaseRequest[]
+  auditLogs             AuditLog[]
 }
 
 model Branch {
@@ -149,7 +150,7 @@ model Vehicle {
 }
 
 model Part {
-  id                     String              @id @default(uuid())
+  id                     String   @id @default(uuid())
   companyId              String
   internalCode           String?
   normalizedInternalCode String?
@@ -159,15 +160,15 @@ model Part {
   description            String?
   category               String?
   brand                  String?
-  active                 Boolean             @default(true)
+  active                 Boolean  @default(true)
   supplierId             String?
-  purchasePrice          Decimal?            @db.Decimal(10, 2)
-  salePrice              Decimal?            @db.Decimal(10, 2)
-  price                  Decimal?            @db.Decimal(10, 2) // alias for salePrice for compat
-  minStock               Int                 @default(0)
+  purchasePrice          Decimal? @db.Decimal(10, 2)
+  salePrice              Decimal? @db.Decimal(10, 2)
+  price                  Decimal? @db.Decimal(10, 2) // alias for salePrice for compat
+  minStock               Int      @default(0)
   location               String?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   company            Company             @relation(fields: [companyId], references: [id])
   supplier           Supplier?           @relation(fields: [supplierId], references: [id])
@@ -180,15 +181,15 @@ model Part {
 }
 
 model Stock {
-  id               String             @id @default(uuid())
+  id               String   @id @default(uuid())
   companyId        String
   partId           String
   branchId         String
-  quantity         Decimal            @default(0) @db.Decimal(12, 3)
-  reservedQuantity Decimal            @default(0) @db.Decimal(12, 3)
+  quantity         Decimal  @default(0) @db.Decimal(12, 3)
+  reservedQuantity Decimal  @default(0) @db.Decimal(12, 3)
   location         String?
-  averageCost      Decimal?           @db.Decimal(10, 2)
-  updatedAt        DateTime           @updatedAt
+  averageCost      Decimal? @db.Decimal(10, 2)
+  updatedAt        DateTime @updatedAt
 
   company      Company            @relation(fields: [companyId], references: [id])
   part         Part               @relation(fields: [partId], references: [id])
@@ -266,20 +267,20 @@ model ServiceOrder {
 }
 
 model OSPart {
-  id               String              @id @default(uuid())
+  id               String           @id @default(uuid())
   serviceOrderId   String
   partId           String?
   description      String?
-  quantity         Decimal             @db.Decimal(12, 3)
-  consumedQuantity Decimal             @default(0) @db.Decimal(12, 3)
-  unitPrice        Decimal             @db.Decimal(10, 2)
-  supplySource     PartSupplySource    @default(STOCK)
+  quantity         Decimal          @db.Decimal(12, 3)
+  consumedQuantity Decimal          @default(0) @db.Decimal(12, 3)
+  unitPrice        Decimal          @db.Decimal(10, 2)
+  supplySource     PartSupplySource @default(STOCK)
 
-  serviceOrder     ServiceOrder        @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
-  part             Part?               @relation(fields: [partId], references: [id])
-  purchaseRequest  PurchaseRequest?
-  reservations     StockReservation[]
-  movements        InventoryMovement[]
+  serviceOrder    ServiceOrder        @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  part            Part?               @relation(fields: [partId], references: [id])
+  purchaseRequest PurchaseRequest?
+  reservations    StockReservation[]
+  movements       InventoryMovement[]
 
   @@index([serviceOrderId])
   @@index([partId])
@@ -350,7 +351,7 @@ model InventoryMovement {
   branchId       String
   userId         String
   type           MovementType
-  quantity       Decimal       @db.Decimal(12, 3)
+  quantity       Decimal      @db.Decimal(12, 3)
   reason         String?
   sourceBranchId String?
   targetBranchId String?
@@ -416,6 +417,9 @@ model FinancialRecord {
 
 model AuditLog {
   id         String   @id @default(uuid())
+  // Filled from the user's company by a database trigger when the writer omits it.
+  // Nullable only for rows whose user no longer resolves to a company.
+  companyId  String?
   userId     String
   action     String
   resource   String
@@ -425,7 +429,10 @@ model AuditLog {
   ip         String?
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  company Company? @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, createdAt])
 }
 
 enum ApprovalStatus {

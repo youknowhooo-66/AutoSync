@@ -15,9 +15,9 @@ export class PrismaUserRepository implements IUserRepository {
       companyId: data.companyId,
       name: data.name,
       email: data.email,
-      password: data.password || '',
-      role: data.role as any,
-      branchId: (data as any).branchId || null,
+      password: data.password,
+      role: data.role,
+      branchId: data.branchId,
     };
 
     const user = await this.prisma.user.create({
@@ -56,17 +56,20 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async update(data: UpdateUserDTO): Promise<User> {
+    // Prisma skips `undefined`, so absent fields keep their current value.
     const updateData: Prisma.UserUncheckedUpdateInput = {
       name: data.name,
       email: data.email,
       password: data.password,
-      role: data.role as any,
-      branchId: (data as any).branchId || null,
+      role: data.role,
+      branchId: data.branchId,
+      active: data.active,
     };
 
     const user = await this.prisma.user.update({
       where: {
         id: data.id,
+        companyId: data.companyId,
       },
       data: updateData,
     });
@@ -77,6 +80,7 @@ export class PrismaUserRepository implements IUserRepository {
     await this.prisma.user.delete({
       where: {
         id,
+        companyId,
       },
     });
   }

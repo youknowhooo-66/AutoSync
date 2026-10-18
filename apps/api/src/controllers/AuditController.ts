@@ -6,7 +6,7 @@ export const listAuditLogs = async (req: Request, res: Response) => {
   try {
     const { userId, resource, startDate, endDate } = req.query;
 
-    const where: any = {};
+    const where: any = { companyId: req.user.companyId };
     if (userId) where.userId = String(userId);
     if (resource) where.resource = String(resource);
     if (startDate || endDate) {
@@ -62,9 +62,13 @@ export const createAuditLog = async (
       const sanitizedOld = sanitize(oldValue);
       const sanitizedNew = sanitize(newValue);
 
+      // The DB trigger fills this too; setting it here keeps the row correct without it.
+      const owner = await prisma.user.findUnique({ where: { id: userId }, select: { companyId: true } });
+
       await prisma.auditLog.create(({
               data: { 
                 userId, 
+                companyId: owner?.companyId ?? null,
                 action, 
                 resource, 
                 resourceId: resourceId?.toString(), 

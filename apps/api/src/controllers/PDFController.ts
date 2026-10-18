@@ -10,8 +10,8 @@ export const generateOSPDF = async (req: AuthRequest, res: Response) => {
   try {
     const id = (req.params.id as string) as string;
 
-    const os = await prisma.serviceOrder.findUnique({
-      where: { id },
+    const os = await prisma.serviceOrder.findFirst({
+      where: { id, companyId: req.user.companyId },
       include: {
         client: true,
         vehicle: true,

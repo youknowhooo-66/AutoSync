@@ -1,6 +1,6 @@
 // apps/api/src/modules/users/repositories/IUserRepository.ts
 
-import { CreateUserDTO, UpdateUserDTO, UserRole } from '../dtos';
+import { CreateUserDTO, UpdateUserDTO } from '../dtos';
 import { User } from "@prisma/client";
 
 export interface IUserRepository {

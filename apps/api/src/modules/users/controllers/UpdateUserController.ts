@@ -1,25 +1,16 @@
 // apps/api/src/modules/users/controllers/UpdateUserController.ts
 
 import { Request, Response } from 'express';
-import { container } from '../../../container';
+import { UpdateUserService } from '../services/UpdateUserService';
+import { updateUserSchema } from '../validators/createSchema';
+import { actorOf } from './CreateUserController';
 
 export class UpdateUserController {
-  constructor() {}
+  constructor(private updateUserService: UpdateUserService) {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { id } = request.params;
-    const { name, email, password, role } = request.body;
-    const { companyId } = request;
-
-    const payload = {
-      userId: String(id),
-      companyId: String(companyId),
-      name: String(name),
-      email: String(email),
-      role: role as any,
-      password: password ? String(password) : undefined,
-    };
-    const user = await container.useCases.identity.updateUser.execute(payload);
+    const input = updateUserSchema.parse(request.body);
+    const user = await this.updateUserService.execute(String(request.params.id), input, request.user.companyId, actorOf(request));
 
     return response.json(user);
   }

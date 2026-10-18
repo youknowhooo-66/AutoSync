@@ -1,22 +1,21 @@
 // apps/api/src/modules/users/controllers/CreateUserController.ts
 
 import { Request, Response } from 'express';
-import { container } from '../../../container';
+import { Role } from '@prisma/client';
+import { CreateUserService } from '../services/CreateUserService';
+import { createUserSchema } from '../validators/createSchema';
 
 export class CreateUserController {
-  constructor() {}
+  constructor(private createUserService: CreateUserService) {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { name, email, password, role } = request.body;
-    const { companyId } = request;
-
-    const payload = {
-      companyId,
-      name,
-      email,
-    };
-    const user = await container.useCases.identity.createUser.execute(payload);
+    const input = createUserSchema.parse(request.body);
+    const user = await this.createUserService.execute(input, request.user.companyId, actorOf(request));
 
     return response.status(201).json(user);
   }
+}
+
+export function actorOf(request: Request) {
+  return { id: request.user.id, role: request.user.role as Role };
 }

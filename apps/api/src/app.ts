@@ -109,7 +109,9 @@ app.use('/api/auth', authRoutes);
 
 // ── 11. Protected routes — require authentication ────────────────────────────
 import { authMiddleware } from './shared/middlewares/authMiddleware';
+import { rejectTenantFields } from './shared/middlewares/rejectTenantFields';
 app.use(authMiddleware);
+app.use(rejectTenantFields);
 
 app.use('/api/clients', clientsRoutes);
 app.use('/api/vehicles', vehiclesRoutes);

@@ -1,20 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const tenantMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const companyId = req.headers['x-company-id'] || req.headers['x-tenant-id'];
-  const branchId = req.headers['x-branch-id'];
-
-  if (companyId) {
-    req.companyId = companyId as string;
-  }
-
-  if (branchId) {
-    req.branchId = branchId as string;
-  }
-
+/**
+ * The tenant comes only from the JWT, resolved in authMiddleware. Client headers
+ * such as x-company-id / x-tenant-id are deliberately ignored, and x-branch-id is
+ * only honoured after authMiddleware validates it against the database.
+ */
+export const tenantMiddleware = (_req: Request, _res: Response, next: NextFunction) => {
   next();
 };
