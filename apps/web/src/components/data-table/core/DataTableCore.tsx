@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import { useRef } from "react"
 import { flexRender } from "@tanstack/react-table"
 import { useVirtualizer } from "@tanstack/react-virtual"
 
@@ -112,7 +112,7 @@ export function DataTableCore<TData, TValue>({
             {isLoading ? (
               Array.from({ length: 10 }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
-                  {secureColumns.map((col, colIndex) => (
+                  {secureColumns.map((_col, colIndex) => (
                     <TableCell key={`skeleton-cell-${colIndex}`} className="p-4">
                       <Skeleton className="h-5 w-full rounded-md bg-muted/50" />
                     </TableCell>

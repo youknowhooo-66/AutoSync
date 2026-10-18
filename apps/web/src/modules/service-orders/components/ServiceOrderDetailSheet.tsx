@@ -1,18 +1,15 @@
-import React, { useState } from 'react'
-import { Printer, PackageSearch, PenTool, Plus, X, CheckCircle2 } from 'lucide-react'
+import { Printer } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { STATUS_CONFIG, ServiceOrderStatusBadge } from './ServiceOrderStatusBadge'
 import { ServiceOrderTimeline } from './ServiceOrderTimeline'
 import type { ServiceOrder, ServiceOrderStatus } from '../types/serviceOrder.types'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
 import { toast } from 'sonner'
 import { useServiceOrder, serviceOrderKeys } from '../hooks/useServiceOrders'
@@ -40,25 +37,8 @@ const CANONICAL_FLOW_STATUSES: ServiceOrderStatus[] = [
 
 export function ServiceOrderDetailSheet({ os, onClose }: Props) {
   const queryClient = useQueryClient()
-  const [showAddPart, setShowAddPart] = useState(false)
-  const [showAddService, setShowAddService] = useState(false)
-  
-  // Add part state
-  const [itemPartId, setItemPartId] = useState('')
-  const [itemQty, setItemQty] = useState('1')
-  const [itemPrice, setItemPrice] = useState('')
-  
-  // Add service state
-  const [svcName, setSvcName] = useState('')
-  const [svcPrice, setSvcPrice] = useState('')
 
   const { data: osDetail, isLoading } = useServiceOrder(os?.id || '')
-
-  const { data: parts = [] } = useQuery({
-    queryKey: ['parts'],
-    queryFn: async () => (await api.get('/inventory/parts')).data,
-    enabled: showAddPart,
-  })
 
   // Mutations
   const updateStatusMutation = useMutation({
@@ -70,18 +50,6 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Erro ao atualizar status.')
     },
-  })
-
-  const addItemMutation = useMutation({
-    mutationFn: async (payload: any) => api.post(`/os/${os?.id}/items`, payload),
-    onSuccess: () => {
-      toast.success('Item adicionado com sucesso!')
-      queryClient.invalidateQueries({ queryKey: serviceOrderKeys.all })
-      setShowAddPart(false)
-      setShowAddService(false)
-      setItemPartId(''); setItemQty('1'); setItemPrice(''); setSvcName(''); setSvcPrice('')
-    },
-    onError: () => toast.error('Erro ao adicionar item.'),
   })
 
   const handleDownloadPDF = async () => {
@@ -98,24 +66,6 @@ export function ServiceOrderDetailSheet({ os, onClose }: Props) {
     } catch {
       toast.error('Erro ao baixar PDF.')
     }
-  }
-
-  const handleAddPart = () => {
-    if (!itemPartId) return
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    addItemMutation.mutate({
-      parts: [{ partId: itemPartId, quantity: Number(itemQty), unitPrice: Number(itemPrice) }],
-      services: [],
-      userId: user.id
-    })
-  }
-
-  const handleAddService = () => {
-    if (!svcName) return
-    addItemMutation.mutate({
-      parts: [],
-      services: [{ name: svcName, price: Number(svcPrice) }]
-    })
   }
 
   if (!os) return null

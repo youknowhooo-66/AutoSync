@@ -4,35 +4,18 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import Modal from '../components/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Plus, Search, Store, Pencil, ToggleLeft, ToggleRight, MapPin, Phone, Mail, Check, AlertCircle, RefreshCw, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Store, MapPin, Phone, Mail, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { Page, PageHeader, PageGrid, FormField, FormGrid } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useBranch } from '../contexts/BranchContext';
+import { useBranch, type Branch } from '../contexts/BranchContext';
 import { usePermissions } from '../modules/auth/hooks/usePermissions';
 import { formatDocument, formatPhone } from '@/utils/formatters';
 import { extractErrorMessage } from '@/utils/errorHandler';
 import { PageSkeleton } from '@/components/feedback/PageSkeleton';
 
-export interface Branch {
-  id: string;
-  name: string;
-  cnpj: string;
-  address: string;
-  phone: string;
-  email: string;
-  active: boolean;
-  companyId?: string;
-  createdAt?: string;
-}
 
 const Branches: React.FC = () => {
   const queryClient = useQueryClient();
@@ -86,7 +69,7 @@ const Branches: React.FC = () => {
         return res.data;
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       toast.success(editingBranch ? 'Filial atualizada com sucesso!' : 'Filial cadastrada com sucesso!');
       setShowModal(false);
       resetForm();

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import Audit from '@/pages/Audit';
@@ -63,7 +62,7 @@ describe('Audit & AuditDiff Module (Phase 2)', () => {
         name: 'Ana Admin',
         email: 'ana@autosync.com',
         role: 'ADMIN',
-        companyId: 'c1',
+        tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
       token: 'fake-jwt-token',
     });

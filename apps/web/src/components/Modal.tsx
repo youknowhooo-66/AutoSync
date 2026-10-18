@@ -56,7 +56,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, width =
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, tracking: '-0.025em' }}>{title}</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>{title}</h2>
           <button
             onClick={onClose}
             className="hover:bg-muted p-1 rounded-lg transition-colors text-muted-foreground hover:text-foreground"

@@ -1,4 +1,3 @@
-import React from 'react'
 import { AlertTriangle, PackageX, PackageMinus } from 'lucide-react'
 import type { InventoryItem } from '../types/inventory.types'
 

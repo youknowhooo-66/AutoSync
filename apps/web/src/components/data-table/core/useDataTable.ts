@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react"
+import { useEffect } from "react"
 import {
   useReactTable,
   getCoreRowModel,
@@ -34,7 +34,7 @@ export function useDataTable<TData, TValue>({
   
   useEffect(() => {
     store.initTable(tableId)
-  }, [tableId]) // eslint-disable-line
+  }, [tableId])
 
   const state = store.tables[tableId] || {
     sorting: [],

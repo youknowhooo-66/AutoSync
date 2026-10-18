@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import ServiceOrders from '../../modules/service-orders/pages/ServiceOrders';
 import * as hooks from '../../modules/service-orders/hooks/useServiceOrders';

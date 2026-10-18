@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useServiceOrderCompletion } from '../hooks/useServiceOrderCompletion';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { Button } from '@/components/ui/button';

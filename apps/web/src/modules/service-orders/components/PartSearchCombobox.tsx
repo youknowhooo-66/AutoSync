@@ -14,7 +14,7 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { CheckIcon, ChevronsUpDownIcon, LoaderCircleIcon, PackageXIcon, PlusCircleIcon, SearchIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, LoaderCircleIcon, PackageXIcon, PlusCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/services/api';
 import {

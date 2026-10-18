@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,7 +17,8 @@ const vehicleSchema = z.object({
   clientId: z.string().uuid('Selecione um cliente'),
 });
 
-type VehicleFormData = z.infer<typeof vehicleSchema>;
+type VehicleFormInput = z.input<typeof vehicleSchema>;
+type VehicleFormData = z.output<typeof vehicleSchema>;
 
 interface CreateVehicleModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<VehicleFormData>({
+  } = useForm<VehicleFormInput, unknown, VehicleFormData>({
     resolver: zodResolver(vehicleSchema),
   });
 

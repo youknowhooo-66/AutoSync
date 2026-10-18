@@ -1,4 +1,4 @@
-import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState, RowSelectionState } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 
 export interface BulkAction<TData> {
   label: string

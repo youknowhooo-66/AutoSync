@@ -1,4 +1,3 @@
-import { eventBus } from '../events/eventBus';
 import type { DomainEvent } from '../events/eventTypes';
 import { metricsAggregator } from './metricsAggregator';
 

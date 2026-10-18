@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCreateServiceOrderItem, useDeleteServiceOrderItem } from '../hooks/useServiceOrderItems';
 import { ServiceOrderItemForm } from './ServiceOrderItemForm';
 import { Button } from '@/components/ui/button';
 import { Trash2, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { usePermissions } from '../../auth/hooks/usePermissions';
 
 export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }) {

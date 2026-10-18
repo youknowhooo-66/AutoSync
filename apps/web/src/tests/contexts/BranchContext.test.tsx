@@ -1,7 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import { BranchProvider, useBranch } from '../../contexts/BranchContext';
 import { expect, describe, it, beforeEach } from 'vitest';
-import React from 'react';
 
 const TestComponent = () => {
   const { 

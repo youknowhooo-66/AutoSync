@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { type QueryClient } from '@tanstack/react-query';
 import { AuditLog } from '@/core/audit/auditLog';
 import { logger } from '@/utils/logger';
 

@@ -49,6 +49,7 @@ const mockPartWithStock: PartSearchItem = {
   availableQuantity: '8.000',
   location: 'A-03',
   averageCost: '42.50',
+  salePrice: '59.90',
   canSelectFromStock: true,
   active: true,
 };
@@ -68,6 +69,7 @@ const mockPartNoStock: PartSearchItem = {
   availableQuantity: '0.000',
   location: null,
   averageCost: null,
+  salePrice: null,
   canSelectFromStock: false,
   active: true,
 };
