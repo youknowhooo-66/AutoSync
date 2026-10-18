@@ -30,6 +30,11 @@ import auditRoutes from './routes/auditRoutes';
 
 const app = express();
 
+// Without this, behind Caddy every request would share the proxy's IP and the rate
+// limiters would throttle everyone together; with too high a value, clients could
+// spoof X-Forwarded-For to dodge them.
+app.set('trust proxy', env.TRUST_PROXY);
+
 // ── 1. Correlation ID — must be first so all subsequent logs have the ID ──
 app.use(correlationIdMiddleware);
 
@@ -49,13 +54,12 @@ app.use(cors({
   allowedHeaders: [
     'Content-Type',
     'Authorization',
-    'x-company-id',
-    'x-tenant-id',
     'x-branch-id',
     'x-correlation-id',
     'Idempotency-Key',
   ],
   exposedHeaders: ['x-correlation-id'],
+  // Needed for the session cookie; browsers refuse credentials with a '*' origin.
   credentials: corsOrigins !== '*',
 }));
 
@@ -92,7 +96,7 @@ const authLimiter = rateLimit({
     statusCode: 429,
   },
 });
-app.use('/api/auth/sessions', authLimiter);
+app.use(['/api/auth/sessions', '/api/auth/login'], authLimiter);
 
 // ── 7. API Documentation ─────────────────────────────────────────────────────
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

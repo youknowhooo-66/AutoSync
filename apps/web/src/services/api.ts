@@ -20,25 +20,14 @@ const getBaseURL = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   timeout: 30000, // 30 seconds timeout
+  // Sends the httpOnly session cookie set by POST /auth/login.
+  withCredentials: true,
 });
 
-// Auto-inject headers (auth token, tenant/company, branch, correlationId)
+// Auto-inject the selected branch. The tenant comes from the session on the server.
 api.interceptors.request.use((config) => {
-  const state = useAuthStore.getState();
-  const token = state.token;
-  const tenantId = state.user?.tenantId;
-
   // Read branchId directly from localStorage since Axios interceptor runs outside React context lifecycle
   const branchId = localStorage.getItem('@AutoSync:branchId');
-
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  if (tenantId && config.headers) {
-    // Inject official company header matching the backend's preference
-    config.headers['x-company-id'] = tenantId;
-  }
 
   if (branchId && config.headers) {
     config.headers['x-branch-id'] = branchId;

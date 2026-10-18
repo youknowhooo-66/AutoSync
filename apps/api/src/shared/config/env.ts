@@ -20,7 +20,12 @@ const envSchema = z.object({
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
-  CORS_ORIGIN: z.string().default('*'),
+  // Comma-separated origins. '*' is refused in production/staging (see below); the
+  // dev default matches the Vite dev server so the session cookie works locally.
+  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  // Number of reverse proxies in front of the API (Caddy = 1). Drives req.ip, which
+  // the rate limiter keys on; 0 means "trust nothing", so X-Forwarded-For is ignored.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   LOG_LEVEL: z
     .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
     .default('info'),
@@ -43,6 +48,11 @@ if (!_env.success) {
   // yet available at this point.
   console.error('[Startup] Invalid environment variables:', JSON.stringify(formatted, null, 2));
   throw new Error('Invalid environment variables — check startup logs for details.');
+}
+
+if ((_env.data.NODE_ENV === 'production' || _env.data.NODE_ENV === 'staging') && _env.data.CORS_ORIGIN.split(',').some((o) => o.trim() === '*')) {
+  console.error('[Startup] CORS_ORIGIN must list explicit origins in production; "*" is not allowed.');
+  throw new Error('Invalid environment variables — CORS_ORIGIN cannot be "*" in production.');
 }
 
 export const env = _env.data;

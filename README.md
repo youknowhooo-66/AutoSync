@@ -83,7 +83,8 @@ A documentação da API (Swagger) fica em `/api-docs`. Detalhes de build e deplo
 | `JWT_SECRET` | sim | — | Segredo de assinatura do JWT (mín. 16 caracteres) |
 | `PORT` | não | `3333` | Porta HTTP |
 | `REDIS_URL` | não | — | Connection string do Redis (tem prioridade sobre `REDIS_HOST`/`REDIS_PORT`) |
-| `CORS_ORIGIN` | não | `*` | Origens permitidas — defina explicitamente em produção |
+| `CORS_ORIGIN` | não | `http://localhost:5173` | Origens permitidas, separadas por vírgula. Em produção/staging a API não sobe com `*` |
+| `TRUST_PROXY` | não | `0` | Quantos proxies confiáveis ficam na frente da API (`1` atrás do Caddy), para o rate limit usar o IP real |
 | `LOG_LEVEL` | não | `info` | Nível de log do Pino |
 
 No front-end, `VITE_API_URL` aponta para a API.

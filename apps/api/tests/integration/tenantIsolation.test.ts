@@ -54,6 +54,7 @@ const PUBLIC_ROUTES = new Set([
   'GET /health/ready',
   'POST /api/auth/sessions',
   'POST /api/auth/login',
+  'POST /api/auth/logout',
 ]);
 
 const MARKER = 'TENANT_B_SECRET';

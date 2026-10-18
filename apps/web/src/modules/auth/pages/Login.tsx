@@ -30,14 +30,14 @@ export default function Login() {
         password,
       });
 
-      const { user, token } = response.data;
+      // The API sets the session cookie; the token in the body is not kept by the browser app.
+      const { user } = response.data;
 
       if (!user.companyId) {
         throw new Error('Empresa do usuário não configurada no cadastro. Acesso negado.');
       }
 
       const session = {
-        token,
         user: {
           id: user.id,
           name: user.name,
