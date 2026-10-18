@@ -4,7 +4,7 @@
 
 O AutoSync centraliza a operação de uma oficina — do cadastro do cliente e do veículo até a aprovação do orçamento, a execução do serviço, a baixa de peças no estoque e o lançamento financeiro. Cada operação é isolada por empresa (`companyId`) e filial (`branchId`), registrada em log de auditoria e controlada por perfil de acesso (RBAC).
 
-Roda como aplicação web (React + Vite), como app desktop (Electron, Windows/macOS) e é distribuído via Docker.
+É uma aplicação web: SPA em React servida por Nginx (Docker) ou Vercel, consumindo uma API REST em Node.js.
 
 ## Funcionalidades
 
@@ -20,15 +20,14 @@ Roda como aplicação web (React + Vite), como app desktop (Electron, Windows/ma
 
 ## Arquitetura
 
-Monorepo `pnpm` + Turborepo, com o núcleo de negócio modelado em DDD (bounded contexts) e eventos de domínio processados de forma assíncrona.
+Monorepo `pnpm` + Turborepo. A API é organizada por módulo de negócio e publica eventos de domínio processados de forma assíncrona.
 
 ```
 apps/
   api/        # API REST — Express 5, Prisma, PostgreSQL, BullMQ (worker de eventos)
   web/        # Front-end — React 19, Vite, Tailwind 4, TanStack Query/Table, Zustand
-  desktop/    # Shell Electron que empacota o front-end
-packages/
-  domain/          # Agregados, entidades e regras de negócio (sem dependência de infra)
+packages/          # Modelo de domínio DDD em evolução (ainda não consumido pelos apps)
+  domain/          # Agregados, entidades e regras de negócio
   application/     # Casos de uso
   infrastructure/  # Adapters e publicação de eventos
   read-models/     # Projeções e views de leitura (CQRS), com replay de eventos
@@ -37,7 +36,7 @@ packages/
 docs/         # Domínio (event storming, agregados, state machine, ERD), testes e operação
 ```
 
-Fluxo de uma requisição na API: `Route → Controller → Service → Repository → Prisma → PostgreSQL`. Eventos de domínio vão para uma fila no Redis (BullMQ) e são consumidos pelo `EventsWorker`, que roda como processo separado.
+Fluxo de uma requisição na API: `Route → Controller → Use case/Service → Repository → Prisma → PostgreSQL`. Eventos de domínio vão para uma fila no Redis (BullMQ) e são consumidos pelo `EventsWorker`, que roda como processo separado.
 
 ## Stack
 
@@ -45,7 +44,6 @@ Fluxo de uma requisição na API: `Route → Controller → Service → Reposito
 | --- | --- |
 | Back-end | Node.js 22, TypeScript, Express 5, Prisma 6, PostgreSQL 15, Redis 7, BullMQ, Zod, Pino, Swagger |
 | Front-end | React 19, Vite, Tailwind CSS 4, Radix UI, TanStack Query/Table/Virtual, React Hook Form, Zustand, Recharts |
-| Desktop | Electron |
 | Testes | Vitest, Testing Library, MSW, Supertest, Playwright |
 | Infra | Docker Compose, Nginx, GitHub Actions, Vercel (front-end) |
 
