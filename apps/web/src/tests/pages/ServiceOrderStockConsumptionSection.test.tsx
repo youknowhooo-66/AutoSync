@@ -1,11 +1,9 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ServiceOrderStockConsumptionSection } from '../../modules/service-orders/components/ServiceOrderStockConsumptionSection';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 import { approvalService } from '../../modules/service-orders/services/approvalService';
 
-import * as useExecutionModule from '../../modules/service-orders/hooks/useServiceOrderExecution';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } }
@@ -89,12 +87,16 @@ describe('ServiceOrderStockConsumptionSection (P4.6 Frontend UI)', () => {
       version: 1,
       status: 'PENDING',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
 
     render(
@@ -117,12 +119,16 @@ describe('ServiceOrderStockConsumptionSection (P4.6 Frontend UI)', () => {
       version: 1,
       status: 'APPROVED',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
 
     // Mock execution list empty or only PENDING
@@ -151,12 +157,16 @@ describe('ServiceOrderStockConsumptionSection (P4.6 Frontend UI)', () => {
       version: 1,
       status: 'APPROVED',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
 
     render(

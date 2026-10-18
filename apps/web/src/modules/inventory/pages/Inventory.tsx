@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Upload, Save, RefreshCw, AlertCircle } from 'lucide-react';
+import { Plus, Upload, Save, RefreshCw } from 'lucide-react';
 import api from '@/services/api';
 import { InventoryTable } from '../components/InventoryTable';
 import { StockAlertBanner } from '../components/StockAlertBanner';

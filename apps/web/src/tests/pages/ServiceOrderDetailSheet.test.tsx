@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Mock permissions & auth
 vi.mock('../../modules/auth/hooks/usePermissions', () => ({
   usePermissions: () => ({
-    can: (action: string) => true
+    can: (_action: string) => true
   })
 }));
 

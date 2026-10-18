@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import Modal from '../components/Modal';
-import { Search, History, Eye, RefreshCw, AlertCircle, Shield, Calendar } from 'lucide-react';
+import { Search, Eye, RefreshCw, AlertCircle, Shield, Calendar } from 'lucide-react';
 import { Page, PageHeader } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

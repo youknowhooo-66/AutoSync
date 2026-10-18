@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Coins,
-  FileText,
   Clock
 } from 'lucide-react';
 

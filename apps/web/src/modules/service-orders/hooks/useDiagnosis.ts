@@ -14,7 +14,7 @@ export function useRegisterDiagnosis(serviceOrderId: string) {
   return useMutation({
     mutationFn: (description: string) =>
       diagnosisService.registerDiagnosis(serviceOrderId, description),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Diagnóstico registrado com sucesso!');
       
       // Invalidate target queries

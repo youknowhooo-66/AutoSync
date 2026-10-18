@@ -4,7 +4,7 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import Modal from '../components/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Plus, Search, DollarSign, TrendingUp, TrendingDown, CheckCircle, RefreshCw, Eye, AlertCircle, FileText, Ban } from 'lucide-react';
+import { Plus, Search, DollarSign, TrendingUp, TrendingDown, CheckCircle, RefreshCw, Eye, AlertCircle } from 'lucide-react';
 import { Page, PageHeader, PageGrid, MetricCard, FormField, FormGrid } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 import { createAuditLog } from './AuditController';
 import { logger } from "../shared/logger";
+import authConfig from '../shared/config/auth';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -31,7 +32,7 @@ export const login = async (req: Request, res: Response) => {
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, branchId: user.branchId },
-      process.env.JWT_SECRET || 'autosync-ci-test-secret-at-least-32-chars',
+      authConfig.jwt.secret,
       { expiresIn: '1d' }
     );
 

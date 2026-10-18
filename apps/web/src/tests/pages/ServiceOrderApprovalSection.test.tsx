@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { ServiceOrderApprovalSection } from '../../modules/service-orders/components/ServiceOrderApprovalSection';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
@@ -7,7 +6,7 @@ import { vi } from 'vitest';
 // Mock permissions
 vi.mock('../../modules/auth/hooks/usePermissions', () => ({
   usePermissions: () => ({
-    can: (action: string) => true
+    can: (_action: string) => true
   })
 }));
 

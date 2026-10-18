@@ -69,14 +69,11 @@ type FormValues = z.infer<typeof formSchema>;
 // ── Props ──────────────────────────────────────────────────────────────────────
 
 interface ServiceOrderItemFormProps {
-  onSubmit: (data: FormValues & { selectedPart?: PartSearchItem }) => void;
+  onSubmit: (data: FormValues & { stockId?: string; selectedPart?: PartSearchItem }) => void;
   onCancel: () => void;
   isLoading?: boolean;
   /** branchId to scope stock availability in the combobox */
   branchId?: string;
-  /** Show "Register new part" link in the combobox (requires write capability) */
-  canCreatePart?: boolean;
-  onCreatePart?: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -86,8 +83,6 @@ export function ServiceOrderItemForm({
   onCancel,
   isLoading,
   branchId,
-  canCreatePart = false,
-  onCreatePart,
 }: ServiceOrderItemFormProps) {
   const queryClient = useQueryClient();
   const createPartTriggerRef = React.useRef<HTMLButtonElement>(null);

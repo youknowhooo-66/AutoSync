@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import Suppliers from '@/pages/Suppliers';
@@ -58,7 +57,7 @@ describe('Suppliers Module (Phase 1)', () => {
         name: 'Admin Test',
         email: 'admin@autosync.com.br',
         role: 'ADMIN',
-        companyId: 'c1',
+        tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
       token: 'fake-jwt-token',
     });
@@ -209,7 +208,7 @@ describe('Suppliers Module (Phase 1)', () => {
         name: 'Carlos Mecânico',
         email: 'carlos@autosync.com.br',
         role: 'MECHANIC',
-        companyId: 'c1',
+        tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
       token: 'fake-jwt-token',
     });

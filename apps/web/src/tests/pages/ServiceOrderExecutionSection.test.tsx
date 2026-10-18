@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ServiceOrderExecutionSection } from '../../modules/service-orders/components/ServiceOrderExecutionSection';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -80,12 +79,16 @@ describe('ServiceOrderExecutionSection (P4.5 Frontend UI)', () => {
       version: 1,
       status: 'PENDING',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
 
     render(
@@ -108,12 +111,16 @@ describe('ServiceOrderExecutionSection (P4.5 Frontend UI)', () => {
       version: 1,
       status: 'APPROVED',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
     render(
       <QueryClientProvider client={queryClient}>
@@ -136,12 +143,16 @@ describe('ServiceOrderExecutionSection (P4.5 Frontend UI)', () => {
       version: 1,
       status: 'APPROVED',
       snapshot: {},
+      snapshotVersion: 1,
       totalParts: '0',
       totalServices: '0',
       discount: '0',
       finalValue: '0',
       requestedAt: '',
-      requestedById: ''
+      requestedById: '',
+      approvalMethod: 'ASSISTED',
+      createdAt: '',
+      updatedAt: ''
     });
     render(
       <QueryClientProvider client={queryClient}>

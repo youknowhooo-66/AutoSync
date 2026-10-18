@@ -4,8 +4,8 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import Modal from '../components/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Plus, Search, Pencil, UserPlus, ShieldAlert, ShieldCheck, RefreshCw, AlertCircle, Eye } from 'lucide-react';
-import { Page, PageHeader, FormField, FormGrid, PageGrid } from '@/components/primitives';
+import { Search, Pencil, UserPlus, ShieldCheck, RefreshCw, AlertCircle, Eye } from 'lucide-react';
+import { Page, PageHeader, FormField, FormGrid } from '@/components/primitives';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/DataTable';
@@ -236,7 +236,6 @@ const Users: React.FC = () => {
     {
       id: 'actions',
       cell: ({ row }) => {
-        const isSelf = currentUser?.id === row.original.id;
         return (
           <div className="flex items-center justify-end gap-1">
             <Button

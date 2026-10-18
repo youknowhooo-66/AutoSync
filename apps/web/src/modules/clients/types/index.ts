@@ -10,7 +10,7 @@ export interface Client {
 
 export interface CreateClientDTO {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
   document?: string;
 }

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import ServiceOrders from '@/modules/service-orders/pages/ServiceOrders';
@@ -84,8 +83,7 @@ describe('Service Orders Secondary Workflows (Phase 4)', () => {
         name: 'Admin Test',
         email: 'admin@autosync.com',
         role: 'ADMIN',
-        companyId: 'c1',
-        tenantId: 't1',
+        tenantId: 'c1', isActive: true, createdAt: '2026-01-01T00:00:00.000Z',
       },
       token: 'fake-jwt-token',
     });
