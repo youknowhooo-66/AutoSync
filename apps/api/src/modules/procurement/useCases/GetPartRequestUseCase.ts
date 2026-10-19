@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { ActorContext } from './CreatePartRequestUseCase';
 
 export class GetPartRequestUseCase {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  constructor(private prisma: typeof defaultPrisma = defaultPrisma) {}
 
   async execute(id: string, actor: ActorContext) {
     const pr = await this.prisma.purchaseRequest.findFirst({

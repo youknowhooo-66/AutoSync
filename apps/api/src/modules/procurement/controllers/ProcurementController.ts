@@ -12,15 +12,17 @@ import { GetPartRequestUseCase } from '../useCases/GetPartRequestUseCase';
 import { SuggestCodeUseCase } from '../useCases/SuggestCodeUseCase';
 import { PrismaPurchaseRequestRepository as PrismaRepo } from '../repositories/PrismaPurchaseRequestRepository';
 
+// The branch comes from authMiddleware, which validates x-branch-id against the
+// database (branch ∈ company; non-ADMIN users are pinned to their own branch).
+// Never read the raw header here.
 function getActiveBranchId(req: Request): string {
-  const headerBranchId = (req.headers['x-branch-id'] as string) || (req.headers['x-branch'] as string);
-  const activeBranchId = headerBranchId || (req as any).branchId || req.user.branchId;
+  const activeBranchId = req.branchId;
 
-  if (!activeBranchId || activeBranchId.trim().length === 0) {
+  if (!activeBranchId) {
     throw new AppError('Filial ativa não informada.', 400);
   }
 
-  return activeBranchId.trim();
+  return activeBranchId;
 }
 
 function getActorContext(req: Request): ActorContext {
@@ -63,8 +65,8 @@ export class ProcurementController {
 
     const result = await useCase.execute(
       {
-        serviceOrderId: req.query.serviceOrderId as string | undefined,
-        status: req.query.status as string | undefined,
+        serviceOrderId: req.query.serviceOrderId,
+        status: req.query.status,
       },
       actor
     );

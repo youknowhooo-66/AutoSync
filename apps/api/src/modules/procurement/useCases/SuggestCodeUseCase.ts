@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { ActorContext } from './CreatePartRequestUseCase';
 
 export class SuggestCodeUseCase {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  constructor(private prisma: typeof defaultPrisma = defaultPrisma) {}
 
   private generateInternalCode(): string {
     const year = new Date().getFullYear();

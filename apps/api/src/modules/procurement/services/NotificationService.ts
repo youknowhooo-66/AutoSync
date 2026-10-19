@@ -1,5 +1,5 @@
-import { PrismaClient, Prisma, Role } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { Prisma, Role } from '@prisma/client';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 
 export type CreateNotificationInput = {
   companyId: string;
@@ -12,7 +12,7 @@ export type CreateNotificationInput = {
 };
 
 export class NotificationService {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  constructor(private prisma: typeof defaultPrisma = defaultPrisma) {}
 
   async notifyUser(input: CreateNotificationInput, tx?: Prisma.TransactionClient) {
     const client = tx || this.prisma;

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../../../config/prisma';
+import { prismaClient as prisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 
 export class NotificationController {

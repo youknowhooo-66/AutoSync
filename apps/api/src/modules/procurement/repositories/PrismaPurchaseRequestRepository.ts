@@ -1,9 +1,10 @@
-import { PrismaClient, PurchaseRequest, PurchaseRequestEvent, Prisma } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { PurchaseRequest, PurchaseRequestEvent, Prisma } from '@prisma/client';
+import { AppError } from '../../../shared/errors/AppError';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { IPurchaseRequestRepository, CreatePurchaseRequestData } from './IPurchaseRequestRepository';
 
 export class PrismaPurchaseRequestRepository implements IPurchaseRequestRepository {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  constructor(private prisma: typeof defaultPrisma = defaultPrisma) {}
 
   async findById(id: string, companyId: string): Promise<PurchaseRequest | null> {
     return this.prisma.purchaseRequest.findFirst({
@@ -56,8 +57,12 @@ export class PrismaPurchaseRequestRepository implements IPurchaseRequestReposito
   }
 
   async update(id: string, companyId: string, data: Prisma.PurchaseRequestUpdateInput): Promise<PurchaseRequest> {
+    const existing = await this.prisma.purchaseRequest.findFirst({ where: { id, companyId }, select: { id: true } });
+    if (!existing) {
+      throw new AppError('Solicitação de peça não encontrada.', 404);
+    }
     return this.prisma.purchaseRequest.update({
-      where: { id },
+      where: { id: existing.id },
       data,
     });
   }

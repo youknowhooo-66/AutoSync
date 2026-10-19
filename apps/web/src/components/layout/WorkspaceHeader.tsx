@@ -14,11 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Search,
   Store,
-  Bell,
   Sun,
   Moon,
   Laptop,
@@ -26,8 +24,6 @@ import {
   ChevronRight,
   User as UserIcon,
   Check,
-  AlertCircle,
-  FileCheck,
 } from 'lucide-react';
 
 interface WorkspaceHeaderProps {

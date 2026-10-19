@@ -1,22 +1,33 @@
-import { PrismaClient, PurchaseRequest } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { PurchaseRequest, PurchaseRequestStatus } from '@prisma/client';
+import { AppError } from '../../../shared/errors/AppError';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { ActorContext } from './CreatePartRequestUseCase';
 
 export type ListPartRequestsFilter = {
-  serviceOrderId?: string;
-  status?: string;
+  serviceOrderId?: unknown;
+  status?: unknown;
 };
 
 export class ListPartRequestsUseCase {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  constructor(private prisma: typeof defaultPrisma = defaultPrisma) {}
 
   async execute(filter: ListPartRequestsFilter, actor: ActorContext): Promise<PurchaseRequest[]> {
     const where: any = {
       companyId: actor.companyId,
       branchId: actor.branchId,
     };
-    if (filter.serviceOrderId) where.serviceOrderId = filter.serviceOrderId;
-    if (filter.status) where.status = filter.status;
+    if (filter.serviceOrderId !== undefined) {
+      if (typeof filter.serviceOrderId !== 'string') {
+        throw new AppError('Filtro serviceOrderId inválido.', 400);
+      }
+      where.serviceOrderId = filter.serviceOrderId;
+    }
+    if (filter.status !== undefined) {
+      if (!Object.values(PurchaseRequestStatus).includes(filter.status as PurchaseRequestStatus)) {
+        throw new AppError('Filtro de status inválido.', 400);
+      }
+      where.status = filter.status;
+    }
 
     return this.prisma.purchaseRequest.findMany({
       where,

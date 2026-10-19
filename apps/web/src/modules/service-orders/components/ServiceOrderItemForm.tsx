@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import api from '@/services/api';
-import { extractErrorMessage } from '@/utils/errorHandler';
 import type { ItemType } from '../types/serviceOrderItem.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,13 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { PartSearchCombobox, type PartSearchItem } from './PartSearchCombobox';
 import { CreatePartRequestDialog } from '@/modules/procurement/components/CreatePartRequestDialog';
 
@@ -77,9 +67,6 @@ interface ServiceOrderItemFormProps {
   branchId?: string;
   /** serviceOrderId linked to requested part */
   serviceOrderId?: string;
-  /** Show "Register new part" link in the combobox (requires write capability) */
-  canCreatePart?: boolean;
-  onCreatePart?: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -90,84 +77,10 @@ export function ServiceOrderItemForm({
   isLoading,
   branchId,
   serviceOrderId = '',
-  canCreatePart = false,
-  onCreatePart,
 }: ServiceOrderItemFormProps) {
-  const queryClient = useQueryClient();
   const createPartTriggerRef = React.useRef<HTMLButtonElement>(null);
   const [selectedPart, setSelectedPart] = useState<PartSearchItem | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-
-  // Quick Part Registration form state
-  const [newPartName, setNewPartName] = useState('');
-  const [newPartSku, setNewPartSku] = useState('');
-  const [newPartBrand, setNewPartBrand] = useState('');
-  const [newPartPrice, setNewPartPrice] = useState('');
-  const [newPartStock, setNewPartStock] = useState('1');
-  const [isCreatingPart, setIsCreatingPart] = useState(false);
-
-  const handleQuickCreatePart = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPartName.trim()) {
-      toast.error('Informe o nome da peça');
-      return;
-    }
-    setIsCreatingPart(true);
-    try {
-      const codeToUse =
-        newPartSku.trim() ||
-        `PAR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const userBranchId = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}')?.branchId : undefined;
-      const activeBranchId = branchId || userBranchId;
-
-      const res = await api.post('/inventory/parts', {
-        name: newPartName.trim(),
-        internalCode: codeToUse,
-        brand: newPartBrand.trim() || undefined,
-        salePrice: newPartPrice ? parseFloat(newPartPrice) : 0,
-        minStock: 5,
-        initialStock: parseFloat(newPartStock || '1'),
-        branchId: activeBranchId || undefined,
-      });
-      const created = res.data?.data || res.data;
-      toast.success(`Peça "${created.name || newPartName}" cadastrada no estoque com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ['parts-search'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
-
-      const partItem: PartSearchItem = {
-        id: created.id || `part-${Date.now()}`,
-        stockId: created.stockId || null,
-        name: created.name || newPartName,
-        sku: created.internalCode || codeToUse,
-        manufacturerCode: null,
-        barcode: null,
-        brand: created.brand || newPartBrand || null,
-        description: null,
-        category: null,
-        unit: 'UN',
-        onHandQuantity: String(created.initialStock || newPartStock || '1'),
-        reservedQuantity: '0',
-        availableQuantity: String(created.initialStock || newPartStock || '1'),
-        location: null,
-        averageCost: null,
-        salePrice: newPartPrice || '0',
-        canSelectFromStock: true,
-        active: true,
-      };
-
-      handlePartSelect(partItem);
-      setShowCreateModal(false);
-      setNewPartName('');
-      setNewPartSku('');
-      setNewPartBrand('');
-      setNewPartPrice('');
-      setNewPartStock('1');
-    } catch (err) {
-      toast.error(extractErrorMessage(err, 'Erro ao cadastrar peça.'));
-    } finally {
-      setIsCreatingPart(false);
-    }
-  };
 
   const {
     register,

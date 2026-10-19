@@ -1,6 +1,7 @@
-import { PrismaClient, PurchaseRequest, Prisma } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { PurchaseRequest, Prisma } from '@prisma/client';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
+import { lockPurchaseRequestStatus } from '../repositories/lockPurchaseRequest';
 import { IPurchaseRequestRepository } from '../repositories/IPurchaseRequestRepository';
 import { NotificationService } from '../services/NotificationService';
 import { ActorContext } from './CreatePartRequestUseCase';
@@ -22,7 +23,7 @@ export class RegisterPurchaseUseCase {
   constructor(
     private repository: IPurchaseRequestRepository,
     private notificationService: NotificationService = new NotificationService(),
-    private prisma: PrismaClient = defaultPrisma
+    private prisma: typeof defaultPrisma = defaultPrisma
   ) {}
 
   async execute(dto: RegisterPurchaseDTO, actor: ActorContext): Promise<PurchaseRequest> {
@@ -68,6 +69,9 @@ export class RegisterPurchaseUseCase {
     }
 
     return this.prisma.$transaction(async (tx) => {
+
+      await lockPurchaseRequestStatus(tx, pr.id, pr.status);
+
       const updatedPr = await tx.purchaseRequest.update({
         where: { id: pr.id },
         data: {

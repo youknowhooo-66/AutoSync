@@ -3,7 +3,7 @@ import { CancelPartRequestUseCase } from '../../src/modules/procurement/useCases
 import { ReceivePartUseCase } from '../../src/modules/procurement/useCases/ReceivePartUseCase';
 import { PrismaPurchaseRequestRepository } from '../../src/modules/procurement/repositories/PrismaPurchaseRequestRepository';
 import { NotificationService } from '../../src/modules/procurement/services/NotificationService';
-import { prisma } from '../../src/config/prisma';
+import { prismaClient as prisma } from '../../src/shared/database/prismaClient';
 
 describe('CancelPartRequestUseCase', () => {
   let repository: PrismaPurchaseRequestRepository;

@@ -1,5 +1,5 @@
-import { PrismaClient, PurchaseRequest, Prisma } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { PurchaseRequest, Prisma } from '@prisma/client';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
 import { IPurchaseRequestRepository } from '../repositories/IPurchaseRequestRepository';
 import { NotificationService } from '../services/NotificationService';
@@ -24,7 +24,7 @@ export class CreatePartRequestUseCase {
   constructor(
     private repository: IPurchaseRequestRepository,
     private notificationService: NotificationService = new NotificationService(),
-    private prisma: PrismaClient = defaultPrisma
+    private prisma: typeof defaultPrisma = defaultPrisma
   ) {}
 
   async execute(dto: CreatePartRequestDTO, actor: ActorContext): Promise<PurchaseRequest> {

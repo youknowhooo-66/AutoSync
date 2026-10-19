@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { toast } from 'sonner';
 import { extractErrorMessage } from '@/utils/errorHandler';
 import {
@@ -26,13 +27,9 @@ interface CreatePartRequestDialogProps {
   onSuccess?: () => void;
 }
 
-interface FormValues {
-  provisionalName: string;
-  requestedQuantity: string;
-  mechanicNotes?: string;
-  priority: PurchaseRequestPriority;
-  expectedDeliveryAt?: string;
-}
+const formSchema = createPartRequestSchema.omit({ serviceOrderId: true });
+type FormInput = z.input<typeof formSchema>;
+type FormValues = z.output<typeof formSchema>;
 
 export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = ({
   open,
@@ -49,10 +46,8 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(
-      createPartRequestSchema.omit({ serviceOrderId: true })
-    ),
+  } = useForm<FormInput, unknown, FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       provisionalName: '',
       requestedQuantity: '1',

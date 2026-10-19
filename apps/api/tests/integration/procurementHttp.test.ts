@@ -3,7 +3,7 @@ import request from 'supertest';
 import { sign } from 'jsonwebtoken';
 import app from '../../src/app';
 import authConfig from '../../src/shared/config/auth';
-import { prisma } from '../../src/config/prisma';
+import { prismaClient as prisma } from '../../src/shared/database/prismaClient';
 
 describe('Procurement & Notifications HTTP API Hardening Tests', () => {
   let companyAId: string;

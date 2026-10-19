@@ -3,13 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Override host .env values when running inside Docker container
-if (process.env.DOCKER_ENV === 'true' || process.env.REDIS_HOST === 'redis' || process.env.DATABASE_URL?.includes('@db:')) {
-  process.env.DATABASE_URL = 'postgresql://postgres:postgres@db:5432/autosync?schema=public';
-  process.env.REDIS_HOST = 'redis';
-  process.env.REDIS_URL = 'redis://redis:6379';
-}
-
 const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production', 'staging'])

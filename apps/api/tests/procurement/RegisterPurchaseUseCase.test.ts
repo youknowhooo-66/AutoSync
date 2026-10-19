@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterPurchaseUseCase } from '../../src/modules/procurement/useCases/RegisterPurchaseUseCase';
 import { PrismaPurchaseRequestRepository } from '../../src/modules/procurement/repositories/PrismaPurchaseRequestRepository';
 import { NotificationService } from '../../src/modules/procurement/services/NotificationService';
-import { prisma } from '../../src/config/prisma';
+import { prismaClient as prisma } from '../../src/shared/database/prismaClient';
 
 describe('RegisterPurchaseUseCase', () => {
   let repository: PrismaPurchaseRequestRepository;

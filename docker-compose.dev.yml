@@ -46,7 +46,6 @@ services:
       - /app/apps/api/node_modules
     command: sh -c "corepack enable && pnpm install --prefer-offline && pnpm --filter back exec prisma generate && pnpm --filter back exec prisma migrate deploy && pnpm turbo run dev --filter=back"
     environment:
-      DOCKER_ENV: "true"
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-autosync}?schema=public
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis

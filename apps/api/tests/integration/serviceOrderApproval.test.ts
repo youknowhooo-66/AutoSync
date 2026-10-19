@@ -151,9 +151,7 @@ describe('Service Order Budget Approval (P4.4)', () => {
     const statuses = [res1.status, res2.status];
     expect(statuses).toContain(200);
     const errorStatus = statuses.find(s => s !== 200);
-    if (errorStatus !== undefined) {
-      expect([400, 409]).toContain(errorStatus);
-    }
+    expect([400, 409]).toContain(errorStatus);
   });
 
   it('should check imutability of snapshots after catalog changes', async () => {

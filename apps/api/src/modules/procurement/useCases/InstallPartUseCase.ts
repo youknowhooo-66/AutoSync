@@ -1,6 +1,7 @@
-import { PrismaClient, PurchaseRequest, Prisma } from '@prisma/client';
-import { prisma as defaultPrisma } from '../../../config/prisma';
+import { PurchaseRequest, Prisma } from '@prisma/client';
+import { prismaClient as defaultPrisma } from '../../../shared/database/prismaClient';
 import { AppError } from '../../../shared/errors/AppError';
+import { lockPurchaseRequestStatus } from '../repositories/lockPurchaseRequest';
 import { IPurchaseRequestRepository } from '../repositories/IPurchaseRequestRepository';
 import { NotificationService } from '../services/NotificationService';
 import { ActorContext } from './CreatePartRequestUseCase';
@@ -14,7 +15,7 @@ export class InstallPartUseCase {
   constructor(
     private repository: IPurchaseRequestRepository,
     private notificationService: NotificationService = new NotificationService(),
-    private prisma: PrismaClient = defaultPrisma
+    private prisma: typeof defaultPrisma = defaultPrisma
   ) {}
 
   async execute(dto: InstallPartDTO, actor: ActorContext): Promise<PurchaseRequest> {
@@ -51,6 +52,8 @@ export class InstallPartUseCase {
 
     try {
       return await this.prisma.$transaction(async (tx) => {
+        await lockPurchaseRequestStatus(tx, pr.id, pr.status);
+
         // Check idempotency on InventoryMovement
         const existingMovement = await tx.inventoryMovement.findUnique({
           where: { idempotencyKey },
