@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { PartSearchCombobox, type PartSearchItem } from './PartSearchCombobox';
+import { CreatePartRequestDialog } from '@/modules/procurement/components/CreatePartRequestDialog';
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,11 @@ interface ServiceOrderItemFormProps {
   isLoading?: boolean;
   /** branchId to scope stock availability in the combobox */
   branchId?: string;
+  /** serviceOrderId linked to requested part */
+  serviceOrderId?: string;
+  /** Show "Register new part" link in the combobox (requires write capability) */
+  canCreatePart?: boolean;
+  onCreatePart?: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -83,6 +89,9 @@ export function ServiceOrderItemForm({
   onCancel,
   isLoading,
   branchId,
+  serviceOrderId = '',
+  canCreatePart = false,
+  onCreatePart,
 }: ServiceOrderItemFormProps) {
   const queryClient = useQueryClient();
   const createPartTriggerRef = React.useRef<HTMLButtonElement>(null);
@@ -261,7 +270,7 @@ export function ServiceOrderItemForm({
                 className="h-auto p-0 text-xs text-primary font-medium"
                 onClick={() => setShowCreateModal(true)}
               >
-                + Cadastrar Nova Peça
+                + Solicitar Peça para Compra
               </Button>
             </div>
             {errors.partId && (
@@ -351,99 +360,11 @@ export function ServiceOrderItemForm({
     </form>
 
     {/* Quick Part Registration Dialog */}
-    <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-      <DialogContent
-        className="sm:max-w-lg z-[80]"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-          requestAnimationFrame(() => {
-            document.getElementById('new-part-name')?.focus();
-          });
-        }}
-        onCloseAutoFocus={(event) => {
-          event.preventDefault();
-          createPartTriggerRef.current?.focus();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Cadastrar Nova Peça no Estoque</DialogTitle>
-          <DialogDescription>
-            Cadastre uma nova peça no catálogo e adicione-a diretamente a esta Ordem de Serviço.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleQuickCreatePart} className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="new-part-name">Nome da Peça *</Label>
-            <Input
-              id="new-part-name"
-              value={newPartName}
-              onChange={(e) => setNewPartName(e.target.value)}
-              placeholder="Ex: Correia Dentada 120T"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-part-sku">SKU / Código Interno</Label>
-              <Input
-                id="new-part-sku"
-                value={newPartSku}
-                onChange={(e) => setNewPartSku(e.target.value)}
-                placeholder="Ex: COR-120"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-part-brand">Marca / Fabricante</Label>
-              <Input
-                id="new-part-brand"
-                value={newPartBrand}
-                onChange={(e) => setNewPartBrand(e.target.value)}
-                placeholder="Ex: Dayco / Bosch"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-part-price">Preço de Venda (R$)</Label>
-              <Input
-                id="new-part-price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={newPartPrice}
-                onChange={(e) => setNewPartPrice(e.target.value)}
-                placeholder="150.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-part-stock">Estoque Inicial *</Label>
-              <Input
-                id="new-part-stock"
-                type="number"
-                step="1"
-                min="0"
-                value={newPartStock}
-                onChange={(e) => setNewPartStock(e.target.value)}
-                placeholder="1"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isCreatingPart}>
-              {isCreatingPart ? 'Cadastrando...' : 'Cadastrar e Selecionar'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <CreatePartRequestDialog
+      open={showCreateModal}
+      onOpenChange={setShowCreateModal}
+      serviceOrderId={serviceOrderId}
+    />
   </>
 );
 }

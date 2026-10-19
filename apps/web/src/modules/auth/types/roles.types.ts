@@ -26,7 +26,16 @@ export type AppPermission =
   | 'branch.view'
   | 'branch.manage'
   | 'user.view'
-  | 'user.manage';
+  | 'user.manage'
+  // Procurement & Notifications
+  | 'service-orders.parts.request'
+  | 'procurement.part-requests.read'
+  | 'procurement.part-requests.start'
+  | 'procurement.part-requests.purchase'
+  | 'procurement.part-requests.receive'
+  | 'procurement.part-requests.install'
+  | 'procurement.part-requests.cancel'
+  | 'notifications.read';
 
 export const ROLE_PERMISSIONS: Record<Role, AppPermission[]> = {
   ADMIN: [
@@ -52,6 +61,14 @@ export const ROLE_PERMISSIONS: Record<Role, AppPermission[]> = {
     'branch.manage',
     'user.view',
     'user.manage',
+    'service-orders.parts.request',
+    'procurement.part-requests.read',
+    'procurement.part-requests.start',
+    'procurement.part-requests.purchase',
+    'procurement.part-requests.receive',
+    'procurement.part-requests.install',
+    'procurement.part-requests.cancel',
+    'notifications.read',
   ],
   MANAGER: [
     'os.create',
@@ -72,8 +89,25 @@ export const ROLE_PERMISSIONS: Record<Role, AppPermission[]> = {
     'financial.manage',
     'branch.view',
     'user.view',
+    'service-orders.parts.request',
+    'procurement.part-requests.read',
+    'procurement.part-requests.start',
+    'procurement.part-requests.purchase',
+    'procurement.part-requests.receive',
+    'procurement.part-requests.install',
+    'procurement.part-requests.cancel',
+    'notifications.read',
   ],
-  MECHANIC: ['os.change_status', 'os.approval_view', 'stock.view'],
+  MECHANIC: [
+    'os.change_status',
+    'os.approval_view',
+    'stock.view',
+    'service-orders.parts.request',
+    'procurement.part-requests.read',
+    'procurement.part-requests.install',
+    'procurement.part-requests.cancel',
+    'notifications.read',
+  ],
   FINANCIAL: [
     'invoice.create',
     'invoice.receive_payment',
@@ -84,7 +118,28 @@ export const ROLE_PERMISSIONS: Record<Role, AppPermission[]> = {
     'stock.view',
     'os.change_status',
     'os.approval_view',
+    'procurement.part-requests.read',
+    'procurement.part-requests.start',
+    'procurement.part-requests.purchase',
+    'procurement.part-requests.cancel',
+    'notifications.read',
   ],
-  STOCKIST: ['stock.view', 'stock.adjust', 'stock.movement', 'os.approval_view'],
-  ATTENDANT: ['os.create', 'os.change_status', 'os.approval_view', 'os.approval_request'],
+  STOCKIST: [
+    'stock.view',
+    'stock.adjust',
+    'stock.movement',
+    'os.approval_view',
+    'procurement.part-requests.read',
+    'procurement.part-requests.receive',
+    'notifications.read',
+  ],
+  ATTENDANT: [
+    'os.create',
+    'os.change_status',
+    'os.approval_view',
+    'os.approval_request',
+    'service-orders.parts.request',
+    'procurement.part-requests.read',
+    'notifications.read',
+  ],
 };

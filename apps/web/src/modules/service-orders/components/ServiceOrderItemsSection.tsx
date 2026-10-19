@@ -64,6 +64,7 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
 
       {isAdding && (
         <ServiceOrderItemForm 
+          serviceOrderId={serviceOrder?.id}
           branchId={serviceOrder?.branchId || serviceOrder?.branch?.id}
           onSubmit={handleAddSubmit} 
           onCancel={() => setIsAdding(false)} 

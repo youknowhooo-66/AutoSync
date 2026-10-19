@@ -97,7 +97,15 @@ export class RequestApprovalUseCase {
           }
         }) : null;
 
-        const partTotal = new Prisma.Decimal(p.unitPrice).mul(p.quantity);
+        if (p.unitPrice === null) {
+          throw new AppError(
+            `Não é possível solicitar aprovação: a peça "${p.description || p.part?.name || p.id}" está com valor a definir.`,
+            400,
+          );
+        }
+
+        const partUnitPrice = p.unitPrice;
+        const partTotal = partUnitPrice.mul(p.quantity);
         calculatedTotalParts = calculatedTotalParts.add(partTotal);
 
         partsSnapshot.push({
@@ -106,8 +114,8 @@ export class RequestApprovalUseCase {
           code: p.part?.internalCode || '',
           description: p.part?.name || p.description || '',
           quantity: p.quantity.toString(),
-          unitPrice: p.unitPrice.toString(),
-          total: partTotal.toString()
+          unitPrice: partUnitPrice.toString(),
+          total: partTotal.toString(),
         });
       }
 

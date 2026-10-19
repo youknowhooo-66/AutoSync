@@ -161,10 +161,14 @@ export class ConsumeStockUseCase {
           throw new AppError('A peça solicitada não consta no snapshot do orçamento aprovado', 409);
         }
 
+        if (osPart.unitPrice === null) {
+          throw new AppError('A peça solicitada está com valor a definir. O preço precisa ser confirmado antes do consumo.', 400);
+        }
+
         // Confirm snapshot details match
         if (
           snapshotPart.quantity !== osPart.quantity.toString() ||
-          new Prisma.Decimal(snapshotPart.unitPrice).toString() !== new Prisma.Decimal(osPart.unitPrice).toString()
+          new Prisma.Decimal(snapshotPart.unitPrice).toString() !== osPart.unitPrice.toString()
         ) {
           throw new AppError('Divergência detectada entre os dados da peça e o snapshot aprovado', 409);
         }
