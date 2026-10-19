@@ -2,7 +2,7 @@
 import { IServiceOrderRepository, ServiceOrder } from './IServiceOrderRepository';
 import { CreateServiceOrderDTO, UpdateServiceOrderDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 export class PrismaServiceOrderRepository implements IServiceOrderRepository {
   private prisma: PrismaClient;
@@ -122,4 +122,3 @@ export class PrismaServiceOrderRepository implements IServiceOrderRepository {
   }
 }
 
-export { PrismaClient } from "@prisma/client";

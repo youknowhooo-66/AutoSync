@@ -2,7 +2,7 @@
 import { IClientRepository, Client } from './IClientRepository';
 import { CreateClientDTO, UpdateClientDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 export class PrismaClientRepository implements IClientRepository {
   private prisma: PrismaClient;
@@ -88,4 +88,3 @@ export class PrismaClientRepository implements IClientRepository {
   }
 }
 
-export { PrismaClient } from "@prisma/client";

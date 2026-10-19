@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { env } from '../../config/env';
-import { logger } from '../../utils/Logger';
+import { logger } from '../../logger';
 
 // REDIS_URL (e.g. redis://:password@redis:6379) takes precedence, matching
 // QueueProvider; host/port/password are the fallback for local setups.

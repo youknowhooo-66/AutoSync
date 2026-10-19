@@ -9,7 +9,6 @@ import { CreateClientController } from './controllers/CreateClientController';
 import { UpdateClientController } from './controllers/UpdateClientController';
 import { DeleteClientController } from './controllers/DeleteClientController';
 import { ListClientController } from './controllers/ListClientController';
-import { PrismaClient } from "@prisma/client";
 
 // Repositories
 const prismaClientRepository = new PrismaClientRepository();

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { AppError } from '../errors/AppError';
 import authConfig from '../config/auth';
-import { prisma } from '../../config/prisma';
+import { prismaClient as prisma } from '../database/prismaClient';
 import { readSessionCookie } from '../http/sessionCookie';
 
 interface TokenPayload {

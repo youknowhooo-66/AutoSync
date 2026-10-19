@@ -8,7 +8,6 @@ Plataforma: **somente web** — SPA React servida por Nginx/Vercel + API REST. O
 
 - `apps/api` (pacote `back`) — Express 5, Prisma 6, PostgreSQL 15, Redis + BullMQ. Worker de eventos em `src/shared/queue/EventsWorker.ts` (processo separado).
 - `apps/web` (pacote `front`) — React 19, Vite, Tailwind 4, Radix/shadcn (`src/components/ui`), TanStack Query/Table, React Hook Form + Zod, Zustand.
-- `packages/*` — modelo de domínio DDD (domain, application, infrastructure, read-models). **Não é importado por `apps/api` nem `apps/web`**: mudar ali não muda o comportamento da API.
 - `docs/` — bounded contexts, agregados, state machine, event storming, permissões. Consulte antes de mudar regra de negócio.
 
 ## Comandos
@@ -41,6 +40,7 @@ CI (`.github/workflows/ci.yml`) roda lint, typecheck e testes de api/web e `pnpm
 - Estoque muda só via `InventoryMovement` (`IN`, `OUT`, `ADJUSTMENT`, `TRANSFER`, `RETURN`); nunca atualize saldo direto sem registrar movimentação.
 - Escritas que tocam mais de uma tabela (OS + estoque + financeiro) vão em `prisma.$transaction`.
 - Config via `env` de `src/shared/config/env.ts` (validado com Zod), não `process.env` direto. Log via `logger` de `src/shared/logger`, não `console`.
+- Banco só via `prismaClient` de `src/shared/database/prismaClient.ts`; o ESLint barra `new PrismaClient` fora dali e avisa quando código fora de `repositories/` importa o client.
 - Schema em `apps/api/prisma/schema.prisma`. Nunca edite migration já aplicada; crie uma nova.
 
 ## Web (`apps/web`)

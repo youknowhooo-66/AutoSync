@@ -73,3 +73,4 @@ root/coverage/
 
 # Redis snapshots (local redis-server)
 dump.rdb
+.cursor/

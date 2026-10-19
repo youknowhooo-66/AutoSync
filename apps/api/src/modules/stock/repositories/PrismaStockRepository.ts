@@ -2,7 +2,7 @@
 import { IStockRepository, Stock } from './IStockRepository';
 import { CreateStockDTO, UpdateStockDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 export class PrismaStockRepository implements IStockRepository {
   private prisma: PrismaClient;
@@ -75,4 +75,3 @@ export class PrismaStockRepository implements IStockRepository {
   }
 }
 
-export { PrismaClient } from "@prisma/client";

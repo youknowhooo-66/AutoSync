@@ -1,7 +1,7 @@
 import { IUserRepository, User } from './IUserRepository';
 import { CreateUserDTO, UpdateUserDTO } from '../dtos';
 import { prismaClient } from '../../../shared/database/prismaClient';
-import { PrismaClient, Prisma } from "@prisma/client";
+import { type PrismaClient, Prisma } from "@prisma/client";
 
 export class PrismaUserRepository implements IUserRepository {
   private prisma: PrismaClient;
@@ -86,4 +86,3 @@ export class PrismaUserRepository implements IUserRepository {
   }
 }
 
-export { PrismaClient } from "@prisma/client";
