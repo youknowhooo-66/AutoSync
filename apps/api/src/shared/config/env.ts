@@ -26,6 +26,9 @@ const envSchema = z.object({
   // Number of reverse proxies in front of the API (Caddy = 1). Drives req.ip, which
   // the rate limiter keys on; 0 means "trust nothing", so X-Forwarded-For is ignored.
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+  // Session cookie "Secure" flag. Unset = on in production/staging. Only for running the
+  // production image over plain http://localhost, where Safari drops Secure cookies.
+  COOKIE_SECURE: z.enum(['true', 'false']).optional(),
   LOG_LEVEL: z
     .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
     .default('info'),

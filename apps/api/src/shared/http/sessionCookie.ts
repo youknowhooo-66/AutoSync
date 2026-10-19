@@ -20,7 +20,7 @@ export function durationToMs(value: string): number {
 export function sessionCookieOptions(maxAgeMs: number): CookieOptions {
   return {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production' || env.NODE_ENV === 'staging',
+    secure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production' || env.NODE_ENV === 'staging',
     sameSite: 'lax',
     path: '/',
     maxAge: maxAgeMs,
