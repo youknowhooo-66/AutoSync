@@ -56,7 +56,7 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Itens e Serviços</h2>
         {canAdd && isEditable && !isAdding && (
-          <Button size="sm" onClick={() => setIsAdding(true)}>
+          <Button size="sm" data-testid="os-add-item-btn" onClick={() => setIsAdding(true)}>
             <Plus className="w-4 h-4 mr-2" /> Adicionar
           </Button>
         )}
@@ -117,7 +117,7 @@ export function ServiceOrderItemsSection({ serviceOrder }: { serviceOrder: any }
             </thead>
             <tbody>
               {serviceOrder.parts.map((p: any) => (
-                <tr key={p.id} className="border-t">
+                <tr key={p.id} data-testid={`os-item-row-${p.stockId || p.partId}`} className="border-t">
                   <td className="p-3">{p.part?.name || p.partId}</td>
                   <td className="p-3">{p.quantity}</td>
                   <td className="p-3">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(p.unitPrice || 0))}</td>

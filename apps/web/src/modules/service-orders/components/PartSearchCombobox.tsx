@@ -194,6 +194,7 @@ export function PartSearchCombobox({
       <PopoverTrigger asChild>
         <Button
           id="part-search-combobox-trigger"
+          data-testid="part-search-combobox-trigger"
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -270,6 +271,7 @@ export function PartSearchCombobox({
                   {showCreateLink && onCreatePart && (
                     <Button
                       id="part-search-create-link"
+                      data-testid="create-new-part-link"
                       variant="ghost"
                       size="sm"
                       className="mt-1 gap-1.5 text-xs"
@@ -357,6 +359,7 @@ export function PartSearchCombobox({
               <div className="border-t p-1">
                 <Button
                   id="part-search-create-link-footer"
+                  data-testid="create-new-part-link"
                   variant="ghost"
                   size="sm"
                   className="w-full gap-1.5 justify-start text-xs text-muted-foreground hover:text-foreground"

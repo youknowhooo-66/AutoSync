@@ -91,7 +91,7 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent data-testid="create-part-dialog" className="sm:max-w-[500px]" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Solicitar peça para compra</DialogTitle>
           <DialogDescription>
@@ -105,6 +105,7 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
             <Label htmlFor="provisionalName">Nome ou descrição da peça *</Label>
             <Input
               id="provisionalName"
+              data-testid="new-part-name-input"
               placeholder="Ex: Coxim superior do motor lado direito"
               {...register('provisionalName')}
             />
@@ -119,6 +120,7 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
               <Label htmlFor="requestedQuantity">Quantidade *</Label>
               <Input
                 id="requestedQuantity"
+                data-testid="new-part-quantity-input"
                 type="number"
                 step="any"
                 min="0.001"
@@ -172,6 +174,7 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
             <Button
               type="button"
               variant="outline"
+              data-testid="cancel-create-part-btn"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting || createRequestMutation.isPending}
             >
@@ -179,6 +182,7 @@ export const CreatePartRequestDialog: React.FC<CreatePartRequestDialogProps> = (
             </Button>
             <Button
               type="submit"
+              data-testid="submit-new-part-btn"
               disabled={isSubmitting || createRequestMutation.isPending}
             >
               {createRequestMutation.isPending ? 'Enviando...' : 'Enviar solicitação'}

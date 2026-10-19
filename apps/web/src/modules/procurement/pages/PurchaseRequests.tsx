@@ -65,7 +65,7 @@ export const PurchaseRequestsPage: React.FC = () => {
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Solicitações de Peças</h1>
+        <h1 data-testid="procurement-page-title" className="text-2xl font-bold tracking-tight text-foreground">Solicitações de Peças</h1>
         <p className="text-xs text-muted-foreground mt-1">
           Gerenciamento e acompanhamento de peças solicitadas pela oficina para compra e estoque.
         </p>

@@ -99,6 +99,7 @@ export default function ClientList() {
         description="Gerencie sua base de clientes e históricos de atendimento."
         actions={
           <Button
+            data-testid="create-client-btn"
             onClick={() => {
               setEditingClient(null);
               setIsModalOpen(true);

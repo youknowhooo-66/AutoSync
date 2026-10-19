@@ -267,6 +267,7 @@ export function ServiceOrderItemForm({
                 ref={createPartTriggerRef}
                 type="button"
                 variant="link"
+                data-testid="create-new-part-link"
                 className="h-auto p-0 text-xs text-primary font-medium"
                 onClick={() => setShowCreateModal(true)}
               >
