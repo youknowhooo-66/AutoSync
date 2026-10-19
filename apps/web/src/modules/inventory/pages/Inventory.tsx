@@ -170,6 +170,7 @@ export default function Inventory() {
               <Upload className="w-4 h-4 mr-1.5" /> Importar
             </Button>
             <Button
+              data-testid="create-part-btn"
               onClick={() => setShowCreateModal(true)}
               size="lg"
               className="shadow-xs font-semibold text-xs uppercase tracking-wider"
@@ -199,6 +200,7 @@ export default function Inventory() {
           <FormField label="Nome da Peça" htmlFor="part-name" required>
             <Input
               id="part-name"
+              data-testid="part-name-input"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -209,6 +211,7 @@ export default function Inventory() {
           <FormField label="Código Interno" htmlFor="part-code" required>
             <Input
               id="part-code"
+              data-testid="part-sku-input"
               required
               value={formData.internalCode}
               onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
@@ -228,6 +231,7 @@ export default function Inventory() {
           <FormField label="Marca" htmlFor="part-brand">
             <Input
               id="part-brand"
+              data-testid="part-brand-input"
               value={formData.brand}
               onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
               className="h-10 text-xs"
@@ -269,6 +273,7 @@ export default function Inventory() {
           <FormField label="Preço de Compra" htmlFor="part-buy-price">
             <Input
               id="part-buy-price"
+              data-testid="part-price-input"
               type="number"
               step="0.01"
               value={formData.purchasePrice}
@@ -301,6 +306,7 @@ export default function Inventory() {
           <FormField label="Estoque Inicial" htmlFor="part-initial-stock">
             <Input
               id="part-initial-stock"
+              data-testid="part-stock-input"
               type="number"
               value={formData.initialStock}
               onChange={(e) => setFormData({ ...formData, initialStock: e.target.value })}
@@ -312,7 +318,7 @@ export default function Inventory() {
             <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
               Cancelar
             </Button>
-            <Button type="submit" size="sm" disabled={createMutation.isPending} className="font-semibold text-xs">
+            <Button type="submit" data-testid="submit-part-btn" size="sm" disabled={createMutation.isPending} className="font-semibold text-xs">
               <Save className="w-4 h-4 mr-2" />
               {createMutation.isPending ? 'Salvando...' : 'Salvar Peça'}
             </Button>
@@ -365,8 +371,10 @@ export default function Inventory() {
           <FormField label="Quantidade a Transferir *" htmlFor="transfer-qty" required>
             <Input
               id="transfer-qty"
+              data-testid="transfer-qty-input"
               type="number"
-              min="1"
+              min="0.1"
+              step="0.1"
               required
               value={transferForm.quantity}
               onChange={(e) => setTransferForm({ ...transferForm, quantity: e.target.value })}
@@ -388,7 +396,7 @@ export default function Inventory() {
             <Button type="button" variant="outline" size="sm" onClick={() => setShowTransferModal(false)}>
               Cancelar
             </Button>
-            <Button type="submit" size="sm" disabled={transferMutation.isPending} className="font-semibold text-xs">
+            <Button type="submit" data-testid="submit-transfer-btn" size="sm" disabled={transferMutation.isPending} className="font-semibold text-xs">
               <RefreshCw className="w-4 h-4 mr-2" />
               {transferMutation.isPending ? 'Transferindo...' : 'Confirmar Transferência'}
             </Button>

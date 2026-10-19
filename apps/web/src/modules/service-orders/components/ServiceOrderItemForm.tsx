@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import api from '@/services/api';
-import { extractErrorMessage } from '@/utils/errorHandler';
 import type { ItemType } from '../types/serviceOrderItem.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,14 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { PartSearchCombobox, type PartSearchItem } from './PartSearchCombobox';
+import { CreatePartRequestDialog } from '@/modules/procurement/components/CreatePartRequestDialog';
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -74,6 +65,8 @@ interface ServiceOrderItemFormProps {
   isLoading?: boolean;
   /** branchId to scope stock availability in the combobox */
   branchId?: string;
+  /** serviceOrderId linked to requested part */
+  serviceOrderId?: string;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -83,82 +76,11 @@ export function ServiceOrderItemForm({
   onCancel,
   isLoading,
   branchId,
+  serviceOrderId = '',
 }: ServiceOrderItemFormProps) {
-  const queryClient = useQueryClient();
   const createPartTriggerRef = React.useRef<HTMLButtonElement>(null);
   const [selectedPart, setSelectedPart] = useState<PartSearchItem | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-
-  // Quick Part Registration form state
-  const [newPartName, setNewPartName] = useState('');
-  const [newPartSku, setNewPartSku] = useState('');
-  const [newPartBrand, setNewPartBrand] = useState('');
-  const [newPartPrice, setNewPartPrice] = useState('');
-  const [newPartStock, setNewPartStock] = useState('1');
-  const [isCreatingPart, setIsCreatingPart] = useState(false);
-
-  const handleQuickCreatePart = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPartName.trim()) {
-      toast.error('Informe o nome da peça');
-      return;
-    }
-    setIsCreatingPart(true);
-    try {
-      const codeToUse =
-        newPartSku.trim() ||
-        `PAR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const userBranchId = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}')?.branchId : undefined;
-      const activeBranchId = branchId || userBranchId;
-
-      const res = await api.post('/inventory/parts', {
-        name: newPartName.trim(),
-        internalCode: codeToUse,
-        brand: newPartBrand.trim() || undefined,
-        salePrice: newPartPrice ? parseFloat(newPartPrice) : 0,
-        minStock: 5,
-        initialStock: parseFloat(newPartStock || '1'),
-        branchId: activeBranchId || undefined,
-      });
-      const created = res.data?.data || res.data;
-      toast.success(`Peça "${created.name || newPartName}" cadastrada no estoque com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ['parts-search'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
-
-      const partItem: PartSearchItem = {
-        id: created.id || `part-${Date.now()}`,
-        stockId: created.stockId || null,
-        name: created.name || newPartName,
-        sku: created.internalCode || codeToUse,
-        manufacturerCode: null,
-        barcode: null,
-        brand: created.brand || newPartBrand || null,
-        description: null,
-        category: null,
-        unit: 'UN',
-        onHandQuantity: String(created.initialStock || newPartStock || '1'),
-        reservedQuantity: '0',
-        availableQuantity: String(created.initialStock || newPartStock || '1'),
-        location: null,
-        averageCost: null,
-        salePrice: newPartPrice || '0',
-        canSelectFromStock: true,
-        active: true,
-      };
-
-      handlePartSelect(partItem);
-      setShowCreateModal(false);
-      setNewPartName('');
-      setNewPartSku('');
-      setNewPartBrand('');
-      setNewPartPrice('');
-      setNewPartStock('1');
-    } catch (err) {
-      toast.error(extractErrorMessage(err, 'Erro ao cadastrar peça.'));
-    } finally {
-      setIsCreatingPart(false);
-    }
-  };
 
   const {
     register,
@@ -258,10 +180,11 @@ export function ServiceOrderItemForm({
                 ref={createPartTriggerRef}
                 type="button"
                 variant="link"
+                data-testid="create-new-part-link"
                 className="h-auto p-0 text-xs text-primary font-medium"
                 onClick={() => setShowCreateModal(true)}
               >
-                + Cadastrar Nova Peça
+                + Solicitar Peça para Compra
               </Button>
             </div>
             {errors.partId && (
@@ -351,99 +274,11 @@ export function ServiceOrderItemForm({
     </form>
 
     {/* Quick Part Registration Dialog */}
-    <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-      <DialogContent
-        className="sm:max-w-lg z-[80]"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-          requestAnimationFrame(() => {
-            document.getElementById('new-part-name')?.focus();
-          });
-        }}
-        onCloseAutoFocus={(event) => {
-          event.preventDefault();
-          createPartTriggerRef.current?.focus();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Cadastrar Nova Peça no Estoque</DialogTitle>
-          <DialogDescription>
-            Cadastre uma nova peça no catálogo e adicione-a diretamente a esta Ordem de Serviço.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleQuickCreatePart} className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="new-part-name">Nome da Peça *</Label>
-            <Input
-              id="new-part-name"
-              value={newPartName}
-              onChange={(e) => setNewPartName(e.target.value)}
-              placeholder="Ex: Correia Dentada 120T"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-part-sku">SKU / Código Interno</Label>
-              <Input
-                id="new-part-sku"
-                value={newPartSku}
-                onChange={(e) => setNewPartSku(e.target.value)}
-                placeholder="Ex: COR-120"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-part-brand">Marca / Fabricante</Label>
-              <Input
-                id="new-part-brand"
-                value={newPartBrand}
-                onChange={(e) => setNewPartBrand(e.target.value)}
-                placeholder="Ex: Dayco / Bosch"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-part-price">Preço de Venda (R$)</Label>
-              <Input
-                id="new-part-price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={newPartPrice}
-                onChange={(e) => setNewPartPrice(e.target.value)}
-                placeholder="150.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-part-stock">Estoque Inicial *</Label>
-              <Input
-                id="new-part-stock"
-                type="number"
-                step="1"
-                min="0"
-                value={newPartStock}
-                onChange={(e) => setNewPartStock(e.target.value)}
-                placeholder="1"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isCreatingPart}>
-              {isCreatingPart ? 'Cadastrando...' : 'Cadastrar e Selecionar'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <CreatePartRequestDialog
+      open={showCreateModal}
+      onOpenChange={setShowCreateModal}
+      serviceOrderId={serviceOrderId}
+    />
   </>
 );
 }

@@ -43,7 +43,12 @@ export class RemoveItemFromServiceOrderUseCase {
           throw new AppError('Part item not found in this OS.', 404);
         }
 
-        deduction = new Prisma.Decimal(part.unitPrice).mul(part.quantity);
+        // Peças sem preço confirmado (unitPrice = null) não compõem o valor acumulado do orçamento;
+        // portanto, sua remoção não gera dedução financeira dos totais calculados.
+        deduction =
+          part.unitPrice === null
+            ? new Prisma.Decimal(0)
+            : part.unitPrice.mul(part.quantity);
 
         await tx.oSPart.delete({
           where: { id: itemId },

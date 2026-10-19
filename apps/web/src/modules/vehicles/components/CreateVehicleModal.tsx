@@ -92,6 +92,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
               <label className="text-sm font-semibold text-slate-700">Placa</label>
               <input
                 {...register('plate')}
+                data-testid="vehicle-plate-input"
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none uppercase font-mono transition-all"
                 placeholder="ABC1234"
               />
@@ -101,6 +102,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
               <label className="text-sm font-semibold text-slate-700">Ano</label>
               <input
                 {...register('year')}
+                data-testid="vehicle-year-input"
                 type="number"
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                 placeholder="2024"
@@ -114,6 +116,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
               <label className="text-sm font-semibold text-slate-700">Marca</label>
               <input
                 {...register('brand')}
+                data-testid="vehicle-brand-input"
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                 placeholder="Ex: Toyota"
               />
@@ -123,6 +126,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
               <label className="text-sm font-semibold text-slate-700">Modelo</label>
               <input
                 {...register('model')}
+                data-testid="vehicle-model-input"
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                 placeholder="Ex: Corolla"
               />
@@ -134,6 +138,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
             <label className="text-sm font-semibold text-slate-700">Cor</label>
             <input
               {...register('color')}
+              data-testid="vehicle-color-input"
               className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
               placeholder="Ex: Preto"
             />
@@ -143,6 +148,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
             <label className="text-sm font-semibold text-slate-700">Proprietário (Cliente)</label>
             <select
               {...register('clientId')}
+              data-testid="vehicle-client-select"
               className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none bg-white transition-all"
             >
               <option value="">Selecione um cliente...</option>
@@ -158,6 +164,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
           <div className="flex gap-3 pt-4">
             <button
               type="button"
+              data-testid="cancel-vehicle-btn"
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
             >
@@ -165,6 +172,7 @@ export function CreateVehicleModal({ isOpen, onClose, editingVehicle }: CreateVe
             </button>
             <button
               type="submit"
+              data-testid="submit-vehicle-btn"
               disabled={isPending}
               className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >

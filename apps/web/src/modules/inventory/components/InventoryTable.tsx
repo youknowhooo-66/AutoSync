@@ -105,6 +105,7 @@ export function InventoryTable({ data, isLoading, onRowClick, onEdit, onDelete, 
               <Button
                 variant="outline"
                 size="sm"
+                data-testid="transfer-part-btn"
                 onClick={() => onTransfer(row.original)}
                 className="h-7 text-xs px-2.5 font-medium"
               >

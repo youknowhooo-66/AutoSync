@@ -21,6 +21,7 @@ export type CompletionBlockerCode =
   | 'SERVICE_SNAPSHOT_MISMATCH'
   | 'UNAPPROVED_SERVICE_PRESENT'
   | 'PART_MISSING'
+  | 'PART_UNCONFIRMED_PRICE'
   | 'PART_NOT_FULLY_CONSUMED'
   | 'PART_SNAPSHOT_MISMATCH'
   | 'UNAPPROVED_PART_PRESENT'
@@ -46,7 +47,7 @@ export type PartForCompletion = {
   partId: string | null;
   quantity: Prisma.Decimal;
   consumedQuantity: Prisma.Decimal;
-  unitPrice: Prisma.Decimal;
+  unitPrice: Prisma.Decimal | null;
 };
 
 export type ServiceOrderForCompletion = {
@@ -209,7 +210,16 @@ export function evaluateCompletionBlockers(
       continue;
     }
 
-    // 5a. Full consumption required
+    // 5a. Unit price must be defined
+    if (osPart.unitPrice === null) {
+      blockers.push({
+        code: 'PART_UNCONFIRMED_PRICE',
+        message: `A peça ${osPart.id} está com valor a definir. O preço precisa ser confirmado antes da conclusão.`,
+        entityId: osPart.id,
+      });
+    }
+
+    // 5b. Full consumption required
     if (!osPart.consumedQuantity.equals(osPart.quantity)) {
       blockers.push({
         code: 'PART_NOT_FULLY_CONSUMED',
@@ -218,11 +228,12 @@ export function evaluateCompletionBlockers(
       });
     }
 
-    // 5b. Snapshot divergence
+    // 5c. Snapshot divergence
     const snapQty = parseInt(snapPart.quantity, 10);
     const snapPrice = new Prisma.Decimal(snapPart.unitPrice);
     if (
       snapQty !== Number(osPart.quantity) ||
+      osPart.unitPrice === null ||
       !snapPrice.equals(osPart.unitPrice)
     ) {
       blockers.push({

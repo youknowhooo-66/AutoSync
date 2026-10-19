@@ -100,6 +100,7 @@ export default function VehicleList() {
         description="Gerencie a frota de veículos dos seus clientes."
         actions={
           <Button
+            data-testid="create-vehicle-btn"
             onClick={() => {
               setEditingVehicle(null);
               setIsModalOpen(true);

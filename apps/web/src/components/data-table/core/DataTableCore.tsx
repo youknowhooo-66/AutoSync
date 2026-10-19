@@ -131,6 +131,7 @@ export function DataTableCore<TData, TValue>({
                   return (
                     <TableRow
                       key={row.id}
+                      data-testid={`${tableId}-row-${(row.original as any)?.id || row.id}`}
                       data-state={row.getIsSelected() && "selected"}
                       onClick={() => onRowClick && onRowClick(row.original)}
                       className={`

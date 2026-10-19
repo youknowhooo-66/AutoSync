@@ -84,6 +84,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
             <label className="text-sm font-semibold text-foreground">Nome Completo</label>
             <input
               {...register('name')}
+              data-testid="client-name-input"
               className="w-full px-4 py-2 bg-background text-foreground placeholder:text-muted-foreground rounded-lg border border-input focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
               placeholder="Ex: João Silva"
             />
@@ -95,6 +96,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
             <input
               {...register('email')}
               type="email"
+              data-testid="client-email-input"
               className="w-full px-4 py-2 bg-background text-foreground placeholder:text-muted-foreground rounded-lg border border-input focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
               placeholder="exemplo@email.com"
             />
@@ -106,6 +108,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
               <label className="text-sm font-semibold text-foreground">Telefone</label>
               <input
                 {...register('phone')}
+                data-testid="client-phone-input"
                 className="w-full px-4 py-2 bg-background text-foreground placeholder:text-muted-foreground rounded-lg border border-input focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                 placeholder="(00) 00000-0000"
               />
@@ -114,6 +117,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
               <label className="text-sm font-semibold text-foreground">Documento (CPF/CNPJ)</label>
               <input
                 {...register('document')}
+                data-testid="client-document-input"
                 className="w-full px-4 py-2 bg-background text-foreground placeholder:text-muted-foreground rounded-lg border border-input focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                 placeholder="000.000.000-00"
               />
@@ -123,6 +127,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
             <button
               type="button"
+              data-testid="cancel-client-btn"
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg font-semibold hover:bg-muted transition-colors"
             >
@@ -130,6 +135,7 @@ export function CreateClientModal({ isOpen, onClose, editingClient }: CreateClie
             </button>
             <button
               type="submit"
+              data-testid="submit-client-btn"
               disabled={isPending}
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
             >

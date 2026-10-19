@@ -68,6 +68,7 @@ const menuGroups: MenuDomainGroup[] = [
     label: 'Gestão',
     items: [
       { name: 'Financeiro', path: '/financeiro', icon: CircleDollarSign },
+      { name: 'Solicitações de Peças', path: '/financeiro/solicitacoes-de-pecas', icon: PackageSearch },
       { name: 'Relatórios', path: '/relatorios', icon: LineChart },
     ],
   },
