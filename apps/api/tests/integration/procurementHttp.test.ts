@@ -160,6 +160,42 @@ describe('Procurement & Notifications HTTP API Hardening Tests', () => {
     expect(res.status).toBe(404);
   });
 
+  it('should ignore x-branch-id pointing to another branch for a user pinned to a branch', async () => {
+    const prBranchA2 = await prisma.purchaseRequest.create({
+      data: { companyId: companyAId, branchId: branchA2Id, serviceOrderId, createdBy: mechanicUser.id, provisionalName: 'Peça Branch A2', quantity: 1, status: 'REQUESTED' },
+    });
+
+    const byId = await request(app)
+      .get(`/api/procurement/part-requests/${prBranchA2.id}`)
+      .set('Authorization', `Bearer ${mechanicToken}`)
+      .set('X-Branch-Id', branchA2Id);
+    expect(byId.status).toBe(404);
+
+    const list = await request(app)
+      .get('/api/procurement/part-requests')
+      .set('Authorization', `Bearer ${mechanicToken}`)
+      .set('X-Branch-Id', branchA2Id);
+    expect(list.status).toBe(200);
+    expect(list.body.data.map((pr: { id: string }) => pr.id)).not.toContain(prBranchA2.id);
+  });
+
+  it('should reject x-branch-id of another company', async () => {
+    const res = await request(app)
+      .get('/api/procurement/part-requests')
+      .set('Authorization', `Bearer ${companyBToken}`)
+      .set('X-Branch-Id', branchA1Id);
+
+    expect(res.status).toBe(403);
+  });
+
+  it('should return 400 for an invalid status filter', async () => {
+    const res = await request(app)
+      .get('/api/procurement/part-requests?status=NOPE')
+      .set('Authorization', `Bearer ${financeToken}`);
+
+    expect(res.status).toBe(400);
+  });
+
   it('should ignore spoofed actor IDs sent in request body and use authenticated user', async () => {
     const spoofedUserId = 'fake-user-id-999999';
 
